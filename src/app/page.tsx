@@ -209,10 +209,10 @@ const specialOffers = [
 
 const paymentMethods = [
   { id: 'payment-pix', name: 'PIX', displayName: 'Pix via PagSeguro', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/pix_boa_mb.png', type: 'pix' },
-  { id: 'payment-hipercard', name: 'Hipercard', displayName: 'Hipercard via PagSeguro', image: 'https://i.ibb.co/C0mC1sC/hipercard.png', type: 'cc' },
-  { id: 'payment-elo', name: 'Elo', displayName: 'Elo via PagSeguro', image: 'https://i.ibb.co/yQd7b23/elo.png', type: 'cc' },
-  { id: 'payment-amex', name: 'American Express', displayName: 'American Express via PagSeguro', image: 'https://i.ibb.co/Y0p0mMR/amex.png', type: 'cc' },
-  { id: 'payment-visa', name: 'Visa', displayName: 'Visa via PagSeguro', image: 'https://i.ibb.co/SJxR1xH/visa.png', type: 'cc' },
+  { id: 'payment-cc', name: 'Credit Card', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/creditcard_mb.png', type: 'cc' },
+  { id: 'payment-picpay', name: 'PicPay', displayName: 'PicPay via Loja dos Gamers', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/picpay_mb.png', type: 'pix' },
+  { id: 'payment-nupay', name: 'Nupay', displayName: 'NuPay via Loja dos Gamers', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/br_nupay_mb.png', type: 'pix' },
+  { id: 'payment-mercadopago', name: 'Mercado Pago', displayName: 'Mercado Pago', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/mx/menu/mx_mercado_mb.png', type: 'pix' },
 ];
 
 const PurchaseFooter = ({ selectedRechargeId, selectedPaymentId, onPurchase }: { selectedRechargeId: string | null; selectedPaymentId: string | null; onPurchase: () => void; }) => {
