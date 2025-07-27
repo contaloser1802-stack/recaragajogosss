@@ -86,7 +86,7 @@ const specialOfferItems = [
     { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/6g2w8W5/calca-angelical.png' },
     { id: 'dima-bonus', name: '9999 Diamantes Bônus', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/28z4wM1/diamante-bonus.png' },
     { id: 'dunk-master', name: 'Dunk Master', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/RBDsM4s/dunk-master.png' },
-    { id: 'barba-velho', name: 'Barba do Velho', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/6Bj0D91/barba.png' },
+    { id: 'barba-velho', name: 'Barba do Velho', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/dsgKwrH8/barbinha-ff.jpg' },
     { id: 'sombra-roxa', name: 'Sombra Roxa', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/kYv0wsw/Screenshot-24.png' },
 ];
 
