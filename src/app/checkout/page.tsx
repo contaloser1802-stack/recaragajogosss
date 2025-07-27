@@ -198,13 +198,13 @@ function CheckoutForm() {
     const cleaned = value.replace(/\D/g, '').slice(0, 11);
     let formatted = cleaned;
     if (cleaned.length > 2) {
-      formatted = `${cleaned.slice(0,3)}.${cleaned.slice(3)}`;
+      formatted = `${'${cleaned.slice(0,3)}'}.${'${cleaned.slice(3)}'}`;
     }
     if (cleaned.length > 5) {
-      formatted = `${cleaned.slice(0,3)}.${cleaned.slice(3,6)}.${cleaned.slice(6)}`;
+      formatted = `${'${cleaned.slice(0,3)}'}.${'${cleaned.slice(3,6)}'}.${'${cleaned.slice(6)}'}`;
     }
      if (cleaned.length > 8) {
-      formatted = `${cleaned.slice(0,3)}.${cleaned.slice(3,6)}.${cleaned.slice(6,9)}-${cleaned.slice(9)}`;
+      formatted = `${'${cleaned.slice(0,3)}'}.${'${cleaned.slice(3,6)}'}.${'${cleaned.slice(6,9)}'}-${'${cleaned.slice(9)}'}`;
     }
     fieldChange(formatted);
   };
@@ -214,16 +214,16 @@ function CheckoutForm() {
     const cleaned = value.replace(/\D/g, '').slice(0, 11);
     let formatted = cleaned;
     if (cleaned.length > 0) {
-      formatted = `(${cleaned.slice(0, 2)}`;
+      formatted = `(${'${cleaned.slice(0, 2)}'}`;
     }
     if (cleaned.length >= 3) {
-      formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 3)}`;
+      formatted = `(${'${cleaned.slice(0, 2)}'}) ${'${cleaned.slice(2, 3)}'}`;
     }
     if (cleaned.length >= 4) {
-      formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 3)} ${cleaned.slice(3, 7)}`;
+      formatted = `(${'${cleaned.slice(0, 2)}'}) ${'${cleaned.slice(2, 3)}'} ${'${cleaned.slice(3, 7)}'}`;
     }
     if (cleaned.length >= 8) {
-      formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 3)} ${cleaned.slice(3, 7)}-${cleaned.slice(7, 11)}`;
+      formatted = `(${'${cleaned.slice(0, 2)}'}) ${'${cleaned.slice(2, 3)}'} ${'${cleaned.slice(3, 7)}'}-${'${cleaned.slice(7, 11)}'}`;
     }
     fieldChange(formatted);
   };
@@ -516,7 +516,7 @@ function CheckoutForm() {
             {specialOfferItems.map((item) => (
               <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                  <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
                     <Image src={item.image} alt={item.name} width={200} height={200} className="w-full h-full object-cover" data-ai-hint="game item icon"/>
                   </div>
                   <div>
@@ -539,12 +539,16 @@ function CheckoutForm() {
               <span>Total:</span>
               <span>{calculateTotal()}</span>
             </div>
-            <Button onClick={handleFinalSubmit} disabled={isSubmitting || selectedOffers.length === 0} variant="destructive" className="w-full h-12 text-lg">
-              {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
-            </Button>
-            <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="ghost" className="w-full h-12 text-lg">
-              Recusar promoção
-            </Button>
+            {selectedOffers.length > 0 && (
+                <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+                    {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
+                </Button>
+            )}
+            {selectedOffers.length === 0 && (
+                 <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+                    Recusar promoção
+                </Button>
+            )}
           </div>
         </DialogContent>
       </Dialog>
