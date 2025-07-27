@@ -527,7 +527,9 @@ function CheckoutForm() {
             {specialOfferItems.map((item) => (
               <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
                 <div className="flex items-center gap-4">
-                  <Image src={item.image} alt={item.name} width={40} height={40} className="rounded-md" data-ai-hint="game item icon"/>
+                  <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                    <Image src={item.image} alt={item.name} width={64} height={64} className="w-full h-full object-cover" data-ai-hint="game item icon"/>
+                  </div>
                   <div>
                     <p className="font-semibold">{item.name}</p>
                     <p className="text-sm text-gray-500">
