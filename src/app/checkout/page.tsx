@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
@@ -161,18 +162,6 @@ function CheckoutForm() {
 
   const calculateTotal = () => {
     const mainProductPrice = product ? parseFloat(product.price) : 0;
-    const offerPrice = selectedOffers.length > 0 ? 19.99 : 0; // Each selected offer costs 19.99, but it seems to be a single price for any selection in the example
-    
-    // Based on the image, it seems the total is fixed at 19,97 if any offer is selected. Let's refine this logic.
-    // The image shows a total of R$ 19,97, and the user text mention R$19,99. I will use 19.99 for consistency with the user text.
-    let total = mainProductPrice;
-    if (selectedOffers.length > 0) {
-        const firstOfferId = selectedOffers[0];
-        const offer = specialOfferItems.find(o => o.id === firstOfferId);
-        if(offer) {
-          total = offer.price; // The total becomes the price of one offer.
-        }
-    }
     
     let totalOffersPrice = 0;
     selectedOffers.forEach(offerId => {
@@ -550,8 +539,11 @@ function CheckoutForm() {
               <span>Total:</span>
               <span>{calculateTotal()}</span>
             </div>
-            <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+            <Button onClick={handleFinalSubmit} disabled={isSubmitting || selectedOffers.length === 0} variant="destructive" className="w-full h-12 text-lg">
               {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
+            </Button>
+            <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="ghost" className="w-full h-12 text-lg">
+              Recusar promoção
             </Button>
           </div>
         </DialogContent>
