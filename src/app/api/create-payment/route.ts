@@ -1,102 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const allowedOrigins = [
-  'https://6000-firebase-studio-1750702713496.cluster-vpxjqdstfzgs6qeiaf7rdlsqrc.cloudworkstations.dev/',
-  '6000-firebase-studio-1750702713496.cluster-vpxjqdstfzgs6qeiaf7rdlsqrc.cloudworkstations.dev/',
-  'https://www.6000-firebase-studio-1750702713496.cluster-vpxjqdstfzgs6qeiaf7rdlsqrc.cloudworkstations.dev/'
-]
+// This is a temporary solution to allow all origins.
+// In a production environment, you should restrict this to your domain.
+const allowCors = (fn: (req: NextRequest) => Promise<Response>) => async (req: NextRequest) => {
+  const response = await fn(req);
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-PUBLIC-KEY, X-SECRET-KEY');
+  return response;
+};
 
-// OPTIONS para preflight
-export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin') || ''
-  if (!allowedOrigins.includes(origin)) {
-    return new NextResponse(null, { status: 403 })
-  }
-
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400'
-    }
-  })
-}
-
-// POST normal com CORS liberado
-export async function POST(request: NextRequest) {
-  const origin = request.headers.get('origin') || ''
-  if (!allowedOrigins.includes(origin)) {
-    return NextResponse.json({ error: 'Origin not allowed by CORS' }, { status: 403 })
+async function handler(request: NextRequest) {
+  if (request.method === 'OPTIONS') {
+    return new NextResponse(null, { status: 204 });
   }
 
   try {
-    const body = await request.json()
+    const body = await request.json();
 
-    // 👇 AQUI entra toda sua lógica original
-    const { name, email, cpf, phone, amount, externalId, postbackUrl, items, utmQuery } = body;
+    const publicKey = process.env.GHOSTSPAY_PUBLIC_KEY;
+    const secretKey = process.env.GHOSTSPAY_SECRET_KEY;
 
-    const secretKey = process.env.GHOSTPAY_SECRET_KEY;
-
-    const payload = {
-      name, email, cpf, phone,
-      paymentMethod: 'PIX',
-      amount,
-      traceable: true,
-      externalId,
-      postbackUrl,
-      items,
-      cep: '01001-000',
-      street: 'ruabruxo',
-      number: '777',
-      complement: 'Apto 101',
-      district: 'Centro',
-      city: 'São Paulo',
-      state: 'SP',
-      checkoutUrl: 'https://sopayload.com/checkout',
-      referrerUrl: 'https://sopayload.com',
-      utmQuery,
-      fingerPrints: [{ provider: 'browser', value: 'unico-abc-123' }]
-    };
-
-    const ghostpayResponse = await fetch('https://app.ghostspaysv1.com/api/v1/transaction.purchase', {
+    if (!publicKey || !secretKey) {
+        throw new Error("API keys are not configured on the server.");
+    }
+    
+    const ghostpayResponse = await fetch('https://api.ghostspay.com/v1/charges', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': secretKey!
+        'X-PUBLIC-KEY': publicKey,
+        'X-SECRET-KEY': secretKey
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(body)
     });
 
     const data = await ghostpayResponse.json();
 
     if (!ghostpayResponse.ok) {
-      return NextResponse.json(
-        { error: data.message || 'Falha ao criar pagamento.' },
-        {
-          status: ghostpayResponse.status,
-          headers: {
-            'Access-Control-Allow-Origin': origin
-          }
-        }
-      );
+        // Log the detailed error from Ghostspay if available
+        console.error("Ghostspay API Error:", data);
+        const errorMessage = data.response?.errors?.customer?.document || data.error?.message || 'Falha ao criar pagamento.';
+        return NextResponse.json(
+            { error: errorMessage },
+            { status: ghostpayResponse.status }
+        );
     }
 
-    return new NextResponse(JSON.stringify(data), {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Content-Type': 'application/json'
-      }
-    });
+    return NextResponse.json(data, { status: 200 });
 
-  } catch (error) {
-    return NextResponse.json({ error: 'Erro interno do servidor.' }, {
-      status: 500,
-      headers: {
-        'Access-Control-Allow-Origin': origin
-      }
-    })
+  } catch (error: any) {
+    console.error("Internal Server Error:", error);
+    return NextResponse.json({ error: error.message || 'Erro interno do servidor.' }, { status: 500 });
   }
 }
+
+
+export const POST = allowCors(handler);
+export const OPTIONS = allowCors(async () => new NextResponse(null, { status: 204 }));
