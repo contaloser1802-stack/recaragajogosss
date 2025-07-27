@@ -429,7 +429,11 @@ export default function HomePage() {
     try {
         localStorage.setItem('selectedProduct', JSON.stringify(selectedProduct));
         localStorage.setItem('paymentMethodName', selectedPayment.displayName);
-        router.push('/checkout');
+        if (selectedPayment.type === 'cc') {
+          router.push('/checkout-credit-card');
+        } else {
+          router.push('/checkout');
+        }
     } catch (e) {
         console.error("Failed to access localStorage", e);
         toast({
