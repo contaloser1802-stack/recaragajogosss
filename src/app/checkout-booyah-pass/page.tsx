@@ -270,14 +270,51 @@ function CheckoutForm() {
     productDescription: "Recarga Free Fire - 1.000 + Passe Booyah",
   };
 
-  useEffect(() => {
-    const storedPlayerName = localStorage.getItem('playerName');
-    if (storedPlayerName) {
-      setPlayerName(storedPlayerName);
-    } else {
-      setPlayerName("Não encontrado");
-    }
-  }, []);
+useEffect(() => {
+  // CÓDIGO DO PIXEL
+  window.pixelId = "68652c2603b34a13ee47f2dd";
+  const utmScript = document.createElement("script");
+  utmScript.src = "https://cdn.utmify.com.br/scripts/pixel/pixel.js";
+  utmScript.async = true;
+  utmScript.defer = true;
+  document.head.appendChild(utmScript);
+
+  const latestScript = document.createElement("script");
+  latestScript.src = "https://cdn.utmify.com.br/scripts/utms/latest.js";
+  latestScript.async = true;
+  latestScript.defer = true;
+  latestScript.setAttribute("data-utmify-prevent-xcod-sck", "");
+  latestScript.setAttribute("data-utmify-prevent-subids", "");
+  document.head.appendChild(latestScript);
+
+  !(function (f, b, e, v, n, t, s) {
+    if (f.fbq) return;
+    n = f.fbq = function () {
+      n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+    };
+    if (!f._fbq) f._fbq = n;
+    n.push = n;
+    n.loaded = !0;
+    n.version = "2.0";
+    n.queue = [];
+    t = b.createElement(e);
+    t.async = !0;
+    t.src = v;
+    s = b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t, s);
+  })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+
+  window.fbq("init", "1264486768354584");
+  window.fbq("track", "PageView");
+
+  // SUA LÓGICA
+  const storedPlayerName = localStorage.getItem('playerName');
+  if (storedPlayerName) {
+    setPlayerName(storedPlayerName);
+  } else {
+    setPlayerName("Não encontrado");
+  }
+}, [toast]); // <-- FECHAMENTO AQUI
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -350,7 +387,7 @@ function CheckoutForm() {
     };
 
     try {
-      const response = await fetch("https://recargajogo.online/api/create-payment", {
+      const response = await fetch("https://www.recargajogo.online/api/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

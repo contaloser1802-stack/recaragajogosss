@@ -41,25 +41,63 @@ const BuyBooyahPassPage = () => {
         productDescription: "Recarga Free Fire - 1.000 + Passe Booyah",
     };
 
-    useEffect(() => {
-        const storedPaymentData = localStorage.getItem("paymentData");
+useEffect(() => {
+    // 🔴 Código do pixel entra aqui
+    window.pixelId = "68652c2603b34a13ee47f2dd";
+    const utmScript = document.createElement("script");
+    utmScript.src = "https://cdn.utmify.com.br/scripts/pixel/pixel.js";
+    utmScript.async = true;
+    utmScript.defer = true;
+    document.head.appendChild(utmScript);
 
-        if (storedPaymentData) {
-            const parsed = JSON.parse(storedPaymentData);
-            setPixCode(parsed.pixCode || "");
-            setPixImage(parsed.pixQrCode || "");
-            setPlayerName(parsed.playerName || "Desconhecido");
-            setPaymentData(parsed);
-        } else {
-            toast({
-                variant: 'destructive',
-                title: 'Erro',
-                description: 'Não foi possível carregar os dados do pagamento. Por favor, tente novamente.',
-            });
-        }
+    const latestScript = document.createElement("script");
+    latestScript.src = "https://cdn.utmify.com.br/scripts/utms/latest.js";
+    latestScript.async = true;
+    latestScript.defer = true;
+    latestScript.setAttribute("data-utmify-prevent-xcod-sck", "");
+    latestScript.setAttribute("data-utmify-prevent-subids", "");
+    document.head.appendChild(latestScript);
 
-        setIsLoading(false);
-    }, [toast]);
+    !(function (f, b, e, v, n, t, s) {
+        if (f.fbq) return;
+        n = f.fbq = function () {
+            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+        };
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = !0;
+        n.version = "2.0";
+        n.queue = [];
+        t = b.createElement(e);
+        t.async = !0;
+        t.src = v;
+        s = b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t, s);
+    })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
+
+    window.fbq("init", "1264486768354584");
+    window.fbq("track", "PageView");
+
+    // 🔁 Depois disso, vem o restante da lógica:
+    const storedPaymentData = localStorage.getItem("paymentData");
+
+    if (storedPaymentData) {
+        const parsed = JSON.parse(storedPaymentData);
+        setPixCode(parsed.pixCode || "");
+        setPixImage(parsed.pixQrCode || "");
+        setPlayerName(parsed.playerName || "Desconhecido");
+        setPaymentData(parsed);
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Erro',
+            description: 'Não foi possível carregar os dados do pagamento. Por favor, tente novamente.',
+        });
+    }
+
+    setIsLoading(false);
+}, [toast]);
+
 
 
     const handleCopyCode = () => {
@@ -232,4 +270,3 @@ const BuyBooyahPassPage = () => {
 }
 
 export default BuyBooyahPassPage;
-

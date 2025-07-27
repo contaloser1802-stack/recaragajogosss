@@ -18,12 +18,13 @@ import { useRouter } from 'next/navigation';
 import { type FormEvent, type KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X, Info } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GameSelection } from '@/components/freefire/GameSelection';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ShieldCheckIcon = () => (
   <svg width="1em" height="1em" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[18px] w-[18px]">
@@ -39,13 +40,6 @@ const StepMarker = ({ number }: { number: string }) => (
     </svg>
     <div className="col-start-1 row-start-1 text-center text-base/none font-bold text-white">{number}</div>
   </div>
-);
-
-const InfoIcon = () => (
-  <svg width="1em" height="1em" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g clipPath="url(#recharge_clip0_489_1601)"><path d="M4.8999 5.39848C4.89981 4.44579 5.67209 3.67344 6.62478 3.67344H7.37471C8.33038 3.67344 9.09977 4.45392 9.09971 5.40371C9.09967 6.05546 8.73195 6.65677 8.14619 6.94967L7.57416 7.23571C7.49793 7.27382 7.44978 7.35173 7.44978 7.43695V7.49844C7.44978 7.78839 7.21473 8.02344 6.92478 8.02344C6.63483 8.02344 6.39978 7.78839 6.39978 7.49844V7.43695C6.39978 6.95403 6.67262 6.51255 7.10456 6.29657L7.6766 6.01053C7.90385 5.8969 8.0497 5.66087 8.04971 5.40365C8.04973 5.0279 7.74459 4.72344 7.37471 4.72344H6.62478C6.25203 4.72344 5.94987 5.02563 5.9499 5.39838C5.94993 5.68833 5.7149 5.9234 5.42495 5.92343C5.135 5.92346 4.89993 5.68843 4.8999 5.39848Z" fill="currentColor"></path><path d="M6.9999 10.1484C7.3865 10.1484 7.6999 9.83504 7.6999 9.44844C7.6999 9.06184 7.3865 8.74844 6.9999 8.74844C6.6133 8.74844 6.2999 9.06184 6.2999 9.44844C6.2999 9.83504 6.6133 10.1484 6.9999 10.1484Z" fill="currentColor"></path><path fillRule="evenodd" clipRule="evenodd" d="M0.524902 6.99844C0.524902 3.42239 3.42386 0.523438 6.9999 0.523438C10.5759 0.523438 13.4749 3.42239 13.4749 6.99844C13.4749 10.5745 10.5759 13.4734 6.9999 13.4734C3.42386 13.4734 0.524902 10.5745 0.524902 6.99844ZM6.9999 1.57344C4.00376 1.57344 1.5749 4.00229 1.5749 6.99844C1.5749 9.99458 4.00376 12.4234 6.9999 12.4234C9.99605 12.4234 12.4249 9.99458 12.4249 6.99844C12.4249 4.00229 9.99605 1.57344 6.9999 1.57344Z" fill="currentColor"></path></g>
-    <defs><clipPath id="recharge_clip0_489_1601"><rect width="14" height="14" fill="currentColor"></rect></clipPath></defs>
-  </svg>
 );
 
 const SwitchAccountIcon = () => (
@@ -103,7 +97,6 @@ const ImageCarousel = () => {
         }
     }, [currentIndex, banners.length]);
 
-    // Auto-play
     useEffect(() => {
         resetTimeout();
         if (!isTransitioning) {
@@ -114,7 +107,6 @@ const ImageCarousel = () => {
         };
     }, [currentIndex, isTransitioning, handleNext, resetTimeout]);
 
-    // Re-enable transitions after the jump
     useEffect(() => {
         if (isTransitioning) {
             const timer = setTimeout(() => setIsTransitioning(false), 50);
@@ -192,67 +184,30 @@ const ImageCarousel = () => {
 };
 
 const diamondPacks = [
-  { id: 'pack-65', amount: "1.060", bonus: '1.060', price: 'R$ 19,99' },
-  { id: 'pack-100', amount: "2.180", bonus: '2.180', price: 'R$ 27,99' },
-  { id: 'pack-310', amount: "5.600", bonus: '5.600', price: 'R$ 62,99' },
-  { id: 'pack-520', amount: "12.800", bonus: '12.800', price: 'R$ 109,99' },
-  { id: 'pack-1060', amount: "25.600", bonus: '25.600', price: 'R$ 174,99' },
-  { id: 'pack-2180', amount: "29.900", bonus: '29.900', price: 'R$ 209,99' },
-  { id: 'pack-5600', amount: "44.900", bonus: '44.900', price: 'R$ 329,99' },
+  { id: 'pack-1060', amount: "1.060", bonus: '1.060', price: '19.99', priceFormatted: 'R$ 19,99', productDescription: '2.120 Diamantes' },
+  { id: 'pack-2180', amount: "2.180", bonus: '2.180', price: '27.99', priceFormatted: 'R$ 27,99', productDescription: '4.360 Diamantes' },
+  { id: 'pack-5600', amount: "5.600", bonus: '5.600', price: '62.99', priceFormatted: 'R$ 62,99', productDescription: '11.200 Diamantes' },
+  { id: 'pack-12800', amount: "12.800", bonus: '12.800', price: '109.99', priceFormatted: 'R$ 109,99', productDescription: '25.600 Diamantes' },
+  { id: 'pack-25600', amount: "25.600", bonus: '25.600', price: '174.99', priceFormatted: 'R$ 174,99', productDescription: '51.200 Diamantes' },
+  { id: 'pack-29900', amount: "29.900", bonus: '29.900', price: '209.99', priceFormatted: 'R$ 209,99', productDescription: '59.800 Diamantes' },
+  { id: 'pack-44900', amount: "44.900", bonus: '44.900', price: '329.99', priceFormatted: 'R$ 329,99', productDescription: '89.800 Diamantes' },
 ];
 
 const specialOffers = [
-  { id: 'offer-weekly-sub', name: 'Assinatura Semanal', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/000/002/logo.png', price: 'R$ 19,99', amount: '1.000', bonus: '300' },
-  { id: 'offer-monthly-sub', name: 'Assinatura Mensal', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/081/041/logo.png', price: 'R$ 32,90', amount: '2.000', bonus: '600' },
-  { id: 'offer-booyah-pass', name: 'Passe Booyah', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/item/0803/000/000/logo.png', price: 'R$ 34,90', amount: '1.000', bonus: 'Passe Booyah' },
-  { id: 'offer-level-pack', name: 'Pacote de Diamantes - Nível 6', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/004/790/logo.png', price: 'R$ 74,80', amount: '7.800', bonus: '5.600' }
+  { id: 'offer-weekly-sub', name: 'Assinatura Semanal', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/000/002/logo.png', price: '19.99', priceFormatted: 'R$ 19,99', amount: '1.000', bonus: '300', productDescription: 'Assinatura Semanal' },
+  { id: 'offer-monthly-sub', name: 'Assinatura Mensal', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/081/041/logo.png', price: '32.90', priceFormatted: 'R$ 32,90', amount: '2.000', bonus: '600', productDescription: 'Assinatura Mensal' },
+  { id: 'offer-booyah-pass', name: 'Passe Booyah', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/item/0803/000/000/logo.png', price: '19.99', priceFormatted: 'R$ 19,99', amount: '1.000', bonus: 'Passe Booyah', productDescription: 'Passe Booyah' },
+  { id: 'offer-level-pack', name: 'Passe de Nível', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/004/790/logo.png', price: '74.80', priceFormatted: 'R$ 74,80', amount: '7.800', bonus: '5.600', productDescription: 'Passe de Nível' }
 ];
 
 const paymentMethods = [
   { id: 'payment-pix', name: 'PIX', displayName: 'Pix via PagSeguro', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/pix_boa_mb.png', type: 'pix' },
-  { id: 'payment-cc', name: 'Credit Card', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/creditcard_mb.png', type: 'cc' },
-  { id: 'payment-picpay', name: 'PicPay', displayName: 'PicPay via Loja dos Gamers', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/picpay_mb.png', type: 'pix' },
-  { id: 'payment-nupay', name: 'Nupay', displayName: 'NuPay via Loja dos Gamers', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/br_nupay_mb.png', type: 'pix' },
-  { id: 'payment-mercadopago', name: 'Mercado Pago', displayName: 'Mercado Pago', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/mx/menu/mx_mercado_mb.png', type: 'pix' },
+  { id: 'payment-cc-visa', name: 'Visa', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://payment.boacompra.com/images-novo/layout/cartoes/visa-2021.png', type: 'cc' },
+  { id: 'payment-cc-master', name: 'Mastercard', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://payment.boacompra.com/images-novo/layout/cartoes/mastercard-2019.png', type: 'cc' },
+  { id: 'payment-cc-elo', name: 'Elo', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://payment.boacompra.com/images-novo/layout/cartoes/elo-2019.png', type: 'cc' },
+  { id: 'payment-cc-amex', name: 'American Express', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://payment.boacompra.com/images-novo/layout/cartoes/amex-2019.png', type: 'cc' },
+  { id: 'payment-cc-hipercard', name: 'Hipercard', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://payment.boacompra.com/images-novo/layout/cartoes/hipercard-2019.png', type: 'cc' },
 ];
-
-const PurchaseFooter = ({ selectedRechargeId, selectedPaymentId, onPurchase }: { selectedRechargeId: string | null; selectedPaymentId: string | null; onPurchase: () => void; }) => {
-  if (!selectedRechargeId) {
-    return null;
-  }
-
-  const allItems = [...diamondPacks, ...specialOffers];
-  const selectedItem = allItems.find(item => item.id === selectedRechargeId);
-
-  if (!selectedItem) {
-    return null;
-  }
-
-  const isPurchaseDisabled = !selectedPaymentId;
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
-      <div className="pointer-events-auto relative mx-auto flex w-full max-w-5xl items-center justify-between gap-4 p-4 md:justify-end md:gap-10 lg:px-10">
-        <div className="flex flex-col md:items-end">
-          <div className="flex items-center gap-1 text-sm/none font-bold md:text-end md:text-base/none">
-            <>
-              <Image className="h-4 w-4 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
-              <span dir="ltr">{selectedItem.amount} + {selectedItem.bonus}</span>
-            </>
-          </div>
-          <div className="mt-2 flex items-center gap-1 text-sm/none md:text-end md:text-base/none">
-            <span className="font-medium text-gray-600">Total:</span>
-            <span className="font-bold text-destructive">{selectedItem.price}</span>
-          </div>
-        </div>
-        <Button className="px-5 text-base font-bold h-11" variant="destructive" disabled={isPurchaseDisabled} onClick={onPurchase}>
-          <ShieldCheckIcon />
-          Compre agora
-        </Button>
-      </div>
-    </div>
-  );
-};
 
 export default function HomePage() {
   const router = useRouter();
@@ -264,6 +219,10 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRechargeId, setSelectedRechargeId] = useState<string | null>(null);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
+  
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [sheetView, setSheetView] = useState<'form' | 'pix'>('form');
+  const [pixData, setPixData] = useState<{ pixCode: string, pixQrCode: string } | null>(null);
 
   type LoginHistoryItem = { id: string; name: string };
   const [history, setHistory] = useState<LoginHistoryItem[]>([]);
@@ -388,7 +347,8 @@ export default function HomePage() {
   };
 
   const allRechargeOptions = [...diamondPacks, ...specialOffers];
-  
+  const selectedItem = allRechargeOptions.find(item => item.id === selectedRechargeId);
+
   const handlePurchase = () => {
     if (!isLoggedIn) {
       setError('Você deve logar primeiro antes da compra');
@@ -399,7 +359,7 @@ export default function HomePage() {
       return;
     }
 
-    if (!selectedRechargeId) {
+    if (!selectedRechargeId || !selectedItem) {
       toast({
         variant: "destructive",
         title: "Erro",
@@ -416,37 +376,8 @@ export default function HomePage() {
       });
       return;
     }
-
-    const selectedPack = allRechargeOptions.find(p => p.id === selectedRechargeId);
-    if (!selectedPack) return;
-
-    const selectedPayment = paymentMethods.find(p => p.id === selectedPaymentId);
-    if (!selectedPayment) return;
-
-    localStorage.setItem('selectedPack', JSON.stringify(selectedPack));
-    localStorage.setItem('paymentMethodName', selectedPayment.displayName);
-
-    const purchaseRoutes: { [key: string]: string } = {
-        'pack-65': '/checkout',
-        'pack-100': '/checkout-2180',
-        'pack-310': '/checkout-5600',
-        'pack-520': '/checkout-12800',
-        'pack-1060': '/checkout-25600',
-        'pack-2180': '/checkout-29900',
-        'pack-5600': '/checkout-44900',
-        'offer-weekly-sub': '/checkout-weekly-sub',
-        'offer-monthly-sub': '/checkout-monthly-sub',
-        'offer-booyah-pass': '/checkout-booyah-pass',
-        'offer-level-pack': '/checkout-level-pack'
-    };
-
-    const pixRoute = purchaseRoutes[selectedRechargeId];
-
-    if (selectedPayment.type === 'cc') {
-      router.push('/checkout-credit-card');
-    } else if (pixRoute) {
-      router.push(pixRoute);
-    }
+    setSheetView('form');
+    setIsSheetOpen(true);
   };
 
   const handleSocialLoginClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -556,9 +487,6 @@ export default function HomePage() {
                           <form onSubmit={handleLogin} className="mb-4">
                             <label className="mb-2 flex items-center gap-1 text-[15px]/4 font-medium text-gray-800" htmlFor="player-id">
                               ID do jogador
-                              <button type="button" className="rounded-full text-sm text-gray-500 transition-opacity hover:opacity-70">
-                                <InfoIcon />
-                              </button>
                             </label>
                             <div className="flex">
                                 <Popover open={!isMobile && isHistoryPopoverOpen} onOpenChange={setIsHistoryPopoverOpen}>
@@ -631,7 +559,6 @@ export default function HomePage() {
                     )}
                   </div>
 
-                  {/* Denomination Section */}
                   <div>
                     <div id="denom-section" className="mb-3 flex scroll-mt-16 items-center gap-2 text-lg/none font-bold text-gray-800 md:text-xl/none">
                       <StepMarker number="2" />
@@ -700,7 +627,6 @@ export default function HomePage() {
                     </Tabs>
                   </div>
 
-                  {/* Payment Method Section */}
                   <div>
                     <div id="channel-section" className="mb-3 flex scroll-mt-36 items-center gap-2 text-lg/none font-bold text-gray-800 md:text-xl/none">
                       <StepMarker number="3" />
@@ -728,15 +654,15 @@ export default function HomePage() {
                             <div className="shrink-0">
                               <Image className="pointer-events-none h-[60px] w-[60px] object-contain object-left md:h-14 md:w-14" src={method.image} width={75} height={75} alt={method.name} data-ai-hint="payment logo" />
                             </div>
-                            {showPriceAndBonus && (
+                            {showPriceAndBonus && selectedItem && (
                               <div className="flex w-full flex-col flex-wrap gap-y-1 font-medium md:gap-y-2 text-sm/none md:text-base/none">
                                 <div className="flex flex-wrap gap-x-0.5 gap-y-1 whitespace-nowrap md:flex-col">
-                                  <span className="items-center inline-flex font-bold text-gray-800">{allRechargeOptions.find(p => p.id === selectedRechargeId)?.price}</span>
+                                  <span className="items-center inline-flex font-bold text-gray-800">{selectedItem.priceFormatted}</span>
                                 </div>
                                 <div className="flex flex-wrap gap-y-1 empty:hidden md:gap-y-2">
                                   <span className="inline-flex items-center text-xs/none text-primary md:text-sm/none">
                                     + Bônus <Image className="mx-1 h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={12} height={12} alt="Diamante" data-ai-hint="diamond gem" />
-                                    {allRechargeOptions.find(p => p.id === selectedRechargeId)?.bonus}
+                                    {selectedItem.bonus}
                                   </span>
                                 </div>
                               </div>
@@ -769,7 +695,27 @@ export default function HomePage() {
         </div>
         <div className="z-[9] pointer-events-none sticky bottom-0"></div>
       </main>
-      <PurchaseFooter selectedRechargeId={selectedRechargeId} selectedPaymentId={selectedPaymentId} onPurchase={handlePurchase} />
+
+      {selectedRechargeId && (
+        <PurchaseFooter
+          selectedRechargeId={selectedRechargeId}
+          selectedPaymentId={selectedPaymentId}
+          onPurchase={handlePurchase}
+          product={selectedItem}
+        />
+      )}
+
+      <CheckoutSheet 
+        isOpen={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        view={sheetView}
+        setView={setSheetView}
+        selectedItem={selectedItem}
+        playerName={playerName}
+        onPixGenerated={setPixData}
+        pixData={pixData}
+      />
+
       <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
         <AlertDialogContent className="max-w-[320px] rounded-lg p-6">
           <AlertDialogHeader className="text-justfy center space-y-3">
@@ -803,3 +749,238 @@ export default function HomePage() {
     </div>
   );
 }
+
+const PurchaseFooter = ({ product, selectedPaymentId, onPurchase }) => {
+  if (!product) return null;
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
+      <div className="pointer-events-auto relative mx-auto flex w-full max-w-5xl items-center justify-between gap-4 p-4 md:justify-end md:gap-10 lg:px-10">
+        <div className="flex flex-col md:items-end">
+          <div className="flex items-center gap-1 text-sm/none font-bold md:text-end md:text-base/none">
+            <Image className="h-4 w-4 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
+            <span dir="ltr">{product.amount} + {product.bonus}</span>
+          </div>
+          <div className="mt-2 flex items-center gap-1 text-sm/none md:text-end md:text-base/none">
+            <span className="font-medium text-gray-600">Total:</span>
+            <span className="font-bold text-destructive">{product.priceFormatted}</span>
+          </div>
+        </div>
+        <Button className="px-5 text-base font-bold h-11" variant="destructive" disabled={!selectedPaymentId} onClick={onPurchase}>
+          <ShieldCheckIcon />
+          Compre agora
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+
+// Form Validation Schema
+const formSchema = z.object({
+  name: z.string().min(1, { message: "Nome é obrigatório." }).refine(value => value.trim().split(" ").length >= 2, { message: "Por favor, insira o nome e sobrenome." }),
+  email: z.string().min(1, { message: "E-mail é obrigatório." }).email({ message: "Formato de e-mail inválido." }),
+  phone: z.string().min(1, { message: "Número de telefone é obrigatório." }).regex(/^\(\d{2}\) \d{4,5}-\d{4}$/, { message: "Formato de telefone inválido." }),
+  cpf: z.string().min(14, { message: "CPF inválido." }),
+});
+
+
+const CheckoutSheet = ({ isOpen, onOpenChange, view, setView, selectedItem, playerName, onPixGenerated, pixData }) => {
+    const handleBackToForm = () => setView('form');
+
+    return (
+        <Sheet open={isOpen} onOpenChange={onOpenChange}>
+            <SheetContent side="right" className="p-0 w-full max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+                {view === 'form' && selectedItem && (
+                    <CheckoutForm 
+                        selectedItem={selectedItem} 
+                        playerName={playerName}
+                        onSuccess={(data) => {
+                            onPixGenerated(data);
+                            setView('pix');
+                        }} 
+                    />
+                )}
+                {view === 'pix' && pixData && selectedItem && (
+                    <PixDisplay 
+                        pixData={pixData} 
+                        selectedItem={selectedItem} 
+                        playerName={playerName}
+                        onBack={handleBackToForm}
+                    />
+                )}
+            </SheetContent>
+        </Sheet>
+    );
+};
+
+// Checkout Form Component
+const CheckoutForm = ({ selectedItem, playerName, onSuccess }) => {
+    const { toast } = useToast();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        mode: 'onChange',
+        defaultValues: { name: '', email: '', phone: '', cpf: '' },
+    });
+
+    const handleMaskedChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void, mask: (value: string) => string) => {
+        fieldChange(mask(e.target.value));
+    };
+    
+    const phoneMask = (value: string) => value.replace(/\D/g, '').slice(0, 11).replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4,5})(\d{4})/, '$1-$2');
+    const cpfMask = (value: string) => value.replace(/\D/g, '').slice(0, 11).replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        setIsSubmitting(true);
+        try {
+            const payload = {
+                name: values.name,
+                email: values.email,
+                phone: values.phone.replace(/\D/g, ''),
+                cpf: values.cpf.replace(/\D/g, ''),
+                amount: parseFloat(selectedItem.price.replace(',', '.')),
+                externalId: `ff-${Date.now()}`,
+                items: [{
+                    unitPrice: parseFloat(selectedItem.price.replace(',', '.')),
+                    title: selectedItem.productDescription,
+                    quantity: 1,
+                    tangible: false,
+                }],
+            };
+
+            const response = await fetch("/api/create-payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Erro ao processar o pagamento");
+            
+            if (data.pixQrCode || data.pixCode) {
+                 onSuccess(data);
+            } else {
+                 throw new Error("Resposta de pagamento inválida");
+            }
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Erro no pagamento", description: error.message });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-full">
+            <div className="p-6 border-b">
+                 <h2 className="text-lg font-semibold">Finalizar Compra</h2>
+            </div>
+             <div className="flex-1 overflow-y-auto">
+                <div className="bg-gray-50 p-6 border-b">
+                    <div className="flex items-center gap-4">
+                        <Image className="block h-16 w-16 overflow-hidden rounded-lg bg-white object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png" alt="Free Fire" width={64} height={64}/>
+                        <div>
+                            <div className="text-lg font-bold text-gray-800">Free Fire</div>
+                            <div className="text-sm text-gray-600">Recarga de Diamantes</div>
+                        </div>
+                    </div>
+                </div>
+                <dl className="p-6 space-y-4 text-sm">
+                    <div className="flex justify-between">
+                        <dt className="text-gray-600">Jogador</dt>
+                        <dd className="font-medium text-gray-800">{playerName}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                        <dt className="text-gray-600">Produto</dt>
+                        <dd className="font-medium text-gray-800">{selectedItem.productDescription}</dd>
+                    </div>
+                    <div className="flex justify-between items-baseline pt-4 border-t">
+                        <dt className="text-base font-semibold text-gray-800">Total</dt>
+                        <dd className="text-base font-bold text-destructive">{selectedItem.priceFormatted}</dd>
+                    </div>
+                </dl>
+                <div className="p-6 pt-0">
+                     <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                           <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormLabel>Nome Completo</FormLabel><FormControl><Input {...field} placeholder="Seu nome completo" /></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>E-mail</FormLabel><FormControl><Input {...field} type="email" placeholder="seu@email.com" /></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="cpf" render={({ field }) => (<FormItem><FormLabel>CPF</FormLabel><FormControl><Input {...field} placeholder="000.000.000-00" onChange={(e) => handleMaskedChange(e, field.onChange, cpfMask)}/></FormControl><FormMessage /></FormItem>)} />
+                           <FormField control={form.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Telefone</FormLabel><FormControl><Input {...field} placeholder="(00) 00000-0000" onChange={(e) => handleMaskedChange(e, field.onChange, phoneMask)}/></FormControl><FormMessage /></FormItem>)} />
+                           <Button type="submit" className="w-full h-11 text-base mt-6" variant="destructive" disabled={isSubmitting}>
+                            {isSubmitting ? "Processando..." : "Prosseguir para pagamento"}
+                           </Button>
+                        </form>
+                    </Form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+const PixDisplay = ({ pixData, selectedItem, playerName, onBack }) => {
+    const { toast } = useToast();
+    const handleCopyCode = () => {
+        if (navigator.clipboard && pixData.pixCode) {
+            navigator.clipboard.writeText(pixData.pixCode);
+            toast({
+                title: "Copiado!",
+                description: "O código Pix foi copiado para a área de transferência.",
+            });
+        }
+    };
+    return (
+      <div className="flex flex-col h-full bg-gray-50">
+          <div className="p-4 border-b bg-white flex items-center">
+              <Button variant="ghost" size="icon" className="mr-2" onClick={onBack}>
+                  <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <h2 className="text-lg font-semibold text-center flex-1">Pagar com PIX</h2>
+          </div>
+          <div className="flex-1 overflow-y-auto p-6">
+              <div className="text-center">
+                  <p className="text-gray-600">Recarga para:</p>
+                  <p className="font-bold text-lg text-gray-800">{playerName}</p>
+                  <p className="font-bold text-2xl text-destructive mt-1">{selectedItem.priceFormatted}</p>
+              </div>
+
+              <div className="my-6 flex items-center justify-center">
+                  {pixData.pixQrCode ? (
+                      <Image
+                          src={pixData.pixQrCode}
+                          alt="QR Code Pix"
+                          width={200}
+                          height={200}
+                          data-ai-hint="qr code"
+                      />
+                  ) : (
+                      <Skeleton className="h-[200px] w-[200px]" />
+                  )}
+              </div>
+              
+              <div className="text-center text-gray-500 text-sm mb-4">
+                  Pague com o QR Code ou use o código abaixo.
+              </div>
+
+              <div className="mb-4 mt-3 select-all break-words rounded-md bg-white p-4 text-sm/[22px] text-gray-800 border">
+                  {pixData.pixCode || <Skeleton className="h-5 w-full" />}
+              </div>
+
+              <Button className="w-full h-11 text-base font-bold" variant="destructive" onClick={handleCopyCode} disabled={!pixData.pixCode}>
+                  Copiar Código
+              </Button>
+
+              <div className="text-gray-500 text-xs space-y-3 mt-6">
+                  <p className="font-semibold">Para realizar o pagamento siga os passos abaixo:</p>
+                  <ol className="list-decimal list-inside space-y-1 pl-2">
+                      <li>Abra o app do seu banco e selecione a opção Pix.</li>
+                      <li>Escolha "Pagar com QR Code" ou "Pix Copia e Cola".</li>
+                      <li>Confirme as informações e finalize o pagamento.</li>
+                  </ol>
+                  <p>Você receberá seus diamantes em poucos minutos após a confirmação do pagamento.</p>
+              </div>
+          </div>
+      </div>
+    );
+};
