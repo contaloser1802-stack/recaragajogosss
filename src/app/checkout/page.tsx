@@ -14,6 +14,8 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const cpfSchema = z.string().refine(value => {
     if (typeof value !== 'string') return false;
@@ -80,16 +82,26 @@ interface PaymentPayload {
     }[];
 }
 
+const specialOfferItems = [
+    { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/6g2w8W5/calca-angelical.png' },
+    { id: 'dima-bonus', name: '9999 Diamantes Bônus', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/28z4wM1/diamante-bonus.png' },
+    { id: 'dunk-master', name: 'Dunk Master', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/RBDsM4s/dunk-master.png' },
+    { id: 'barba-velho', name: 'Barba do Velho', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/6Bj0D91/barba.png' },
+    { id: 'sombra-roxa', name: 'Sombra Roxa', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/hK8y55R/sombra-roxa.png' },
+];
+
 
 function CheckoutForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isPromoApplied, setIsPromoApplied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   const [product, setProduct] = useState<ProductData | null>(null);
   const [playerName, setPlayerName] = useState("Carregando...");
   const [paymentMethodName, setPaymentMethodName] = useState("PagSeguro");
+  const [selectedOffers, setSelectedOffers] = useState<string[]>([]);
 
 
     useEffect(() => {
@@ -140,6 +152,38 @@ function CheckoutForm() {
       promoCode: '',
     },
   });
+
+  const handleOfferChange = (offerId: string) => {
+    setSelectedOffers(prev =>
+      prev.includes(offerId) ? prev.filter(id => id !== offerId) : [...prev, offerId]
+    );
+  };
+
+  const calculateTotal = () => {
+    const mainProductPrice = product ? parseFloat(product.price) : 0;
+    const offerPrice = selectedOffers.length > 0 ? 19.99 : 0; // Each selected offer costs 19.99, but it seems to be a single price for any selection in the example
+    
+    // Based on the image, it seems the total is fixed at 19,97 if any offer is selected. Let's refine this logic.
+    // The image shows a total of R$ 19,97, and the user text mention R$19,99. I will use 19.99 for consistency with the user text.
+    let total = mainProductPrice;
+    if (selectedOffers.length > 0) {
+        const firstOfferId = selectedOffers[0];
+        const offer = specialOfferItems.find(o => o.id === firstOfferId);
+        if(offer) {
+          total = offer.price; // The total becomes the price of one offer.
+        }
+    }
+    
+    let totalOffersPrice = 0;
+    selectedOffers.forEach(offerId => {
+      const offer = specialOfferItems.find(o => o.id === offerId);
+      if(offer) {
+        totalOffersPrice += offer.price;
+      }
+    });
+
+    return (mainProductPrice + totalOffersPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
 
 
   const promoCodeValue = form.watch("promoCode");
@@ -194,9 +238,22 @@ function CheckoutForm() {
     }
     fieldChange(formatted);
   };
+  
+  const proceedToPayment = async () => {
+    await form.trigger();
+    if (form.formState.isValid) {
+      setIsModalOpen(true);
+    } else {
+       toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Por favor, preencha todos os campos corretamente.",
+      });
+    }
+  }
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!product) {
+  const handleFinalSubmit = async () => {
+     if (!product) {
         toast({
             variant: "destructive",
             title: "Erro",
@@ -204,9 +261,29 @@ function CheckoutForm() {
         });
         return;
     }
-
-    setIsSubmitting(true);
     
+    setIsSubmitting(true);
+    const values = form.getValues();
+    
+    let finalAmount = parseFloat(product.price);
+    const items = [{
+        description: product.name,
+        amount: finalAmount * 100,
+        quantity: 1,
+    }];
+
+    selectedOffers.forEach(offerId => {
+        const offer = specialOfferItems.find(o => o.id === offerId);
+        if (offer) {
+            finalAmount += offer.price;
+            items.push({
+                description: offer.name,
+                amount: offer.price * 100,
+                quantity: 1
+            });
+        }
+    });
+
     const payload: PaymentPayload = {
       customer: {
         name: values.name,
@@ -216,13 +293,9 @@ function CheckoutForm() {
       },
       payment: {
         payment_method: 'pix',
-        amount: parseFloat(product.price) * 100, // Amount in cents
+        amount: Math.round(finalAmount * 100), // Amount in cents
       },
-      items: [{
-        description: product.name,
-        amount: parseFloat(product.price) * 100, // Amount in cents
-        quantity: 1,
-      }],
+      items: items.map(item => ({...item, amount: Math.round(item.amount)}))
     };
 
     try {
@@ -243,7 +316,7 @@ function CheckoutForm() {
         ...data,
         playerName: playerName,
         productDescription: product.name,
-        amount: product.formattedPrice,
+        amount: finalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
         diamonds: product.totalAmount,
       }));
 
@@ -256,8 +329,10 @@ function CheckoutForm() {
       toast({ variant: "destructive", title: "Erro no pagamento", description: error.message });
     } finally {
       setIsSubmitting(false);
+      setIsModalOpen(false);
     }
   };
+
 
   if (!product) {
         return (
@@ -346,7 +421,7 @@ function CheckoutForm() {
       <div className="h-2 bg-gray-200"></div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6 px-4 pb-8 pt-5 md:p-10 md:pt-6">
+        <form onSubmit={form.handleSubmit(proceedToPayment)} className="flex flex-col gap-6 px-4 pb-8 pt-5 md:p-10 md:pt-6">
           <FormField
             control={form.control}
             name="promoCode"
@@ -436,12 +511,49 @@ function CheckoutForm() {
           </div>
 
           <div className="mt-2">
-            <Button type="submit" className="w-full h-11 text-base" variant="destructive" disabled={!form.formState.isValid || isSubmitting}>
+            <Button type="button" onClick={proceedToPayment} className="w-full h-11 text-base" variant="destructive" disabled={isSubmitting}>
               {isSubmitting ? "Processando..." : "Prosseguir para pagamento"}
             </Button>
           </div>
         </form>
       </Form>
+      
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[425px] p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-center text-xl">Promoção Especial</DialogTitle>
+          </DialogHeader>
+          <div className="p-6 py-0 space-y-4">
+            {specialOfferItems.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
+                <div className="flex items-center gap-4">
+                  <Image src={item.image} alt={item.name} width={40} height={40} className="rounded-md" data-ai-hint="game item icon"/>
+                  <div>
+                    <p className="font-semibold">{item.name}</p>
+                    <p className="text-sm text-gray-500">
+                      <span className="line-through">R$ {item.originalPrice.toFixed(2).replace('.',',')}</span>
+                      <span className="text-destructive font-bold ml-2">R$ {item.price.toFixed(2).replace('.',',')}</span>
+                    </p>
+                  </div>
+                </div>
+                <Checkbox
+                    checked={selectedOffers.includes(item.id)}
+                    onCheckedChange={() => handleOfferChange(item.id)}
+                 />
+              </div>
+            ))}
+          </div>
+           <div className="p-6 pt-4 flex flex-col gap-4">
+            <div className="flex justify-between items-center font-bold text-lg">
+              <span>Total:</span>
+              <span>{calculateTotal()}</span>
+            </div>
+            <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+              {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
