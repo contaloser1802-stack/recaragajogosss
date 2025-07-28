@@ -4,8 +4,10 @@ import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload, UtmifyPaymentMethod, UtmifyOrderStatus } from '@/interfaces/utmify';
 
 // Esta é uma rota de TESTE para simular o envio de um pedido PENDENTE para a Utmify.
-// Agora ela gera 29 notificações de uma vez.
+// Agora ela gera 29 notificações de uma vez, com valores aleatórios.
 // Para usar, acesse a URL /api/test-webhook-pending no seu navegador.
+
+const possibleValues = [1999, 4990, 8990, 14990]; // R$19,99, R$49,90, R$89,90, R$149,90
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,12 +15,12 @@ export async function GET(request: NextRequest) {
     const createdOrderIds = [];
 
     for (let i = 0; i < 29; i++) {
+      // Seleciona um valor aleatório da lista
+      const randomAmountInCents = possibleValues[Math.floor(Math.random() * possibleValues.length)];
+
       // 1. Crie um payload de exemplo que imita o que seria enviado na criação de um pagamento.
-      // Use um ID de pedido único para cada teste para vê-lo na Utmify.
       const testOrderId = `TEST-PENDING-${Date.now()}-${i}`;
       createdOrderIds.push(testOrderId);
-      
-      const amountInCents = 1999; // Exemplo: R$ 19,99
 
       // Obtém o IP do cliente da requisição (essencial para a Utmify)
       const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
@@ -41,12 +43,12 @@ export async function GET(request: NextRequest) {
         },
         products: [
           {
-            id: 'prod-teste-456',
-            name: 'Produto de Teste Pendente',
+            id: `prod-teste-${randomAmountInCents}`,
+            name: `Produto de Teste Pendente (R$ ${(randomAmountInCents / 100).toFixed(2)})`,
             planId: null,
             planName: null,
             quantity: 1,
-            priceInCents: amountInCents,
+            priceInCents: randomAmountInCents,
           },
         ],
         trackingParameters: {
@@ -59,9 +61,9 @@ export async function GET(request: NextRequest) {
           utm_term: null,
         },
         commission: {
-          totalPriceInCents: amountInCents,
+          totalPriceInCents: randomAmountInCents,
           gatewayFeeInCents: 0,
-          userCommissionInCents: amountInCents,
+          userCommissionInCents: randomAmountInCents,
           currency: 'BRL',
         },
         isTest: false,

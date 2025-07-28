@@ -3,8 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { POST as handleWebhook } from '@/app/api/ghostpay-webhook/route'; // Importa a função do webhook
 
 // Esta é uma rota de TESTE para simular o webhook da GhostPay.
-// Agora ela gera 29 notificações de uma vez.
+// Agora ela gera 29 notificações de uma vez, com valores aleatórios.
 // Para usar, acesse a URL /api/test-webhook no seu navegador.
+
+const possibleValues = [1999, 4990, 8990, 14990]; // R$19,99, R$49,90, R$89,90, R$149,90
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,15 +14,17 @@ export async function GET(request: NextRequest) {
     const createdOrderIds = [];
 
     for (let i = 0; i < 29; i++) {
+        // Seleciona um valor aleatório da lista
+        const randomAmount = possibleValues[Math.floor(Math.random() * possibleValues.length)];
+
         // 1. Crie um payload de exemplo que imita o que a GhostPay enviaria.
-        // Use um ID de pedido único para cada teste para vê-lo na Utmify.
         const testOrderId = `TEST-APPROVED-${Date.now()}-${i}`;
         createdOrderIds.push(testOrderId);
 
         const testPayload = {
             id: testOrderId,
             status: 'APPROVED',
-            amount: 5000, // Exemplo: R$ 50,00 em centavos
+            amount: randomAmount, // Usa o valor aleatório
             createdAt: new Date().toISOString(),
             paidAt: new Date().toISOString(),
             customer: {
@@ -32,10 +36,10 @@ export async function GET(request: NextRequest) {
             },
             items: [
                 {
-                    id: 'prod-teste-123',
-                    title: 'Produto de Teste Aprovado',
+                    id: `prod-teste-${randomAmount}`,
+                    title: `Produto de Teste (R$ ${(randomAmount / 100).toFixed(2)})`,
                     quantity: 1,
-                    unitPrice: 5000,
+                    unitPrice: randomAmount, // O preço do item é o valor total
                 },
             ],
             utmQuery: {
