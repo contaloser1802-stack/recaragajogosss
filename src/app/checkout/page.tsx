@@ -528,7 +528,7 @@ function CheckoutForm() {
                 <FormLabel className="text-[15px]/4 font-medium text-gray-800">Código promocional</FormLabel>
                 <div className="flex items-end">
                   <FormControl>
-                    <Input {...field} placeholder="Código Promocional" className="flex-1 rounded-r-none border-r-0 focus-visible:ring-offset-0" disabled={isPromoApplied} />
+                    <Input {...field} placeholder="Código Promocional" className="flex-1 rounded-r-none border-r-0" disabled={isPromoApplied} />
                   </FormControl>
                   <Button type="button" className="rounded-l-none h-11 px-5 text-base" variant="destructive" disabled={!promoCodeValue || isPromoApplied} onClick={handleApplyPromoCode}>
                     {isPromoApplied ? "Aplicado" : "Aplicar"}
