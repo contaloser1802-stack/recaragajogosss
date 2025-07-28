@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       // Monta o payload para a Utmify a partir dos dados do webhook da GhostPay
       const utmifyPayload: UtmifyOrderPayload = {
         orderId: event.id,
-        platform: 'GhostPay', // Ou o nome da sua plataforma
+        platform: 'RecargaJogo', // Deve ser o mesmo nome de plataforma da criação
         paymentMethod: 'pix', // Mapear se houver outros métodos
         status: 'paid', // Status para a Utmify
         createdAt: formatToUtmifyDate(new Date(event.createdAt || Date.now())),
@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
         customer: {
           name: event.customer?.name || 'N/A',
           email: event.customer?.email || 'N/A',
-          phone: event.customer?.phone || null,
-          document: event.customer?.cpf || null,
+          phone: event.customer?.phone?.replace(/\D/g, '') || null,
+          document: event.customer?.cpf?.replace(/\D/g, '') || null,
           country: 'BR',
           ip: event.customer?.ipAddress || null,
         },

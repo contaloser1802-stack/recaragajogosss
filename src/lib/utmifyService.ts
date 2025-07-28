@@ -13,7 +13,7 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
   console.log("Tentando enviar dados para UTMify:", JSON.stringify(payload, null, 2));
 
   // A URL da API da UTMify, obtida das variáveis de ambiente.
-  const UTMIFY_API_URL = process.env.UTMIFY_API_URL || "https://api.utmify.com.br/api-credentials/orders";
+  const UTMIFY_API_URL = process.env.UTMIFY_API_URL;
   // A chave de API da UTMify, obtida das variáveis de ambiente.
   const UTMIFY_API_KEY = process.env.UTMIFY_API_KEY;
 
@@ -33,7 +33,7 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-token': UTMIFY_API_KEY, // CORRIGIDO para 'x-api-token'
+        'x-api-token': UTMIFY_API_KEY,
       },
       body: JSON.stringify(payload),
     });

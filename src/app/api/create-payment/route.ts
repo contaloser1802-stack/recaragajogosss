@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
 
         const utmifyPayload: UtmifyOrderPayload = {
             orderId: data.id,
-            platform: 'GhostPay', 
+            platform: 'RecargaJogo', // Nome da sua plataforma
             paymentMethod: 'pix',
             status: 'waiting_payment',
             createdAt: formatToUtmifyDate(new Date()),
@@ -176,8 +176,8 @@ export async function POST(request: NextRequest) {
             customer: {
                 name: name,
                 email: email,
-                phone: phone,
-                document: cpf,
+                phone: phone.replace(/\D/g, ''),
+                document: cpf.replace(/\D/g, ''),
                 country: 'BR',
                 ip: request.ip ?? null,
             },
@@ -200,8 +200,8 @@ export async function POST(request: NextRequest) {
             },
             commission: {
                 totalPriceInCents: amountInCents,
-                gatewayFeeInCents: 0, 
-                userCommissionInCents: amountInCents,
+                gatewayFeeInCents: 0, // A GhostPay não informa a taxa na criação
+                userCommissionInCents: amountInCents, // Valor líquido = valor total
                 currency: 'BRL',
             },
             isTest: false,
