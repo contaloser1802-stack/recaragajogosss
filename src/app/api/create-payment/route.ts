@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
@@ -164,6 +165,8 @@ export async function POST(request: NextRequest) {
         console.log(`[create-payment POST] Pagamento criado (ID: ${data.id}). Enviando status 'waiting_payment' para Utmify.`);
         
         const utmParams = new URLSearchParams(utmQuery);
+        // Maneira confiável de obter o IP do cliente no ambiente Vercel/Next.js
+        const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
         const utmifyPayload: UtmifyOrderPayload = {
             orderId: data.id,
@@ -179,7 +182,7 @@ export async function POST(request: NextRequest) {
                 phone: phone.replace(/\D/g, ''),
                 document: cpf.replace(/\D/g, ''),
                 country: 'BR',
-                ip: request.ip ?? null,
+                ip: ip,
             },
             products: items.map((item: any) => ({
                 id: item.id || `prod_${Date.now()}`,
