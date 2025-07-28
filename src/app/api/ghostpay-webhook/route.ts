@@ -22,17 +22,16 @@ export async function POST(request: NextRequest) {
       console.log(`[ghostpay-webhook] ✅ Pagamento APROVADO (ID: ${event.id}). Iniciando envio para Utmify.`);
 
       const totalAmountInCents = event.amount || 0;
-      
-      // Cálculo de taxas: 4.5% + R$ 1.50
-      const fixedFeeInCents = 150; // R$ 1,50
-      const percentageFee = totalAmountInCents * 0.045;
-      const gatewayFeeInCents = Math.round(fixedFeeInCents + percentageFee);
-      const userCommissionInCents = totalAmountInCents - gatewayFeeInCents;
-      
-      console.log(`[ghostpay-webhook] 💰 Cálculo de comissão para o pedido ${event.id}:`);
-      console.log(`- Valor Total: ${totalAmountInCents} centavos`);
-      console.log(`- Taxa Gateway: ${gatewayFeeInCents} centavos`);
-      console.log(`- Comissão Líquida: ${userCommissionInCents} centavos`);
+
+      // Como as taxas são configuradas na Utmify, enviamos o valor bruto.
+      // A Utmify calculará a taxa e a comissão líquida.
+      const gatewayFeeInCents = 0;
+      const userCommissionInCents = totalAmountInCents; // Enviamos o valor total como comissão do usuário.
+
+      console.log(`[ghostpay-webhook] 💰 Enviando para Utmify (pedido ${event.id}):`);
+      console.log(`- Valor Total (Bruto): ${totalAmountInCents} centavos`);
+      console.log(`- Taxa Gateway (Enviada): ${gatewayFeeInCents} (será calculada pela Utmify)`);
+      console.log(`- Comissão Líquida (Enviada): ${userCommissionInCents} (será calculada pela Utmify)`);
 
       // Monta o payload para a Utmify a partir dos dados do webhook da GhostPay
       const utmifyPayload: UtmifyOrderPayload = {
