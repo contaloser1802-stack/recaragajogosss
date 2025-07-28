@@ -1,18 +1,17 @@
-
 // src/app/api/ghostpay-webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
-import { UtmifyOrderPayload, UtmifyOrderStatus, UtmifyPaymentMethod } from '@/interfaces/utmify';
+import { UtmifyOrderPayload } from '@/interfaces/utmify';
 
 // Lida com as requisições POST do webhook da GhostPay
 export async function POST(request: NextRequest) {
   try {
     const event = await request.json();
-    console.log('[ghostpay-webhook] Payload recebido:', JSON.stringify(event, null, 2));
+    console.log('[ghostpay-webhook] 🔄 Payload do webhook recebido:', JSON.stringify(event, null, 2));
 
     // Validação básica do payload
     if (!event.id || !event.status) {
-      console.error('[ghostpay-webhook] Payload inválido. Campos "id" ou "status" não encontrados.');
+      console.error('[ghostpay-webhook] ❌ Payload inválido. Campos "id" ou "status" não encontrados.');
       return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
     }
 
@@ -20,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     // Processa apenas pagamentos aprovados (PAID ou APPROVED)
     if (paymentStatus === 'APPROVED' || paymentStatus === 'PAID') {
-      console.log(`[ghostpay-webhook] Pagamento aprovado (ID: ${event.id}). Iniciando envio para Utmify.`);
+      console.log(`[ghostpay-webhook] ✅ Pagamento APROVADO (ID: ${event.id}). Iniciando envio para Utmify.`);
 
       // Monta o payload para a Utmify a partir dos dados do webhook da GhostPay
       const utmifyPayload: UtmifyOrderPayload = {
@@ -67,24 +66,26 @@ export async function POST(request: NextRequest) {
         isTest: false, // Mude para true se estiver em ambiente de teste
       };
 
+      console.log(`[ghostpay-webhook] 📦 Payload montado para enviar à Utmify:`, JSON.stringify(utmifyPayload, null, 2));
+
       try {
         // Envia os dados para a Utmify
         await sendOrderToUtmify(utmifyPayload);
-        console.log(`[ghostpay-webhook] Dados do pedido ${event.id} enviados para Utmify com sucesso.`);
+        console.log(`[ghostpay-webhook] ✅ Dados do pedido APROVADO ${event.id} enviados para Utmify com sucesso.`);
       } catch (utmifyError: any) {
         // Loga o erro, mas não retorna erro para a GhostPay, pois o pagamento foi recebido.
         // O importante é registrar que o envio para a Utmify falhou para análise posterior.
-        console.error(`[ghostpay-webhook] Erro ao enviar dados para Utmify para o pedido ${event.id}:`, utmifyError.message);
+        console.error(`[ghostpay-webhook] ❌ Erro ao enviar dados APROVADOS para Utmify para o pedido ${event.id}:`, utmifyError.message);
       }
     } else {
-      console.log(`[ghostpay-webhook] Status do pagamento é '${paymentStatus}'. Nenhuma ação necessária.`);
+      console.log(`[ghostpay-webhook] ℹ️ Status do pagamento é '${paymentStatus}'. Nenhuma ação necessária.`);
     }
 
     // Retorna uma resposta de sucesso para a GhostPay para confirmar o recebimento do webhook
     return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso' }, { status: 200 });
 
   } catch (error: any) {
-    console.error('[ghostpay-webhook] Erro ao processar webhook:', error.message);
+    console.error('[ghostpay-webhook] ❌ Erro fatal ao processar webhook:', error.message);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
