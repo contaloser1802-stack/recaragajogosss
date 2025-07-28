@@ -354,6 +354,9 @@ function CheckoutForm() {
       }
     });
 
+    // Construir a URL base dinamicamente para o postback
+    const currentBaseUrl = window.location.origin;
+
     const payload: PaymentPayload = {
       name: values.name,
       email: values.email,
@@ -363,7 +366,7 @@ function CheckoutForm() {
       amount: getNumericTotalAmount, // Valor numérico total
       traceable: true,
       externalId: `ff-${Date.now()}`,
-      postbackUrl: "https://sopayload.com/api/webhook", // Usar sua URL de webhook real
+      postbackUrl: `${currentBaseUrl}/api/ghostpay-webhook`,
       items: payloadItems,
       utmQuery,
       // Dados de endereço e fingerprint conforme seu create-payment anterior, se necessário
@@ -374,8 +377,8 @@ function CheckoutForm() {
       district: 'Centro',
       city: 'São Paulo',
       state: 'SP',
-      checkoutUrl: 'https://sopayload.com/checkout', // URL de checkout real
-      referrerUrl: 'https://sopayload.com', // URL de referência real
+      checkoutUrl: `${currentBaseUrl}/checkout`,
+      referrerUrl: currentBaseUrl,
       fingerPrints: [{ provider: 'browser', value: 'unico-abc-123' }] // Fingerprint de exemplo
     };
 
