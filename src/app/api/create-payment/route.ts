@@ -21,21 +21,15 @@ export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
   console.log(`[create-payment OPTIONS] Recebida requisição OPTIONS de Origin: ${origin}`);
 
-  const isOriginAllowed = allowedOrigins.includes(origin);
-
-  if (!isOriginAllowed) {
-    console.error(`[create-payment OPTIONS] CORS: Origem não permitida - ${origin}`);
-    return new NextResponse(null, { status: 403, statusText: 'Forbidden' });
-  }
+  const headers = new Headers();
+  headers.set('Access-Control-Allow-Origin', origin);
+  headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  headers.set('Access-Control-Max-Age', '86400'); // Cache pre-flight por 24 horas
 
   return new NextResponse(null, {
-    status: 204, // No Content para requisição OPTIONS bem-sucedida
-    headers: {
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS, GET', // Adicionado GET para o polling de status
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400' // Cache pre-flight por 24 horas
-    }
+    status: 204,
+    headers,
   });
 }
 
@@ -44,13 +38,6 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
   console.log(`[create-payment POST] Recebida requisição POST de Origin: ${origin}`);
   console.log(`[create-payment POST] URL da Requisição: ${request.url}`);
-
-  const isOriginAllowed = allowedOrigins.includes(origin);
-
-  if (!isOriginAllowed) {
-    console.error(`[create-payment POST] CORS: Origem não permitida - ${origin}`);
-    return NextResponse.json({ error: 'Origin not allowed by CORS' }, { status: 403 });
-  }
 
   try {
     const body = await request.json();
@@ -109,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine a URL base para o ambiente atual
-    const currentBaseUrl = process.env.NODE_ENV === 'production' ? BASE_URL_PROD : BASE_URL_DEV;
+    const currentBaseUrl = process.env.NODE_ENV === 'production' ? BASE_URL_PROD : (origin || BASE_URL_DEV);
 
     const payloadForGhostPay = {
       name,
@@ -204,14 +191,6 @@ export async function GET(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
   console.log(`[create-payment GET] Recebida requisição GET de Origin: ${origin}`);
   console.log(`[create-payment GET] URL da Requisição: ${request.url}`);
-
-
-  const isOriginAllowed = allowedOrigins.includes(origin);
-
-  if (!isOriginAllowed) {
-    console.error(`[create-payment GET] CORS: Origem não permitida - ${origin}`);
-    return NextResponse.json({ error: 'Origin not allowed by CORS' }, { status: 403 });
-  }
 
   const { searchParams } = new URL(request.url);
   const externalId = searchParams.get('externalId');

@@ -176,8 +176,7 @@ const BuyContent = () => {
             intervalId = setInterval(async () => {
               try {
                 console.log("Consultando status para externalId:", parsed.externalId);
-                // Usar a URL completa para a API Route, igual ao checkout
-                const res = await fetch(`https://6000-firebase-studio-1750702713496.cluster-vpxjqdstfzgs6qeiaf7rdlsqrc.cloudworkstations.dev/api/create-payment?externalId=${parsed.externalId}`);
+                const res = await fetch(`/api/create-payment?externalId=${parsed.externalId}`);
                 const statusData = await res.json();
                 console.log("Resposta do status da API (backend):", statusData);
 
@@ -197,7 +196,7 @@ const BuyContent = () => {
                       icon: <CheckCircle className="text-green-500" />,
                     });
                     localStorage.removeItem('paymentData');
-                    setTimeout(() => router.push('/success'), 3000); // Redireciona para página de sucesso
+                    router.push('/sucess'); // Correção para a rota de sucesso
                   } else if (newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
                     if (intervalId) clearInterval(intervalId);
                     if (timerId) clearInterval(timerId);
@@ -431,7 +430,7 @@ const BuyContent = () => {
             </div>
             {/* Botões de ação baseados no status do pagamento */}
             {paymentStatus === 'APPROVED' && (
-                <Link href="/success" className="mt-8"> {/* Redireciona para /success */}
+                <Link href="/sucess" className="mt-8"> {/* Redireciona para /sucess */}
                   <Button variant="default">Voltar para o Início</Button>
                 </Link>
             )}

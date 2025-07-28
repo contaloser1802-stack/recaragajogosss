@@ -297,8 +297,7 @@ function CheckoutForm() {
     fieldChange(formatted);
   };
 
-  const proceedToPayment = async (e: React.FormEvent) => {
-    e.preventDefault(); // Impede o envio padrão do formulário
+  const proceedToPayment = async () => {
     // Dispara a validação do formulário para nome, email, telefone
     const isValid = await form.trigger(['name', 'email', 'phone']);
     if (isValid) {
@@ -306,11 +305,11 @@ function CheckoutForm() {
     } else {
       toast({
         variant: "destructive",
-        title: "Erro",
-        description: "Por favor, preencha todos os campos corretamente.",
+        title: "Erro de Validação",
+        description: "Por favor, preencha todos os campos obrigatórios corretamente.",
       });
     }
-  }
+  };
 
   // Função que será chamada ao clicar em "Finalizar Pedido" no modal
   const handleFinalSubmit = async () => {
@@ -381,8 +380,7 @@ function CheckoutForm() {
     };
 
     try {
-      // CORRIGIDO: Adicionado o caminho completo para a API Route
-      const response = await fetch("https://6000-firebase-studio-1750702713496.cluster-vpxjqdstfzgs6qeiaf7rdlsqrc.cloudworkstations.dev/api/create-payment", {
+      const response = await fetch("/api/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -519,7 +517,7 @@ function CheckoutForm() {
       <div className="h-2 bg-gray-200"></div>
 
       <Form {...form}>
-        <form onSubmit={proceedToPayment} className="flex flex-col gap-6 px-4 pb-8 pt-5 md:p-10 md:pt-6">
+        <form onSubmit={(e) => { e.preventDefault(); proceedToPayment(); }} className="flex flex-col gap-6 px-4 pb-8 pt-5 md:p-10 md:pt-6">
           <FormField
             control={form.control}
             name="promoCode"
@@ -530,7 +528,7 @@ function CheckoutForm() {
                   <FormControl>
                     <Input {...field} placeholder="Código Promocional" className="flex-1 rounded-r-none border-r-0" disabled={isPromoApplied} />
                   </FormControl>
-                  <Button type="button" className="rounded-l-none h-11 px-5 text-base" variant="destructive" disabled={!promoCodeValue || isPromoApplied} onClick={handleApplyPromoCode}>
+                  <Button type="button" className="rounded-l-none h-11 px-5 text-base" variant="destructive" disabled={promoCodeValue !== 'DIAMANTE100' || isPromoApplied} onClick={handleApplyPromoCode}>
                     {isPromoApplied ? "Aplicado" : "Aplicar"}
                   </Button>
                 </div>
@@ -630,19 +628,14 @@ function CheckoutForm() {
               <span>Total:</span>
               <span>{calculateTotal}</span>
             </div>
-             {selectedOffers.length > 0 ? (
+            {selectedOffers.length > 0 ? (
                 <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
                     {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
                 </Button>
             ) : (
-                <>
-                    <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
-                        {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
-                    </Button>
-                    <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
-                        Recusar promoção
-                    </Button>
-                </>
+                <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+                    {isSubmitting ? "Finalizando..." : "Recusar promoção"}
+                </Button>
             )}
           </div>
         </DialogContent>
