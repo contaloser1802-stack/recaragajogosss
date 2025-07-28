@@ -17,9 +17,9 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
   // A chave de API da UTMify, obtida das variáveis de ambiente.
   const UTMIFY_API_KEY = process.env.UTMIFY_API_KEY;
 
-  if (!UTMIFY_API_KEY) {
-    console.error("ERRO: UTMIFY_API_KEY não está definida. O envio para UTMify será ignorado.");
-    throw new Error("A chave da API da Utmify (UTMIFY_API_KEY) não está configurada no servidor.");
+  if (!UTMIFY_API_KEY || UTMIFY_API_KEY === 'sua_chave_de_api_utmify') {
+    console.error("ERRO: UTMIFY_API_KEY não está definida ou não foi alterada. O envio para UTMify será ignorado.");
+    throw new Error("A chave da API da Utmify (UTMIFY_API_KEY) não está configurada no servidor. Verifique o arquivo .env.");
   }
   
   if (!UTMIFY_API_URL) {
