@@ -4,10 +4,12 @@ import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload, UtmifyPaymentMethod, UtmifyOrderStatus } from '@/interfaces/utmify';
 
 // Esta é uma rota de TESTE para simular o envio de um pedido PENDENTE para a Utmify.
-// Agora ela gera 29 notificações de uma vez, com valores aleatórios.
+// Agora ela gera 29 notificações de uma vez, com valores e intervalos aleatórios.
 // Para usar, acesse a URL /api/test-webhook-pending no seu navegador.
 
 const possibleValues = [1999, 4990, 8990, 14990]; // R$19,99, R$49,90, R$89,90, R$149,90
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,6 +17,9 @@ export async function GET(request: NextRequest) {
     const createdOrderIds = [];
 
     for (let i = 0; i < 29; i++) {
+      // Adiciona um atraso aleatório de 0 a 1.5 segundos antes de processar
+      await delay(Math.random() * 1500);
+
       // Seleciona um valor aleatório da lista
       const randomAmountInCents = possibleValues[Math.floor(Math.random() * possibleValues.length)];
 
@@ -75,7 +80,7 @@ export async function GET(request: NextRequest) {
       promises.push(sendOrderToUtmify(testPayload));
     }
 
-    // 3. Executa todas as promessas em paralelo.
+    // 3. Executa todas as promessas em paralelo após os atrasos.
     const results = await Promise.allSettled(promises);
 
     const successfulInvocations = results.filter(r => r.status === 'fulfilled').length;
