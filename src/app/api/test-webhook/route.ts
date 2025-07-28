@@ -1,5 +1,6 @@
 // src/app/api/test-webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { POST as handleWebhook } from '@/app/api/ghostpay-webhook/route'; // Importa a função do webhook
 
 // Esta é uma rota de TESTE para simular o webhook da GhostPay.
 // Você pode usá-la para verificar se as vendas aprovadas estão sendo enviadas corretamente para a Utmify.
@@ -41,22 +42,17 @@ export async function GET(request: NextRequest) {
       },
     };
 
-    // 2. Determine a URL completa do seu webhook.
-    const host = request.headers.get('host');
-    const protocol = host?.includes('localhost') ? 'http' : 'https';
-    const webhookUrl = `${protocol}://${host}/api/ghostpay-webhook`;
+    console.log(`[test-webhook] Simulando chamada para o webhook com o payload:`, JSON.stringify(testPayload, null, 2));
 
-    console.log(`[test-webhook] Simulando chamada para: ${webhookUrl}`);
-    console.log(`[test-webhook] Payload de teste:`, JSON.stringify(testPayload, null, 2));
-
-    // 3. Faça uma requisição POST para o seu próprio webhook, simulando a GhostPay.
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(testPayload),
+    // 2. Crie um objeto de requisição simulado para passar para a função do webhook.
+    const mockRequest = new NextRequest(new URL(request.url).origin, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testPayload),
     });
+
+    // 3. Chame a função do webhook diretamente.
+    const response = await handleWebhook(mockRequest);
 
     // 4. Verifique a resposta do seu webhook.
     if (!response.ok) {
