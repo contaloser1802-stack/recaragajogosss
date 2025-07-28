@@ -21,6 +21,19 @@ export async function POST(request: NextRequest) {
     if (paymentStatus === 'APPROVED' || paymentStatus === 'PAID') {
       console.log(`[ghostpay-webhook] ✅ Pagamento APROVADO (ID: ${event.id}). Iniciando envio para Utmify.`);
 
+      const totalAmountInCents = event.amount || 0;
+      
+      // Cálculo de taxas: 4.5% + R$ 1.50
+      const fixedFeeInCents = 150; // R$ 1,50
+      const percentageFee = totalAmountInCents * 0.045;
+      const gatewayFeeInCents = Math.round(fixedFeeInCents + percentageFee);
+      const userCommissionInCents = totalAmountInCents - gatewayFeeInCents;
+      
+      console.log(`[ghostpay-webhook] 💰 Cálculo de comissão para o pedido ${event.id}:`);
+      console.log(`- Valor Total: ${totalAmountInCents} centavos`);
+      console.log(`- Taxa Gateway: ${gatewayFeeInCents} centavos`);
+      console.log(`- Comissão Líquida: ${userCommissionInCents} centavos`);
+
       // Monta o payload para a Utmify a partir dos dados do webhook da GhostPay
       const utmifyPayload: UtmifyOrderPayload = {
         orderId: event.id,
@@ -56,11 +69,9 @@ export async function POST(request: NextRequest) {
             utm_term: event.utmQuery?.utm_term || null,
         },
         commission: {
-          totalPriceInCents: event.amount || 0,
-          // A GhostPay não detalha as taxas no webhook padrão, então definimos como 0
-          // e o valor líquido como o total. Ajuste se você tiver esses dados.
-          gatewayFeeInCents: 0,
-          userCommissionInCents: event.amount || 0,
+          totalPriceInCents: totalAmountInCents,
+          gatewayFeeInCents: gatewayFeeInCents,
+          userCommissionInCents: userCommissionInCents,
           currency: 'BRL',
         },
         isTest: false, // Mude para true se estiver em ambiente de teste
