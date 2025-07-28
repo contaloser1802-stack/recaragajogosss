@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
+import { UtmifyOrderPayload } from '@/interfaces/utmify';
+
 
 // !!! IMPORTANTE !!!
 // Ajuste estas URLs para corresponder EXATAMENTE ao domínio do seu frontend.
@@ -109,7 +112,7 @@ export async function POST(request: NextRequest) {
       items: formattedItems,
       externalId: externalId,
       // Use a URL base dinâmica para postback e checkout
-      postbackUrl: `${currentBaseUrl}/api/ghostpay-webhook`, // Seu webhook da Utmify
+      postbackUrl: `${currentBaseUrl}/api/ghostpay-webhook`, // Seu webhook
       checkoutUrl: `${currentBaseUrl}/checkout`,
       referrerUrl: currentBaseUrl,
       utmQuery: utmQuery,
@@ -134,37 +137,85 @@ export async function POST(request: NextRequest) {
       data = await ghostpayResponse.json();
       console.log(`[create-payment POST] ✅ Resposta da GhostPay (HTTP ${ghostpayResponse.status}, JSON):`, JSON.stringify(data, null, 2));
     } else {
-      // Se não for JSON, tente ler como texto para ver a mensagem de erro HTML
       data = await ghostpayResponse.text();
       console.error(`[create-payment POST] ❌ Resposta da GhostPay (HTTP ${ghostpayResponse.status}, Não-JSON):`, data);
-      // Retorne uma resposta de erro mais clara para o frontend
       return NextResponse.json(
         { error: 'Falha ao criar pagamento: Resposta inesperada da GhostPay', details: data },
         {
           status: ghostpayResponse.status,
-          headers: {
-            'Access-Control-Allow-Origin': origin,
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Access-Control-Allow-Origin': origin, 'Content-Type': 'application/json' }
         }
       );
     }
 
     if (!ghostpayResponse.ok) {
-      console.error("[create-payment POST] ERRO DA GHOSTPAY (RESPOSTA DETALHADA):", data);
-      console.error("[create-payment POST] STATUS HTTP DA GHOSTPAY:", ghostpayResponse.status);
-      console.error("[create-payment POST] PAYLOAD QUE CAUSOU O ERRO:", JSON.stringify(payloadForGhostPay, null, 2)); 
+      console.error("[create-payment POST] ERRO DA GHOSTPAY:", data);
       return NextResponse.json(
         { error: data.message || data.error || 'Falha ao criar pagamento na GhostPay.' },
         {
           status: ghostpayResponse.status,
-          headers: {
-            'Access-Control-Allow-Origin': origin,
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Access-Control-Allow-Origin': origin, 'Content-Type': 'application/json' }
         }
       );
     }
+    
+    // Se o pagamento foi criado com sucesso, envie o status PENDENTE para a Utmify
+    if (data.id) {
+        console.log(`[create-payment POST] Pagamento criado (ID: ${data.id}). Enviando status 'waiting_payment' para Utmify.`);
+        
+        const utmParams = new URLSearchParams(utmQuery);
+
+        const utmifyPayload: UtmifyOrderPayload = {
+            orderId: data.id,
+            platform: 'GhostPay', 
+            paymentMethod: 'pix',
+            status: 'waiting_payment',
+            createdAt: formatToUtmifyDate(new Date()),
+            approvedDate: null,
+            refundedAt: null,
+            customer: {
+                name: name,
+                email: email,
+                phone: phone,
+                document: cpf,
+                country: 'BR',
+                ip: request.ip ?? null,
+            },
+            products: items.map((item: any) => ({
+                id: item.id || `prod_${Date.now()}`,
+                name: item.title || 'Produto',
+                planId: null,
+                planName: null,
+                quantity: item.quantity || 1,
+                priceInCents: Math.round(parseFloat(item.unitPrice || item.price) * 100),
+            })),
+            trackingParameters: {
+                src: utmParams.get('utm_source'),
+                sck: utmParams.get('sck'),
+                utm_source: utmParams.get('utm_source'),
+                utm_campaign: utmParams.get('utm_campaign'),
+                utm_medium: utmParams.get('utm_medium'),
+                utm_content: utmParams.get('utm_content'),
+                utm_term: utmParams.get('utm_term'),
+            },
+            commission: {
+                totalPriceInCents: amountInCents,
+                gatewayFeeInCents: 0, 
+                userCommissionInCents: amountInCents,
+                currency: 'BRL',
+            },
+            isTest: false,
+        };
+
+        try {
+            await sendOrderToUtmify(utmifyPayload);
+            console.log(`[create-payment POST] Dados do pedido pendente ${data.id} enviados para Utmify com sucesso.`);
+        } catch (utmifyError: any) {
+            console.error(`[create-payment POST] Erro ao enviar dados PENDENTES para Utmify para o pedido ${data.id}:`, utmifyError.message);
+            // Não bloqueie o fluxo principal por falha no envio para a Utmify
+        }
+    }
+
 
     return new NextResponse(JSON.stringify(data), {
       status: 200,
