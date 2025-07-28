@@ -1,6 +1,6 @@
 // src/lib/utmifyService.ts
-
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
+import axios from 'axios';
 
 /**
  * Envia dados de pedido para a API da UTMify.
@@ -10,61 +10,55 @@ import { UtmifyOrderPayload } from '@/interfaces/utmify';
  * @throws Um erro se a comunicação com a API da UTMify falhar.
  */
 export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<any> {
-  console.log("Tentando enviar dados para UTMify:", JSON.stringify(payload, null, 2));
-
-  // A URL da API da UTMify, obtida das variáveis de ambiente.
   const UTMIFY_API_URL = process.env.UTMIFY_API_URL;
-  // A chave de API da UTMify, obtida das variáveis de ambiente.
   const UTMIFY_API_KEY = process.env.UTMIFY_API_KEY;
 
-  if (!UTMIFY_API_KEY || UTMIFY_API_KEY === 'sua_chave_de_api_utmify') {
-    console.error("ERRO: UTMIFY_API_KEY não está definida ou não foi alterada. O envio para UTMify será ignorado.");
-    throw new Error("A chave da API da Utmify (UTMIFY_API_KEY) não está configurada no servidor. Verifique o arquivo .env.");
-  }
-  
-  if (!UTMIFY_API_URL) {
-    console.error("ERRO: UTMIFY_API_URL não está definida. O envio para UTMify será ignorado.");
-    throw new Error("A URL da API da Utmify (UTMIFY_API_URL) não está configurada no servidor.");
+  if (!UTMIFY_API_KEY || !UTMIFY_API_URL) {
+    const errorMessage = "Credenciais da Utmify (UTMIFY_API_URL ou UTMIFY_API_KEY) não estão configuradas no servidor.";
+    console.error(`[UtmifyService] ${errorMessage}`);
+    throw new Error(errorMessage);
   }
 
+  console.log("[UtmifyService] 📤 Enviando payload para Utmify:", JSON.stringify(payload, null, 2));
 
   try {
-    const response = await fetch(UTMIFY_API_URL, {
-      method: 'POST',
+    const response = await axios.post(UTMIFY_API_URL, payload, {
       headers: {
         'Content-Type': 'application/json',
         'x-api-token': UTMIFY_API_KEY,
       },
-      body: JSON.stringify(payload),
     });
 
-    // A Utmify retorna 200 para sucesso e outros códigos para erro.
-    // O corpo da resposta pode ser JSON ou texto/html em caso de erro de servidor.
-    const contentType = response.headers.get('content-type');
-    let responseData;
-
-    if (contentType && contentType.includes('application/json')) {
-        responseData = await response.json();
+    console.log(`[UtmifyService] ✅ Sucesso! Resposta da Utmify (Status: ${response.status}):`, response.data);
+    return response.data;
+    
+  } catch (error: any) {
+    let errorMessage = "Erro desconhecido ao comunicar com a Utmify.";
+    
+    if (axios.isAxiosError(error)) {
+        if (error.response) {
+            // A requisição foi feita e o servidor respondeu com um status code fora do range 2xx
+            errorMessage = `Erro da API Utmify: ${error.response.status} - ${JSON.stringify(error.response.data)}`;
+            console.error(`[UtmifyService] ❌ Erro de resposta da Utmify:`, {
+                status: error.response.status,
+                data: error.response.data,
+                headers: error.response.headers,
+            });
+        } else if (error.request) {
+            // A requisição foi feita mas nenhuma resposta foi recebida
+            errorMessage = "Nenhuma resposta recebida da Utmify. Verifique a conectividade.";
+            console.error('[UtmifyService] ❌ Nenhuma resposta da Utmify:', error.request);
+        } else {
+            // Algo aconteceu na configuração da requisição que acionou um erro
+            errorMessage = `Erro ao configurar requisição para Utmify: ${error.message}`;
+            console.error('[UtmifyService] ❌ Erro de configuração da requisição:', error.message);
+        }
     } else {
-        responseData = await response.text();
+        console.error('[UtmifyService] ❌ Erro inesperado:', error);
     }
-
-    if (!response.ok) {
-      console.error(`Erro ao enviar para Utmify (Status: ${response.status}):`, responseData);
-      // Lança um erro com detalhes para ser capturado no catch do chamador.
-      const errorMessage = typeof responseData === 'object' && responseData !== null && (responseData as any).message
-        ? (responseData as any).message
-        : (typeof responseData === 'string' ? responseData : 'Erro desconhecido da Utmify');
-      throw new Error(`Erro Utmify: ${errorMessage}`);
-    }
-
-    console.log("Resposta da Utmify:", responseData);
-    return responseData;
-  } catch (error) {
-    console.error("Erro na comunicação com a API da Utmify:", error);
-    // Propaga o erro para que a API Route possa tratá-lo adequadamente.
-    // Isso é importante para que o fluxo de pagamento possa continuar mesmo que a Utmify falhe.
-    throw error;
+    
+    // Propaga o erro para que a API Route possa decidir como lidar com ele.
+    throw new Error(errorMessage);
   }
 }
 
@@ -76,7 +70,6 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
  * @returns A data formatada como string em UTC.
  */
 export function formatToUtmifyDate(date: Date): string {
-    // Usando métodos UTC para garantir a consistência de fuso horário
     const year = date.getUTCFullYear();
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const day = String(date.getUTCDate()).padStart(2, '0');
