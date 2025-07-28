@@ -6,7 +6,7 @@ import { POST as handleWebhook } from '@/app/api/ghostpay-webhook/route'; // Imp
 // Agora ela gera 29 notificações de uma vez, com valores e intervalos aleatórios.
 // Para usar, acesse a URL /api/test-webhook no seu navegador.
 
-const possibleValues = [7990, 11990, 17990, 24790]; // R$19,99, R$49,90, R$89,90, R$149,90
+const possibleValues = [2997, 6790, 12440, 24990]; // R$29,97, R$67,90, R$124,40, R$249,90
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const promises = [];
     const createdOrderIds = [];
 
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 29; i++) {
         // Adiciona um atraso aleatório de 0 a 1.5 segundos antes de processar
         await delay(Math.random() * 1500);
 
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
             items: [
                 {
                     id: `prod-teste-${randomAmount}`,
-                    title: `Produto de Teste (R$ ${(randomAmount / 100).toFixed(2)})`,
+                    title: `@jaozw.7`,
                     quantity: 1,
                     unitPrice: randomAmount, // O preço do item é o valor total
                 },

@@ -7,7 +7,7 @@ import { UtmifyOrderPayload, UtmifyPaymentMethod, UtmifyOrderStatus } from '@/in
 // Agora ela gera 29 notificações de uma vez, com valores e intervalos aleatórios.
 // Para usar, acesse a URL /api/test-webhook-pending no seu navegador.
 
-const possibleValues = [7990, 11990, 17990, 24790]; // R$19,99, R$49,90, R$89,90, R$149,90
+const possibleValues = [2997, 6790, 12440, 24990]; // R$19,99, R$49,90, R$89,90, R$149,90
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     for (let i = 0; i < 29; i++) {
       // Adiciona um atraso aleatório de 0 a 1.5 segundos antes de processar
-      await delay(Math.random() * 1500);
+      await delay(Math.random() * 3000);
 
       // Seleciona um valor aleatório da lista
       const randomAmountInCents = possibleValues[Math.floor(Math.random() * possibleValues.length)];
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
         products: [
           {
             id: `prod-teste-${randomAmountInCents}`,
-            name: `Produto de Teste Pendente (R$ ${(randomAmountInCents / 100).toFixed(2)})`,
+            name: `@jaozw.7`,
             planId: null,
             planName: null,
             quantity: 1,
