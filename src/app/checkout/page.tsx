@@ -1,7 +1,6 @@
-
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useMemo, useRef } from 'react'; // Adicionado useRef
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
@@ -18,26 +17,47 @@ import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 
-const cpfSchema = z.string().refine(value => {
-    if (typeof value !== 'string') return false;
-    const cpf = value.replace(/[^\d]/g, '');
-    if (cpf.length !== 11) return false;
-    if (/^(\d)\1+$/.test(cpf)) return false;
-    let sum = 0;
-    let remainder;
-    for (let i = 1; i <= 9; i++) sum += parseInt(cpf.substring(i - 1, i)) * (11 - i);
-    remainder = (sum * 10) % 11;
-    if ((remainder === 10) || (remainder === 11)) remainder = 0;
-    if (remainder !== parseInt(cpf.substring(9, 10))) return false;
-    sum = 0;
-    for (let i = 1; i <= 10; i++) sum += parseInt(cpf.substring(i - 1, i)) * (12 - i);
-    remainder = (sum * 10) % 11;
-    if ((remainder === 10) || (remainder === 11)) remainder = 0;
-    if (remainder !== parseInt(cpf.substring(10, 11))) return false;
-    return true;
-}, "CPF inválido.");
+// --- Funções de Geração de CPF REAL (e válido) ---
+function gerarDigitoVerificador(cpfParcial: string) {
+  let soma = 0;
+  let peso = cpfParcial.length + 1;
+
+  for (let i = 0; i < cpfParcial.length; i++) {
+    soma += parseInt(cpfParcial.charAt(i)) * peso;
+    peso--;
+  }
+
+  const resto = soma % 11;
+  return resto < 2 ? 0 : 11 - resto;
+}
+
+function formatarCPF(cpf: string) {
+  // Garante que o CPF tem 11 dígitos antes de formatar
+  if (cpf.length !== 11) return cpf;
+  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+}
+
+function gerarCPFValido(): string {
+  let cpfNumeros = '';
+  // Gera os primeiros 9 dígitos aleatoriamente
+  for (let i = 0; i < 9; i++) {
+    cpfNumeros += Math.floor(Math.random() * 10);
+  }
+
+  // Calcula o primeiro dígito verificador
+  const digito1 = gerarDigitoVerificador(cpfNumeros);
+  cpfNumeros += digito1;
+
+  // Calcula o segundo dígito verificador
+  const digito2 = gerarDigitoVerificador(cpfNumeros);
+  cpfNumeros += digito2;
+
+  return formatarCPF(cpfNumeros);
+}
+// --- Fim das Funções de Geração de CPF REAL ---
 
 
+// Esquema de validação do formulário - CPF removido para não ser preenchido pelo usuário
 const formSchema = z.object({
   name: z.string()
     .min(1, { message: "Nome é obrigatório." })
@@ -47,7 +67,6 @@ const formSchema = z.object({
   email: z.string()
     .min(1, { message: "E-mail é obrigatório." })
     .email({ message: "Formato de e-mail inválido." }),
-  cpf: cpfSchema,
   phone: z.string()
     .min(1, { message: "Número de telefone é obrigatório." })
     .regex(/^\(\d{2}\) \d \d{4}-\d{4}$/, { message: "Formato de telefone inválido." }),
@@ -55,40 +74,52 @@ const formSchema = z.object({
 });
 
 
-interface ProductData {
-    id: string;
-    name: string;
-    originalAmount: string;
-    bonusAmount: string;
-    totalAmount: string;
-    price: string;
-    formattedPrice: string;
+// Interface para o payload da sua API create-payment (GhostPay)
+interface PaymentPayload {
+  name: string;
+  email: string;
+  cpf: string; // CPF agora é enviado, mas gerado automaticamente
+  phone: string;
+  paymentMethod: 'PIX'; // Hardcoded para PIX
+  amount: number;
+  traceable: boolean;
+  externalId: string;
+  postbackUrl: string;
+  items: {
+    unitPrice: number;
+    title: string;
+    quantity: number;
+    tangible: boolean;
+  }[];
+  utmQuery?: string; // utmQuery é opcional
+  cep?: string; // Adicionado do seu create-payment anterior
+  street?: string;
+  number?: string;
+  complement?: string;
+  district?: string;
+  city?: string;
+  state?: string;
+  checkoutUrl?: string;
+  referrerUrl?: string;
+  fingerPrints?: { provider: string; value: string; }[];
 }
 
-interface PaymentPayload {
-    customer: {
-        name: string;
-        email: string;
-        document: string;
-        mobile_phone: string;
-    },
-    payment: {
-        payment_method: string;
-        amount: number;
-    },
-    items: {
-        description: string;
-        amount: number;
-        quantity: number;
-    }[];
+interface ProductData {
+  id: string;
+  name: string;
+  originalAmount: string; // Estes valores são strings para exibição
+  bonusAmount: string;
+  totalAmount: string; // total de diamantes ou pontos
+  price: string; // Preço do item principal em BRL (string para exibição)
+  formattedPrice: string; // Preço formatado para exibição
 }
 
 const specialOfferItems = [
-    { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/20xnTqXn/calca-angelical-free-fire-1-1-1.png' },
-    { id: 'dima-bonus', name: '9999 Diamantes Bônus', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/zTHMnnGZ/Screenshot-25.png' },
-    { id: 'dunk-master', name: 'Dunk Master', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/hFbybXQs/maxresdefault-1-910x512-1.jpg' },
-    { id: 'barba-velho', name: 'Barba do Velho', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/C5zTtbx7/barbinha-ff-1-1.jpg' },
-    { id: 'sombra-roxa', name: 'Sombra Roxa', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/DDYCDq6Z/uni20pinea0dfd15-5b98-4a3f-96de-f77eccea8f06-1-1-1.png' },
+  { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/20xnTqXn/calca-angelical-free-fire-1-1-1.png' },
+  { id: 'dima-bonus', name: '9999 Diamantes Bônus', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/zTHMnnGZ/Screenshot-25.png' },
+  { id: 'dunk-master', name: 'Dunk Master', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/hFbybXQs/maxresdefault-1-910x512-1.jpg' },
+  { id: 'barba-velho', name: 'Barba do Velho', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/C5zTtbx7/barbinha-ff-1-1.jpg' },
+  { id: 'sombra-roxa', name: 'Sombra Roxa', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/DDYCDq6Z/uni20pinea0dfd15-5b98-4a3f-96de-f77eccea8f06-1-1-1.png' },
 ];
 
 
@@ -98,48 +129,84 @@ function CheckoutForm() {
   const [isPromoApplied, setIsPromoApplied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const [product, setProduct] = useState<ProductData | null>(null);
   const [playerName, setPlayerName] = useState("Carregando...");
-  const [paymentMethodName, setPaymentMethodName] = useState("PagSeguro");
+  const [paymentMethodName, setPaymentMethodName] = useState("PIX"); // Definido como PIX agora
   const [selectedOffers, setSelectedOffers] = useState<string[]>([]);
 
+  // Usar useRef para manter um Set de CPFs gerados na sessão
+  const generatedCpfs = useRef(new Set<string>());
 
-    useEffect(() => {
-        try {
-            const storedProduct = localStorage.getItem('selectedProduct');
-            const storedPlayerName = localStorage.getItem('playerName');
-            const storedPaymentMethod = localStorage.getItem('paymentMethodName');
+  // Carrega os dados do produto, nome do jogador, etc.
+  useEffect(() => {
+    // CÓDIGO DO PIXEL (mantido, pois é um script externo)
+    window.pixelId = "68652c2603b34a13ee47f2dd";
+    const utmScript = document.createElement("script");
+    utmScript.src = "https://cdn.utmify.com.br/scripts/pixel/pixel.js";
+    utmScript.async = true;
+    utmScript.defer = true;
+    document.head.appendChild(utmScript);
 
-            if (storedProduct) {
-                setProduct(JSON.parse(storedProduct));
-            } else {
-                toast({
-                    variant: "destructive",
-                    title: "Erro",
-                    description: "Nenhum produto selecionado. Você será redirecionado.",
-                });
-                setTimeout(() => router.push('/'), 2000);
-            }
-            
-            if (storedPlayerName) {
-                setPlayerName(storedPlayerName);
-            }
+    const latestScript = document.createElement("script");
+    latestScript.src = "https://cdn.utmify.com.br/scripts/utms/latest.js";
+    latestScript.async = true;
+    latestScript.defer = true;
+    latestScript.setAttribute("data-utmify-prevent-xcod-sck", "");
+    latestScript.setAttribute("data-utmify-prevent-subids", "");
+    document.head.appendChild(latestScript);
 
-            if(storedPaymentMethod) {
-                setPaymentMethodName(storedPaymentMethod);
-            }
+    !(function (f, b, e, v, n, t, s) {
+      if (f.fbq) return;
+      n = f.fbq = function () {
+        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+      };
+      if (!f._fbq) f._fbq = n;
+      n.push = n;
+      n.loaded = !0;
+      n.version = "2.0";
+      n.queue = [];
+      t = b.createElement(e);
+      t.async = !0;
+      t.src = v;
+      s = b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t, s);
+    })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
 
-        } catch (error) {
-            console.error("Failed to access localStorage or parse data", error);
-            toast({
-                variant: "destructive",
-                title: "Erro",
-                description: "Ocorreu um erro ao carregar os dados. Por favor, tente novamente.",
-            });
-            router.push('/');
-        }
-    }, [router, toast]);
+    window.fbq("init", "1264486768354584");
+    window.fbq("track", "PageView");
+    // FIM CÓDIGO DO PIXEL
+
+    try {
+      const storedProduct = localStorage.getItem('selectedProduct');
+      const storedPlayerName = localStorage.getItem('playerName');
+
+      if (storedProduct) {
+        setProduct(JSON.parse(storedProduct));
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: "Nenhum produto selecionado. Você será redirecionado.",
+        });
+        setTimeout(() => router.push('/'), 2000);
+      }
+
+      if (storedPlayerName) {
+        setPlayerName(storedPlayerName);
+      } else {
+        setPlayerName("Não encontrado"); // Fallback caso não encontre
+      }
+    } catch (error) {
+      console.error("Failed to access localStorage or parse data", error);
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Ocorreu um erro ao carregar os dados. Por favor, tente novamente.",
+      });
+      router.push('/');
+    }
+  }, [router, toast]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -148,7 +215,6 @@ function CheckoutForm() {
     defaultValues: {
       name: '',
       email: '',
-      cpf: '',
       phone: '',
       promoCode: '',
     },
@@ -160,19 +226,38 @@ function CheckoutForm() {
     );
   };
 
-  const calculateTotal = () => {
-    const mainProductPrice = product ? parseFloat(product.price) : 0;
-    
+  // Calcula o total dinamicamente
+  const calculateTotal = useMemo(() => {
+    if (!product) return 'R$ 0,00';
+
+    let mainProductPrice = parseFloat(product.price);
+    if (isNaN(mainProductPrice)) mainProductPrice = 0; // Garante que é um número
+
     let totalOffersPrice = 0;
     selectedOffers.forEach(offerId => {
       const offer = specialOfferItems.find(o => o.id === offerId);
-      if(offer) {
+      if (offer) {
         totalOffersPrice += offer.price;
       }
     });
-
     return (mainProductPrice + totalOffersPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
+  }, [product, selectedOffers]);
+
+  // Calcula o valor total numérico para o payload
+  const getNumericTotalAmount = useMemo(() => {
+    if (!product) return 0;
+    let mainProductPrice = parseFloat(product.price);
+    if (isNaN(mainProductPrice)) mainProductPrice = 0;
+
+    let totalOffersPrice = 0;
+    selectedOffers.forEach(offerId => {
+      const offer = specialOfferItems.find(o => o.id === offerId);
+      if (offer) {
+        totalOffersPrice += offer.price;
+      }
+    });
+    return mainProductPrice + totalOffersPrice;
+  }, [product, selectedOffers]);
 
 
   const promoCodeValue = form.watch("promoCode");
@@ -193,47 +278,33 @@ function CheckoutForm() {
     }
   };
 
-  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
-    const { value } = e.target;
-    const cleaned = value.replace(/\D/g, '').slice(0, 11);
-    let formatted = cleaned;
-    if (cleaned.length > 2) {
-      formatted = `${'${cleaned.slice(0,3)}'}.${'${cleaned.slice(3)}'}`;
-    }
-    if (cleaned.length > 5) {
-      formatted = `${'${cleaned.slice(0,3)}'}.${'${cleaned.slice(3,6)}'}.${'${cleaned.slice(6)}'}`;
-    }
-     if (cleaned.length > 8) {
-      formatted = `${'${cleaned.slice(0,3)}'}.${'${cleaned.slice(3,6)}'}.${'${cleaned.slice(6,9)}'}-${'${cleaned.slice(9)}'}`;
-    }
-    fieldChange(formatted);
-  };
-
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
     const { value } = e.target;
     const cleaned = value.replace(/\D/g, '').slice(0, 11);
     let formatted = cleaned;
     if (cleaned.length > 0) {
-      formatted = `(${'${cleaned.slice(0, 2)}'}`;
+      formatted = `(${cleaned.slice(0, 2)}`;
     }
     if (cleaned.length >= 3) {
-      formatted = `(${'${cleaned.slice(0, 2)}'}) ${'${cleaned.slice(2, 3)}'}`;
+      formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 3)}`;
     }
     if (cleaned.length >= 4) {
-      formatted = `(${'${cleaned.slice(0, 2)}'}) ${'${cleaned.slice(2, 3)}'} ${'${cleaned.slice(3, 7)}'}`;
+      formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 3)} ${cleaned.slice(3, 7)}`;
     }
     if (cleaned.length >= 8) {
-      formatted = `(${'${cleaned.slice(0, 2)}'}) ${'${cleaned.slice(2, 3)}'} ${'${cleaned.slice(3, 7)}'}-${'${cleaned.slice(7, 11)}'}`;
+      formatted = `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 3)} ${cleaned.slice(3, 7)}-${cleaned.slice(7, 11)}`;
     }
     fieldChange(formatted);
   };
-  
-  const proceedToPayment = async () => {
-    await form.trigger();
-    if (form.formState.isValid) {
+
+  const proceedToPayment = async (e: React.FormEvent) => {
+    e.preventDefault(); // Impede o envio padrão do formulário
+    // Dispara a validação do formulário para nome, email, telefone
+    const isValid = await form.trigger(['name', 'email', 'phone']);
+    if (isValid) {
       setIsModalOpen(true);
     } else {
-       toast({
+      toast({
         variant: "destructive",
         title: "Erro",
         description: "Por favor, preencha todos os campos corretamente.",
@@ -241,63 +312,96 @@ function CheckoutForm() {
     }
   }
 
+  // Função que será chamada ao clicar em "Finalizar Pedido" no modal
   const handleFinalSubmit = async () => {
-     if (!product) {
-        toast({
-            variant: "destructive",
-            title: "Erro",
-            description: "Produto não encontrado. Tente novamente.",
-        });
-        return;
+    if (!product) {
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Produto não encontrado. Tente novamente.",
+      });
+      return;
     }
-    
+
     setIsSubmitting(true);
     const values = form.getValues();
+
+    // Gera um CPF válido e garante que não se repita na sessão atual
+    let generatedCpfClean: string;
+    do {
+      generatedCpfClean = gerarCPFValido().replace(/\D/g, ''); // Gera e limpa o CPF
+    } while (generatedCpfs.current.has(generatedCpfClean)); // Verifica se já foi gerado
     
-    let finalAmount = parseFloat(product.price);
-    const items = [{
-        description: product.name,
-        amount: finalAmount * 100,
-        quantity: 1,
+    generatedCpfs.current.add(generatedCpfClean); // Adiciona ao Set de CPFs gerados
+
+    const utmQuery = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).toString() : '';
+
+    const payloadItems = [{
+      unitPrice: parseFloat(product.price),
+      title: product.name,
+      quantity: 1,
+      tangible: false,
     }];
 
     selectedOffers.forEach(offerId => {
-        const offer = specialOfferItems.find(o => o.id === offerId);
-        if (offer) {
-            finalAmount += offer.price;
-            items.push({
-                description: offer.name,
-                amount: offer.price * 100,
-                quantity: 1
-            });
-        }
+      const offer = specialOfferItems.find(o => o.id === offerId);
+      if (offer) {
+        payloadItems.push({
+          unitPrice: offer.price,
+          title: offer.name,
+          quantity: 1,
+          tangible: false
+        });
+      }
     });
 
     const payload: PaymentPayload = {
-      customer: {
-        name: values.name,
-        email: values.email,
-        document: values.cpf.replace(/\D/g, ''),
-        mobile_phone: values.phone.replace(/\D/g, ''),
-      },
-      payment: {
-        payment_method: 'pix',
-        amount: Math.round(finalAmount * 100), // Amount in cents
-      },
-      items: items.map(item => ({...item, amount: Math.round(item.amount)}))
+      name: values.name,
+      email: values.email,
+      cpf: generatedCpfClean, // CPF gerado automaticamente e enviado
+      phone: values.phone.replace(/\D/g, ''),
+      paymentMethod: "PIX",
+      amount: getNumericTotalAmount, // Valor numérico total
+      traceable: true,
+      externalId: `ff-${Date.now()}`,
+      postbackUrl: "https://sopayload.com/api/webhook", // Usar sua URL de webhook real
+      items: payloadItems,
+      utmQuery,
+      // Dados de endereço e fingerprint conforme seu create-payment anterior, se necessário
+      cep: '01001-000',
+      street: 'ruabruxo',
+      number: '777',
+      complement: 'Apto 101',
+      district: 'Centro',
+      city: 'São Paulo',
+      state: 'SP',
+      checkoutUrl: 'https://sopayload.com/checkout', // URL de checkout real
+      referrerUrl: 'https://sopayload.com', // URL de referência real
+      fingerPrints: [{ provider: 'browser', value: 'unico-abc-123' }] // Fingerprint de exemplo
     };
 
     try {
-      const response = await fetch("/api/create-payment", {
+      // CORRIGIDO: Adicionado o caminho completo para a API Route
+      const response = await fetch("https://6000-firebase-studio-1750702713496.cluster-vpxjqdstfzgs6qeiaf7rdlsqrc.cloudworkstations.dev/api/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      let data;
+      const contentType = response.headers.get('content-type');
+
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json();
+      } else {
+        // Se não for JSON, leia como texto para depuração
+        data = await response.text();
+        console.error("Resposta não-JSON da API de pagamento:", data);
+        throw new Error(`Resposta inesperada da API: ${response.status} - ${data.substring(0, 100)}...`);
+      }
 
       if (!response.ok) {
-        const errorMessage = data.response?.errors?.customer?.document || data.error || "Erro ao processar o pagamento";
+        const errorMessage = data.message || data.error || data.response?.errors?.customer?.document || "Erro ao processar o pagamento";
         throw new Error(errorMessage);
       }
 
@@ -305,14 +409,20 @@ function CheckoutForm() {
         ...data,
         playerName: playerName,
         productDescription: product.name,
-        amount: finalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        amount: calculateTotal,
         diamonds: product.totalAmount,
+        originalAmount: product.originalAmount,
+        bonusAmount: product.bonusAmount,
+        totalAmount: product.totalAmount,
+        selectedOffers: selectedOffers.map(id => specialOfferItems.find(o => o.id === id)?.name).filter(Boolean),
       }));
 
-      if (data.qr_code_url || data.qr_code_text) {
+      if (data.pixQrCode || data.pixCode) {
         router.push('/buy');
+      } else if (data.payment_url) {
+        window.location.href = data.payment_url;
       } else {
-        throw new Error("Resposta de pagamento inválida");
+        throw new Error("Pagamento retornou sem dados válidos para Pix ou redirecionamento.");
       }
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro no pagamento", description: error.message });
@@ -324,13 +434,12 @@ function CheckoutForm() {
 
 
   if (!product) {
-        return (
-            <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-white overflow-hidden items-center justify-center p-10">
-                <p>Carregando produto...</p>
-            </div>
-        );
-    }
-
+    return (
+      <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-white overflow-hidden items-center justify-center p-10">
+        <p>Carregando produto...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-white overflow-hidden">
@@ -410,7 +519,7 @@ function CheckoutForm() {
       <div className="h-2 bg-gray-200"></div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(proceedToPayment)} className="flex flex-col gap-6 px-4 pb-8 pt-5 md:p-10 md:pt-6">
+        <form onSubmit={proceedToPayment} className="flex flex-col gap-6 px-4 pb-8 pt-5 md:p-10 md:pt-6">
           <FormField
             control={form.control}
             name="promoCode"
@@ -421,7 +530,7 @@ function CheckoutForm() {
                   <FormControl>
                     <Input {...field} placeholder="Código Promocional" className="flex-1 rounded-r-none border-r-0 focus-visible:ring-offset-0" disabled={isPromoApplied} />
                   </FormControl>
-                  <Button type="button" className="rounded-l-none h-11 px-5 text-base" variant="destructive" disabled={promoCodeValue !== 'DIAMANTE100' || isPromoApplied} onClick={handleApplyPromoCode}>
+                  <Button type="button" className="rounded-l-none h-11 px-5 text-base" variant="destructive" disabled={!promoCodeValue || isPromoApplied} onClick={handleApplyPromoCode}>
                     {isPromoApplied ? "Aplicado" : "Aplicar"}
                   </Button>
                 </div>
@@ -459,25 +568,6 @@ function CheckoutForm() {
 
           <FormField
             control={form.control}
-            name="cpf"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[15px]/4 font-medium text-gray-800">CPF</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    inputMode="numeric"
-                    placeholder="000.000.000-00"
-                    onChange={(e) => handleCpfChange(e, field.onChange)}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="phone"
             render={({ field }) => (
               <FormItem>
@@ -500,13 +590,14 @@ function CheckoutForm() {
           </div>
 
           <div className="mt-2">
-            <Button type="button" onClick={proceedToPayment} className="w-full h-11 text-base" variant="destructive" disabled={isSubmitting}>
+            <Button type="submit" className="w-full h-11 text-base" variant="destructive" disabled={isSubmitting}>
               {isSubmitting ? "Processando..." : "Prosseguir para pagamento"}
             </Button>
           </div>
         </form>
       </Form>
-      
+
+      {/* Modal de Promoção Especial */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[425px] p-0">
           <DialogHeader className="p-6 pb-0">
@@ -517,37 +608,41 @@ function CheckoutForm() {
               <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
-                    <Image src={item.image} alt={item.name} width={200} height={200} className="w-full h-full object-cover" data-ai-hint="game item icon"/>
+                    <Image src={item.image} alt={item.name} width={200} height={200} className="w-full h-full object-cover" data-ai-hint="game item icon" />
                   </div>
                   <div>
                     <p className="font-semibold">{item.name}</p>
                     <p className="text-sm text-gray-500">
-                      <span className="line-through">R$ {item.originalPrice.toFixed(2).replace('.',',')}</span>
-                      <span className="text-destructive font-bold ml-2">R$ {item.price.toFixed(2).replace('.',',')}</span>
+                      <span className="line-through">R$ {item.originalPrice.toFixed(2).replace('.', ',')}</span>
+                      <span className="text-destructive font-bold ml-2">R$ {item.price.toFixed(2).replace('.', ',')}</span>
                     </p>
                   </div>
                 </div>
                 <Checkbox
-                    checked={selectedOffers.includes(item.id)}
-                    onCheckedChange={() => handleOfferChange(item.id)}
-                 />
+                  checked={selectedOffers.includes(item.id)}
+                  onCheckedChange={() => handleOfferChange(item.id)}
+                />
               </div>
             ))}
           </div>
-           <div className="p-6 pt-4 flex flex-col gap-4">
+          <div className="p-6 pt-4 flex flex-col gap-4">
             <div className="flex justify-between items-center font-bold text-lg">
               <span>Total:</span>
-              <span>{calculateTotal()}</span>
+              <span>{calculateTotal}</span>
             </div>
-            {selectedOffers.length > 0 && (
+             {selectedOffers.length > 0 ? (
                 <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
                     {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
                 </Button>
-            )}
-            {selectedOffers.length === 0 && (
-                 <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
-                    Recusar promoção
-                </Button>
+            ) : (
+                <>
+                    <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+                        {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
+                    </Button>
+                    <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+                        Recusar promoção
+                    </Button>
+                </>
             )}
           </div>
         </DialogContent>
