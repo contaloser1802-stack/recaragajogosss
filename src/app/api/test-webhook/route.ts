@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const testPayload = {
       id: testOrderId,
       status: 'APPROVED', // Ou 'PAID'
-      amount: 5000, // Exemplo: R$ 50,00 em centavos
+      amount: 13990, // Exemplo: R$ 50,00 em centavos
       createdAt: new Date().toISOString(),
       paidAt: new Date().toISOString(),
       customer: {
