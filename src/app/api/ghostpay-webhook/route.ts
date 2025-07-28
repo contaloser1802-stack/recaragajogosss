@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const paymentStatus = event.status.toUpperCase();
 
-    // Processa apenas pagamentos aprovados
+    // Processa apenas pagamentos aprovados (PAID ou APPROVED)
     if (paymentStatus === 'APPROVED' || paymentStatus === 'PAID') {
       console.log(`[ghostpay-webhook] Pagamento aprovado (ID: ${event.id}). Iniciando envio para Utmify.`);
 
