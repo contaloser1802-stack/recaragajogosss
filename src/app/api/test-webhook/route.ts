@@ -3,80 +3,80 @@ import { NextRequest, NextResponse } from 'next/server';
 import { POST as handleWebhook } from '@/app/api/ghostpay-webhook/route'; // Importa a função do webhook
 
 // Esta é uma rota de TESTE para simular o webhook da GhostPay.
-// Você pode usá-la para verificar se as vendas aprovadas estão sendo enviadas corretamente para a Utmify.
+// Agora ela gera 29 notificações de uma vez.
 // Para usar, acesse a URL /api/test-webhook no seu navegador.
-// Lembre-se de remover este arquivo quando não precisar mais dele.
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. Crie um payload de exemplo que imita o que a GhostPay enviaria.
-    // Use um ID de pedido único para cada teste para vê-lo na Utmify.
-    const testOrderId = `TEST-${Date.now()}`;
+    const promises = [];
+    const createdOrderIds = [];
 
-    const testPayload = {
-      id: testOrderId,
-      status: 'APPROVED', // Ou 'PAID'
-      amount: 13990, // Exemplo: R$ 50,00 em centavos
-      createdAt: new Date().toISOString(),
-      paidAt: new Date().toISOString(),
-      customer: {
-        name: 'Cliente Teste',
-        email: 'teste@example.com',
-        phone: '11999998888',
-        cpf: '12345678900',
-        ipAddress: '127.0.0.1',
-      },
-      items: [
-        {
-          id: 'prod-teste-123',
-          title: 'Produto de Teste',
-          quantity: 1,
-          unitPrice: 5000,
-        },
-      ],
-      utmQuery: {
-        utm_source: 'teste-source',
-        utm_campaign: 'teste-campaign',
-        utm_medium: 'teste-medium',
-        sck: 'teste-sck'
-      },
-    };
+    for (let i = 0; i < 29; i++) {
+        // 1. Crie um payload de exemplo que imita o que a GhostPay enviaria.
+        // Use um ID de pedido único para cada teste para vê-lo na Utmify.
+        const testOrderId = `TEST-APPROVED-${Date.now()}-${i}`;
+        createdOrderIds.push(testOrderId);
 
-    console.log(`[test-webhook] Simulando chamada para o webhook com o payload:`, JSON.stringify(testPayload, null, 2));
+        const testPayload = {
+            id: testOrderId,
+            status: 'APPROVED',
+            amount: 5000, // Exemplo: R$ 50,00 em centavos
+            createdAt: new Date().toISOString(),
+            paidAt: new Date().toISOString(),
+            customer: {
+                name: 'Cliente Teste Aprovado',
+                email: 'aprovado@example.com',
+                phone: '11999998888',
+                cpf: '12345678900',
+                ipAddress: '127.0.0.1',
+            },
+            items: [
+                {
+                    id: 'prod-teste-123',
+                    title: 'Produto de Teste Aprovado',
+                    quantity: 1,
+                    unitPrice: 5000,
+                },
+            ],
+            utmQuery: {
+                utm_source: 'teste-source',
+                utm_campaign: 'teste-campaign',
+                utm_medium: 'teste-medium',
+                sck: 'teste-sck'
+            },
+            isTest: false, // Garante que a venda apareça no painel
+        };
+        
+        console.log(`[test-webhook] [${i + 1}/29] Simulando chamada para o webhook com o payload:`, JSON.stringify(testPayload, null, 2));
 
-    // 2. Crie um objeto de requisição simulado para passar para a função do webhook.
-    const mockRequest = new NextRequest(new URL(request.url).origin, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(testPayload),
-    });
+        // 2. Crie um objeto de requisição simulado para passar para a função do webhook.
+        const mockRequest = new NextRequest(new URL(request.url).origin, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(testPayload),
+        });
 
-    // 3. Chame a função do webhook diretamente.
-    const response = await handleWebhook(mockRequest);
-
-    // 4. Verifique a resposta do seu webhook.
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[test-webhook] Erro ao chamar o webhook: ${response.status}`, errorText);
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Erro ao simular o webhook.',
-          webhook_status: response.status,
-          webhook_response: errorText,
-        },
-        { status: 500 }
-      );
+        // 3. Adiciona a promessa de chamada do webhook à lista.
+        promises.push(handleWebhook(mockRequest));
     }
 
-    const responseData = await response.json();
-    console.log('[test-webhook] Simulação bem-sucedida. Resposta do webhook:', responseData);
+    // 4. Executa todas as promessas em paralelo.
+    const results = await Promise.allSettled(promises);
 
+    const successfulInvocations = results.filter(r => r.status === 'fulfilled' && r.value.ok).length;
+    const failedInvocations = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok));
+
+    console.log(`[test-webhook] Simulação concluída. ${successfulInvocations} sucessos, ${failedInvocations.length} falhas.`);
+    if (failedInvocations.length > 0) {
+        console.error('[test-webhook] Detalhes das falhas:', failedInvocations);
+    }
+    
     return NextResponse.json(
       {
         success: true,
-        message: `Webhook de teste executado com sucesso para o pedido ${testOrderId}. Verifique a Utmify e os logs do servidor.`,
-        data: responseData,
+        message: `Simulação de webhook APROVADO executada. ${successfulInvocations} de 29 pedidos enviados para a Utmify.`,
+        createdOrderIds: createdOrderIds,
+        results: results.map(r => r.status)
       },
       { status: 200 }
     );
