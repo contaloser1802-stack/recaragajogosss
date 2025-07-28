@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const amountInCents = 1999; // Exemplo: R$ 19,99
 
     // Obtém o IP do cliente da requisição (essencial para a Utmify)
+    // No Vercel/Next.js, o IP é obtido do cabeçalho x-forwarded-for. Para teste, usamos um valor fixo.
     const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
     const testPayload: UtmifyOrderPayload = {
