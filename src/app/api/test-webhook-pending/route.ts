@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         userCommissionInCents: amountInCents,
         currency: 'BRL',
       },
-      isTest: true, // Marcado como teste
+      isTest: false,
     };
 
     console.log(`[test-webhook-pending] Simulando envio para a Utmify com o payload:`, JSON.stringify(testPayload, null, 2));
@@ -82,11 +82,11 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('[test-webhook-pending] Erro fatal na simulação:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: 'Erro ao simular o webhook pendente.',
-        error: error.message 
-      }, 
+        error: error.message
+      },
       { status: 500 }
     );
   }
