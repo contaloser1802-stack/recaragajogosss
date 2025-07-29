@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -86,7 +85,6 @@ const Upsell3Page = () => {
             localStorage.setItem('paymentData', JSON.stringify({
                 ...data,
                 playerName: playerName,
-                productDescription: selectedProduct.name,
                 amount: selectedProduct.formattedPrice,
                 numericAmount: selectedProduct.price,
                 diamonds: selectedProduct.totalAmount,

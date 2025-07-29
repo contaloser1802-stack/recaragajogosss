@@ -5,12 +5,12 @@ export interface PaymentPayload {
   cpf?: string; // CPF é opcional, pois pode ser gerado no backend
   phone: string;
   paymentMethod: 'PIX';
-  amount: number;
+  amount: number; // Alterado para number em vez de string
   traceable: boolean;
   externalId: string;
   items: {
-    id: string; // Adicionado id do produto
-    unitPrice: number;
+    id: string; 
+    unitPrice: number; // Alterado para number
     title: string;
     quantity: number;
     tangible: boolean;
@@ -24,7 +24,7 @@ export interface ProductData {
   originalAmount: string;
   bonusAmount: string;
   totalAmount: string;
-  price: number; // Alterado para number
+  price: number; 
   formattedPrice: string;
-  image?: string; // Adicionado para ofertas especiais
+  image?: string; 
 }

@@ -15,21 +15,24 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { upsellOffers, taxOffer, downsellOffers, skinOffers } from '@/lib/data';
 import BackRedirect from '@/components/freefire/BackRedirect';
 
-// Interface para os dados de pagamento recebidos do localStorage (e da API)
+// Interface para os dados de pagamento recebidos do localStorage
 interface PaymentData {
   pixQrCode?: string;
   pixCode?: string;
   playerName?: string;
   productDescription?: string;
-  amount?: string; // Valor formatado para exibição (ex: "R$ 47,98")
-  diamonds?: string; // Total de diamantes (ex: "4.360")
+  amount?: string;
+  numericAmount?: number;
+  diamonds?: string;
   externalId?: string;
-  expiresAt?: string; // String ISO 8601 (ex: "2025-07-28T03:00:00.000Z")
-  status?: string; // Status inicial da transação, se fornecido
-  originalAmount?: string; // Preço original do produto (diamantes)
-  bonusAmount?: string;    // Bônus de diamantes
-  totalAmount?: string;    // Total de diamantes (original + bônus)
-  productId?: string; // ID do produto para lógica de redirecionamento
+  expiresAt?: string;
+  status?: string;
+  originalAmount?: string;
+  bonusAmount?: string;
+  totalAmount?: string;
+  productId?: string;
+  items?: any[];
+  utmQuery?: string;
 }
 
 const BuyPage = () => {
@@ -40,6 +43,7 @@ const BuyPage = () => {
   const [playerName, setPlayerName] = useState<string>("Carregando...");
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | 'EXPIRED' | 'CANCELLED' | 'UNKNOWN'>('PENDING');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
@@ -49,43 +53,6 @@ const BuyPage = () => {
 
     const loadAndMonitorPaymentData = () => {
       try {
-        // CÓDIGO DO PIXEL (mantido)
-        window.pixelId = "68652c2603b34a13ee47f2dd";
-        const utmScript = document.createElement("script");
-        utmScript.src = "https://cdn.utmify.com.br/scripts/pixel/pixel.js";
-        utmScript.async = true;
-        utmScript.defer = true;
-        document.head.appendChild(utmScript);
-
-        const latestScript = document.createElement("script");
-        latestScript.src = "https://cdn.utmify.com.br/scripts/utms/latest.js";
-        latestScript.async = true;
-        latestScript.defer = true;
-        latestScript.setAttribute("data-utmify-prevent-xcod-sck", "");
-        latestScript.setAttribute("data-utmify-prevent-subids", "");
-        document.head.appendChild(latestScript);
-
-        !(function (f, b, e, v, n, t, s) {
-          if (f.fbq) return;
-          n = f.fbq = function () {
-            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-          };
-          if (!f._fbq) f._fbq = n;
-          n.push = n;
-          n.loaded = !0;
-          n.version = "2.0";
-          n.queue = [];
-          t = b.createElement(e);
-t.async = !0;
-          t.src = v;
-          s = b.getElementsByTagName(e)[0];
-          s.parentNode.insertBefore(t, s);
-        })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-
-        window.fbq("init", "1264486768354584");
-        window.fbq("track", "PageView");
-        // FIM CÓDIGO DO PIXEL
-
         const storedPaymentData = localStorage.getItem("paymentData");
 
         if (storedPaymentData) {
@@ -124,9 +91,11 @@ t.async = !0;
               try {
                 const res = await fetch(`/api/create-payment?externalId=${externalId}`);
                 if (!res.ok) {
-                   console.error("Erro na API de status do pagamento:", res.status, await res.text());
-                   setPaymentStatus('UNKNOWN');
-                   return;
+                    if (res.status !== 404) { // Ignora 404 como erro fatal aqui
+                       console.error("Erro na API de status do pagamento:", res.status, await res.text());
+                       setPaymentStatus('UNKNOWN');
+                       return;
+                    }
                 }
                 const statusData = await res.json();
                 console.log("Resposta do status da API (backend):", statusData);
@@ -207,8 +176,8 @@ t.async = !0;
       if (timerId) clearInterval(timerId);
       if (pollTimeoutId) clearTimeout(pollTimeoutId);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // A dependência do paymentStatus foi removida para evitar re-iniciar o polling
+  }, []); // Dependências vazias para rodar apenas uma vez na montagem
+
 
   useEffect(() => {
       if (paymentStatus === 'APPROVED') {
@@ -242,6 +211,54 @@ t.async = !0;
       });
     }
   };
+
+  const handleSimulatePayment = async () => {
+    if (!paymentData) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Dados de pagamento não encontrados.' });
+      return;
+    }
+    setIsSimulating(true);
+    try {
+      const payload = {
+        // Usa os dados já existentes na variável de estado `paymentData`
+        id: paymentData.externalId, // O ID da transação original
+        status: 'PAID', // Simula o status 'PAID'
+        amount: paymentData.numericAmount ? paymentData.numericAmount * 100 : 0, // Garante que é um número em centavos
+        customer: {
+          name: paymentData.playerName || 'Jogador Simulado',
+          email: 'simulado@test.com',
+          phone: '99999999999',
+          cpf: '12345678900'
+        },
+        items: paymentData.items,
+        utmQuery: paymentData.utmQuery ? new URLSearchParams(paymentData.utmQuery).toString() : null
+      };
+
+      const res = await fetch('/api/simulate-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Erro interno do servidor ao simular pagamento.');
+      }
+
+      setPaymentStatus('APPROVED');
+      toast({
+        title: 'Simulação Concluída!',
+        description: 'Pagamento simulado com sucesso. Redirecionando...',
+      });
+
+    } catch (error: any) {
+      console.error("Erro na simulação de pagamento:", error);
+      toast({ variant: 'destructive', title: 'Erro na Simulação', description: error.message });
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
 
   const formatTime = (seconds: number | null) => {
     if (seconds === null) return '';
@@ -413,6 +430,11 @@ t.async = !0;
               <Button className="mb-6 h-11 text-base font-bold" variant="destructive" onClick={handleCopyCode} disabled={!pixCode}>
                 Copiar Código
               </Button>
+              {paymentStatus === 'PENDING' && (
+                <Button className="mb-6 h-11 text-base font-bold" variant="outline" onClick={handleSimulatePayment} disabled={isSimulating}>
+                  {isSimulating ? 'Simulando...' : 'Simular Pagamento Aprovado'}
+                </Button>
+              )}
               <div className="text-gray-500 text-sm/[22px] space-y-4">
                 <p className="font-semibold">Para realizar o pagamento siga os passos abaixo:</p>
                 <ol className="list-decimal list-inside space-y-2 pl-2">
@@ -454,5 +476,3 @@ t.async = !0;
 };
 
 export default BuyPage;
-
-    

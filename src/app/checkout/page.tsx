@@ -136,7 +136,7 @@ function CheckoutPageContent() {
 
   const getNumericTotalAmount = useMemo(() => {
     if (!product) return 0;
-    let mainProductPrice = product.price; // Já é um número
+    let mainProductPrice = product.price; 
     let totalOffersPrice = selectedOffers.reduce((sum, offerId) => {
       const offer = specialOfferItems.find(o => o.id === offerId);
       return sum + (offer ? offer.price : 0);
@@ -249,18 +249,17 @@ function CheckoutPageContent() {
       }
 
       localStorage.setItem('paymentData', JSON.stringify({
-        ...data,
+        ...data, // Contém pixQrCode, pixCode, externalId, etc.
+        // Adiciona dados locais para a página /buy
         playerName: playerName,
-        productDescription: product.name,
-        amount: calculateTotal,
-        numericAmount: getNumericTotalAmount,
-        diamonds: product.totalAmount,
+        amount: calculateTotal, // Valor formatado para exibição
+        numericAmount: getNumericTotalAmount, // Valor numérico para cálculos futuros
+        diamonds: product.totalAmount, // String com total de diamantes
         originalAmount: product.originalAmount,
         bonusAmount: product.bonusAmount,
         totalAmount: product.totalAmount,
-        selectedOffers: selectedOffers.map(id => specialOfferItems.find(o => o.id === id)?.name).filter(Boolean),
-        productId: product.id,
-        items: payloadItems, // Salva os itens para a simulação
+        productId: product.id, // ID do produto principal
+        items: payloadItems, // Itens completos para simulação/recuperação
         utmQuery: utmQuery,
       }));
 

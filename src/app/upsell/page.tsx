@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -123,7 +122,6 @@ const UpsellPage = () => {
             localStorage.setItem('paymentData', JSON.stringify({
                 ...data,
                 playerName: playerName,
-                productDescription: selectedProducts.map(p => p.name).join(', '),
                 amount: totalAmount,
                 numericAmount: totalNumericAmount,
                 diamonds: 'Skins Especiais', // Placeholder

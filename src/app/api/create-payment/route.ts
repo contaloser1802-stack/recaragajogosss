@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
@@ -236,6 +235,15 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Se a transação não for encontrada (404), tratamos como pendente para a UI
+    if (ghostpayStatusResponse.status === 404) {
+        console.log(`[create-payment GET] Transação com externalId ${externalId} não encontrada na GhostPay. Retornando status PENDING para a UI.`);
+        return NextResponse.json({ status: 'PENDING' }, {
+            status: 200,
+            headers: { 'Access-Control-Allow-Origin': origin, 'Content-Type': 'application/json' }
+        });
+    }
+
     let statusData;
     const contentType = ghostpayStatusResponse.headers.get('content-type');
 
@@ -249,15 +257,6 @@ export async function GET(request: NextRequest) {
         { error: 'Falha ao consultar status: Resposta inesperada da GhostPay', details: textData },
         { status: ghostpayStatusResponse.status }
       );
-    }
-    
-    // Se a transação não for encontrada (404), tratamos como pendente para a UI
-    if (ghostpayStatusResponse.status === 404) {
-        console.log(`[create-payment GET] Transação com externalId ${externalId} não encontrada. Retornando PENDING.`);
-        return NextResponse.json({ status: 'PENDING' }, {
-            status: 200,
-            headers: { 'Access-Control-Allow-Origin': origin, 'Content-Type': 'application/json' }
-        });
     }
 
     if (!ghostpayStatusResponse.ok) {

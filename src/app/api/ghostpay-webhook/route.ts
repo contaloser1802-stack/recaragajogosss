@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
@@ -67,8 +66,8 @@ export async function POST(request: NextRequest) {
         },
         commission: {
           totalPriceInCents: totalAmountInCents,
-          gatewayFeeInCents: 0, // Se a GhostPay não fornecer, pode ser 0
-          userCommissionInCents: totalAmountInCents, // Ajustar se houver taxas
+          gatewayFeeInCents: 0, 
+          userCommissionInCents: totalAmountInCents, 
           currency: 'BRL',
         },
         isTest: false,

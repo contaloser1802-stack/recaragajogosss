@@ -52,9 +52,9 @@ export const paymentMethods = [
 ];
 
 export const specialOfferItems = [
-  { id: 'sombra-roxa', name: 'Sombra Roxa', price: 9.99, originalPrice: 99.99, image: 'https://i.ibb.co/DHfZ8X4T/Screenshot-35.png' },
-  { id: 'barba-velho', name: 'Barba do Velho', price: 9.99, originalPrice: 99.99, image: 'https://i.ibb.co/hFdZmjZ8/Screenshot-32.png' },
-  { id: 'dima-bonus', name: 'Pacote Coelhão', price: 4.99, originalPrice: 49.99, image: 'https://i.ibb.co/3m1fWyd7/Screenshot-33.png' },
-  { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 14.99, originalPrice: 149.90, image: 'https://i.ibb.co/qMX69Lt6/Screenshot-31.png' },
-  { id: 'dunk-master', name: 'Dunk Master', price: 7.50, originalPrice: 75.90, image: 'https://i.ibb.co/RTBdyFsP/Screenshot-34.png' },
+    { id: 'sombra-roxa', name: 'Sombra Roxa', price: 9.99, originalPrice: 99.99, image: 'https://i.ibb.co/DHfZ8X4T/Screenshot-35.png' },
+    { id: 'barba-velho', name: 'Barba do Velho', price: 9.99, originalPrice: 99.99, image: 'https://i.ibb.co/hFdZmjZ8/Screenshot-32.png' },
+    { id: 'dima-bonus', name: 'Pacote Coelhão', price: 4.99, originalPrice: 49.99, image: 'https://i.ibb.co/3m1fWyd7/Screenshot-33.png' },
+    { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 14.99, originalPrice: 149.90, image: 'https://i.ibb.co/qMX69Lt6/Screenshot-31.png' },
+    { id: 'dunk-master', name: 'Dunk Master', price: 7.50, originalPrice: 75.90, image: 'https://i.ibb.co/RTBdyFsP/Screenshot-34.png' },
 ];
