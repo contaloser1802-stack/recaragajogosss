@@ -11,7 +11,7 @@ export async function OPTIONS(request: NextRequest) {
   const headers = new Headers();
   headers.set('Access-Control-Allow-Origin', origin);
   headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  headers.set('Access-control-allow-headers', 'Content-Type, Authorization');
   headers.set('Access-Control-Max-Age', '86400');
 
   return new NextResponse(null, {
@@ -282,3 +282,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message || 'Erro interno do servidor ao consultar status.' }, { status: 500 });
   }
 }
+
+    
