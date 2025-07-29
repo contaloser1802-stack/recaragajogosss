@@ -65,7 +65,7 @@ type CheckoutData = {
     totalAmount: string;
 };
 
-export default function CheckoutCreditCardPage() {
+function CheckoutCreditCardPageContent() {
     const router = useRouter();
     const { toast } = useToast();
     const [isPromoApplied, setIsPromoApplied] = useState(false);
@@ -201,7 +201,13 @@ export default function CheckoutCreditCardPage() {
         }
     };
     
-    const pageContent = (
+    if (!checkoutData) {
+        return (
+            <div className="flex items-center justify-center h-full">Carregando...</div>
+        );
+    }
+
+    return (
         <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-white overflow-hidden">
              <div className="mb-3 bg-white md:mb-4 md:rounded-t-2xl md:p-2 md:pb-0">
                 <div className="relative h-20 overflow-hidden md:h-[120px] md:rounded-t-lg">
@@ -428,30 +434,26 @@ export default function CheckoutCreditCardPage() {
             </Form>
         </div>
     );
-    
-    if (!checkoutData) {
-        return (
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
-                <div className="flex items-center justify-center h-full">Carregando...</div>
-              </main>
-              <Footer />
-            </div>
-        );
-    }
+}
 
+export default function CheckoutCreditCardPage() {
     return (
         <div className="flex flex-col min-h-screen">
           <Header />
-          <main className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
+          <main className="flex-1 relative">
+             <Image
+                src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png"
+                alt="Free Fire background"
+                layout="fill"
+                objectFit="cover"
+                className="-z-10"
+                priority
+            />
             <Suspense fallback={<div className="flex items-center justify-center h-full">Carregando...</div>}>
-              {pageContent}
+              <CheckoutCreditCardPageContent />
             </Suspense>
           </main>
           <Footer />
         </div>
     );
 }
-
-    

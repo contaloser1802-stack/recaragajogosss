@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
@@ -37,7 +37,7 @@ const formSchema = z.object({
   promoCode: z.string().optional(),
 });
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const router = useRouter();
   const { toast } = useToast();
   const [isPromoApplied, setIsPromoApplied] = useState(false);
@@ -541,7 +541,15 @@ export default function CheckoutPage() {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
+        <main className="flex-1">
+          <Image
+            src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png"
+            alt="Free Fire background"
+            layout="fill"
+            objectFit="cover"
+            className="-z-10"
+            priority
+          />
           <div className="flex items-center justify-center h-full">Carregando...</div>
         </main>
         <Footer />
@@ -549,13 +557,27 @@ export default function CheckoutPage() {
     );
   }
 
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      <main className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
-        {pageContent}
-      </main>
-      <Footer />
-    </div>
-  );
+  return pageContent;
+}
+
+export default function CheckoutPage() {
+    return (
+        <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-1 relative">
+                <Image
+                    src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png"
+                    alt="Free Fire background"
+                    layout="fill"
+                    objectFit="cover"
+                    className="-z-10"
+                    priority
+                />
+                <Suspense fallback={<div className="flex items-center justify-center h-full">Carregando...</div>}>
+                    <CheckoutPageContent />
+                </Suspense>
+            </main>
+            <Footer />
+        </div>
+    )
 }
