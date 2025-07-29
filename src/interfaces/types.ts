@@ -36,4 +36,5 @@ export interface ProductData {
   totalAmount: string;
   price: string;
   formattedPrice: string;
+  image?: string; // Adicionado para ofertas especiais
 }

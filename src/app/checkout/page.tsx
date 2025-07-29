@@ -316,6 +316,7 @@ function CheckoutPageContent() {
         bonusAmount: product.bonusAmount,
         totalAmount: product.totalAmount,
         selectedOffers: selectedOffers.map(id => specialOfferItems.find(o => o.id === id)?.name).filter(Boolean),
+        productId: product.id, // Salva o ID do produto para lógica de redirecionamento
       }));
 
       if (data.pixQrCode || data.pixCode) {
@@ -568,7 +569,7 @@ export default function CheckoutPage() {
                 <Image
                     src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png"
                     alt="Free Fire background"
-                    layout="fill"
+                    fill
                     objectFit="cover"
                     className="-z-10"
                     priority

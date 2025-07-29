@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation'; // Importa useRouter
 import { CheckCircle, Hourglass, Info, RefreshCcw } from 'lucide-react'; // Ícones para status
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Componentes de alerta
+import { upsellOffers, taxOffer } from '@/lib/data'; // Importa dados dos upsells
 
 // Interface para os dados de pagamento recebidos do localStorage (e da API)
 interface PaymentData {
@@ -27,6 +28,7 @@ interface PaymentData {
   originalAmount?: string; // Preço original do produto (diamantes)
   bonusAmount?: string;    // Bônus de diamantes
   totalAmount?: string;    // Total de diamantes (original + bônus)
+  productId?: string; // ID do produto para lógica de redirecionamento
 }
 
 const BuyPage = () => {
@@ -73,7 +75,7 @@ const BuyPage = () => {
           n.version = "2.0";
           n.queue = [];
           t = b.createElement(e);
-          t.async = !0;
+t.async = !0;
           t.src = v;
           s = b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t, s);
@@ -86,10 +88,9 @@ const BuyPage = () => {
         const storedPaymentData = localStorage.getItem("paymentData");
 
         if (storedPaymentData) {
-          const parsed = JSON.parse(storedPaymentData);
+          const parsed: PaymentData = JSON.parse(storedPaymentData);
           console.log("Dados parseados do localStorage na BuyPage:", parsed); // Log para depuração
 
-          // Verifica as propriedades essenciais para exibir o Pix
           if (!parsed.pixQrCode || !parsed.pixCode || !parsed.externalId) {
             console.error("Dados de pagamento incompletos no localStorage:", parsed);
             toast({
@@ -99,19 +100,17 @@ const BuyPage = () => {
             });
             setIsLoading(false);
             setTimeout(() => router.push('/'), 2000);
-            return; // Sai da função para evitar erros subsequentes
+            return;
           }
 
           setPixCode(parsed.pixCode);
           setPixImage(parsed.pixQrCode);
           setPlayerName(parsed.playerName || "Desconhecido");
-          setPaymentData(parsed); // Armazena todos os dados para uso posterior
+          setPaymentData(parsed); 
           setIsLoading(false);
 
-          // Define o status inicial, se disponível, ou PENDING
-          setPaymentStatus(parsed.status ? parsed.status.toUpperCase() : 'PENDING');
+          setPaymentStatus(parsed.status ? parsed.status.toUpperCase() as any : 'PENDING');
 
-          // Lógica do contador regressivo (expiresAt)
           if (parsed.expiresAt) {
             const expiresAtTimestamp = new Date(parsed.expiresAt).getTime();
             const initialTimeLeft = Math.max(0, Math.floor((expiresAtTimestamp - Date.now()) / 1000));
@@ -170,33 +169,44 @@ const BuyPage = () => {
               }, 1000);
           }
 
-          // Inicia o polling para o status do pagamento
           if (parsed.externalId && paymentStatus !== 'EXPIRED' && paymentStatus !== 'APPROVED') {
             intervalId = setInterval(async () => {
               try {
                 console.log("Consultando status para externalId:", parsed.externalId);
                 const res = await fetch(`/api/create-payment?externalId=${parsed.externalId}`);
                 if (!res.ok) {
-                  // Se a resposta da API não for OK, pare de tentar e mostre um erro.
                    console.error("Erro na API de status do pagamento:", res.status, await res.text());
-                   setPaymentStatus('UNKNOWN'); // Define um estado de erro/incerteza
-                   if (intervalId) clearInterval(intervalId); // Para o polling
+                   setPaymentStatus('UNKNOWN'); 
+                   if (intervalId) clearInterval(intervalId);
                    return;
                 }
                 const statusData = await res.json();
                 console.log("Resposta do status da API (backend):", statusData);
 
                 if (res.ok && statusData.status) {
-                  let newStatus: typeof paymentStatus = statusData.status.toUpperCase() as typeof paymentStatus;
-                  if (newStatus === 'PAID') newStatus = 'APPROVED'; // Mapeamento de status da GhostPay
+                  let newStatus: typeof paymentStatus = statusData.status.toUpperCase();
+                  if (newStatus === 'PAID') newStatus = 'APPROVED';
                   
                   setPaymentStatus(newStatus);
 
                   if (newStatus === 'APPROVED') {
                     if (intervalId) clearInterval(intervalId);
                     if (timerId) clearInterval(timerId);
-                    localStorage.removeItem('paymentData');
-                    router.push('/upsell'); // Redireciona para a página de upsell
+
+                    // Lógica de redirecionamento pós-pagamento
+                    const isUpsell1 = upsellOffers.some(o => o.id === parsed.productId);
+                    const isUpsell2 = taxOffer.some(o => o.id === parsed.productId);
+                    
+                    localStorage.removeItem('paymentData'); // Limpa dados da transação atual
+
+                    if (isUpsell1) {
+                      router.push('/upsell-2'); // Pagou upsell 1, vai para upsell 2
+                    } else if (isUpsell2) {
+                      router.push('/success'); // Pagou upsell 2, vai para sucesso
+                    } else {
+                      router.push('/upsell'); // Pagou compra principal, vai para upsell 1
+                    }
+
                   } else if (newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
                     if (intervalId) clearInterval(intervalId);
                     if (timerId) clearInterval(timerId);
@@ -206,7 +216,7 @@ const BuyPage = () => {
                       description: "Por favor, inicie uma nova compra.",
                     });
                     localStorage.removeItem('paymentData');
-                    setTimeout(() => router.push('/'), 3000); // Redireciona para o início
+                    setTimeout(() => router.push('/'), 3000);
                   }
                 } else {
                   console.warn("Resposta de status da API inválida ou sem status:", statusData);
@@ -216,7 +226,7 @@ const BuyPage = () => {
                 setPaymentStatus('UNKNOWN');
                 if (intervalId) clearInterval(intervalId);
               }
-            }, 5000); // Consulta a cada 5 segundos
+            }, 5000);
           }
 
         } else {
@@ -242,12 +252,11 @@ const BuyPage = () => {
 
     loadAndMonitorPaymentData();
 
-    // Função de limpeza do useEffect
     return () => {
       if (intervalId) clearInterval(intervalId);
       if (timerId) clearInterval(timerId);
     };
-  }, [router, toast, paymentStatus]); // paymentStatus adicionado para reavaliar o useEffect quando o status muda
+  }, [router, toast, paymentStatus]);
 
   const handleCopyCode = () => {
     if (navigator.clipboard && pixCode) {
@@ -266,7 +275,6 @@ const BuyPage = () => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Renderiza skeleton ou mensagem de carregamento enquanto os dados são buscados
   if (isLoading || !paymentData) {
     return (
       <div className="flex flex-col min-h-screen bg-white">
@@ -280,6 +288,16 @@ const BuyPage = () => {
   }
 
   const showTimeLeft = timeLeft !== null && paymentStatus === 'PENDING' && timeLeft > 0;
+  
+  const getSuccessRedirectPath = () => {
+    if (!paymentData?.productId) return '/upsell';
+    const isUpsell1 = upsellOffers.some(o => o.id === paymentData.productId);
+    const isUpsell2 = taxOffer.some(o => o.id === paymentData.productId);
+
+    if (isUpsell1) return '/upsell-2';
+    if (isUpsell2) return '/success';
+    return '/upsell'; // Default para compra principal
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -353,7 +371,7 @@ const BuyPage = () => {
             </dd>
 
             <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Método de pagamento</dt>
-            <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">PIX</dd> {/* Hardcoded para PIX */}
+            <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">PIX</dd>
 
             <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Nome do Jogador</dt>
             <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">{playerName}</dd>
@@ -362,7 +380,6 @@ const BuyPage = () => {
           <div className="h-2 bg-gray-200"></div>
 
           <div className="flex flex-col gap-6 px-4 pb-8 pt-5 md:p-10 md:pt-6">
-            {/* Seção de Status do Pagamento */}
             <Alert className="text-left w-full max-w-md mx-auto">
               {paymentStatus === 'PENDING' && <Hourglass className="h-4 w-4" />}
               {paymentStatus === 'APPROVED' && <CheckCircle className="h-4 w-4 text-green-500" />}
@@ -386,7 +403,6 @@ const BuyPage = () => {
                 {paymentStatus === 'UNKNOWN' && 'Não foi possível verificar o status do pagamento. Por favor, aguarde ou recarregue a página.'}
               </AlertDescription>
             </Alert>
-            {/* Fim da Seção de Status do Pagamento */}
 
             <div className="flex w-full flex-col">
               <div className="text-center text-lg/none font-medium text-gray-800">Pague com Pix</div>
@@ -430,9 +446,8 @@ const BuyPage = () => {
                 </p>
               </div>
             </div>
-            {/* Botões de ação baseados no status do pagamento */}
             {paymentStatus === 'APPROVED' && (
-                <Link href="/upsell" className="mt-8">
+                <Link href={getSuccessRedirectPath()} className="mt-8">
                   <Button variant="default">Ir para a próxima etapa</Button>
                 </Link>
             )}

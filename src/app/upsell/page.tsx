@@ -21,7 +21,7 @@ const UpsellPage = () => {
             setTimeLeft(prevTime => {
                 if (prevTime <= 1) {
                     clearInterval(timer);
-                    router.push('/success');
+                    router.push('/success'); // Se o tempo acabar, vai para a página de sucesso
                     return 0;
                 }
                 return prevTime - 1;
@@ -51,10 +51,10 @@ const UpsellPage = () => {
         if (!selectedProduct) return;
 
         try {
+            // Salva o produto do upsell para a página de checkout
             localStorage.setItem('selectedProduct', JSON.stringify(selectedProduct));
-            localStorage.setItem('paymentMethodName', 'PIX');
-            // Redireciona para o segundo upsell
-            router.push('/upsell-2');
+            localStorage.setItem('paymentMethodName', 'PIX'); // Assume PIX para o upsell
+            router.push('/checkout');
         } catch (e) {
             console.error("Failed to access localStorage", e);
             toast({
@@ -86,6 +86,7 @@ const UpsellPage = () => {
                         {upsellOffers.map(offer => (
                             <div
                                 key={offer.id}
+                                onClick={() => setSelectedOfferId(offer.id)}
                                 className={cn(
                                     "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 text-left flex items-center gap-4",
                                     selectedOfferId === offer.id ? 'border-destructive bg-destructive/5' : 'border-gray-200 bg-white hover:border-gray-300'
