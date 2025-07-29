@@ -22,9 +22,12 @@ export const specialOffers = [
 ];
 
 export const upsellOffers = [
-    { id: 'upsell-5600', name: 'Oferta Especial 5.600 Diamantes', originalAmount: '5.600', bonusAmount: '0', totalAmount: '5.600', price: '9.90', formattedPrice: 'R$ 9,90' },
-    { id: 'upsell-11200', name: 'Oferta Especial 11.200 Diamantes', originalAmount: '11.200', bonusAmount: '0', totalAmount: '11.200', price: '19.90', formattedPrice: 'R$ 19,90' },
+    { id: 'upsell-5600', name: '5.600 Diamantes', originalAmount: '5.600', bonusAmount: '0', totalAmount: '5.600', price: '9.90', formattedPrice: 'R$ 9,90' },
 ];
+
+export const taxOffer = [
+    { id: 'tax-unlock', name: 'Taxa de Liberação Imediata', originalAmount: '', bonusAmount: '', totalAmount: '', price: '4.99', formattedPrice: 'R$ 4,99' },
+]
 
 export const paymentMethods = [
   { id: 'payment-pix', name: 'PIX', displayName: 'Pix via PagSeguro', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/pix_boa_mb.png', type: 'pix' },

