@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -104,7 +104,7 @@ const DownsellPage = () => {
                 originalAmount: selectedProduct.originalAmount,
                 bonusAmount: selectedProduct.bonusAmount,
                 totalAmount: selectedProduct.totalAmount,
-                // Redireciona para o upsell-2 após o pagamento do downsell
+                // Redireciona para o sucesso após o pagamento do downsell
                 productId: selectedProduct.id, 
             }));
             
@@ -119,6 +119,10 @@ const DownsellPage = () => {
             setIsSubmitting(false);
         }
     };
+
+    const handleDecline = () => {
+      router.push('/success');
+    }
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
@@ -161,6 +165,13 @@ const DownsellPage = () => {
                             variant="destructive"
                         >
                             {isSubmitting ? 'Processando...' : 'Sim, Levo Esta!'}
+                        </Button>
+                         <Button
+                            onClick={handleDecline}
+                            variant="link"
+                            className="text-gray-500 hover:text-gray-700"
+                        >
+                            Não, obrigado.
                         </Button>
                     </div>
                 </div>

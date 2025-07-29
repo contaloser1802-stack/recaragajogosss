@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Hourglass, Info, RefreshCcw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { upsellOffers, taxOffer, downsellOffers } from '@/lib/data';
+import { upsellOffers, taxOffer, downsellOffers, skinOffers } from '@/lib/data';
 import BackRedirect from '@/components/freefire/BackRedirect';
 
 // Interface para os dados de pagamento recebidos do localStorage (e da API)
@@ -195,16 +195,16 @@ t.async = !0;
                     if (timerId) clearInterval(timerId);
 
                     // Lógica de redirecionamento pós-pagamento
-                    const isUpsell1 = upsellOffers.some(o => o.id === parsed.productId);
+                    const isUpsell1 = skinOffers.some(o => o.id === parsed.productId);
                     const isDownsell = downsellOffers.some(o => o.id === parsed.productId);
-                    const isUpsell2 = taxOffer.some(o => o.id === parsed.productId);
+                    const isUpsell2 = upsellOffers.some(o => o.id === parsed.productId);
                     
                     localStorage.removeItem('paymentData'); // Limpa dados da transação atual
 
                     if (isUpsell1 || isDownsell) {
-                        router.push('/upsell-2'); // Pagou upsell 1 OU downsell, vai para upsell 2 (taxa)
+                        router.push('/upsell-2');
                     } else if (isUpsell2) {
-                        router.push('/success'); // Pagou upsell 2 (taxa), vai para sucesso
+                        router.push('/success');
                     } else {
                         router.push('/upsell'); // Pagou compra principal, vai para upsell 1
                     }
@@ -292,14 +292,14 @@ t.async = !0;
   const showTimeLeft = timeLeft !== null && paymentStatus === 'PENDING' && timeLeft > 0;
   
   const getSuccessRedirectPath = () => {
-    if (!paymentData?.productId) return '/upsell';
-    const isUpsell1 = upsellOffers.some(o => o.id === paymentData.productId);
+    if (!paymentData?.productId) return '/upsell'; // Default para compra principal
+    const isUpsell1 = skinOffers.some(o => o.id === paymentData.productId);
     const isDownsell = downsellOffers.some(o => o.id === paymentData.productId);
-    const isUpsell2 = taxOffer.some(o => o.id === paymentData.productId);
+    const isUpsell2 = upsellOffers.some(o => o.id === paymentData.productId);
     
     if (isUpsell1 || isDownsell) return '/upsell-2';
     if (isUpsell2) return '/success';
-    return '/upsell'; // Default para compra principal
+    return '/upsell'; 
   };
 
   return (
