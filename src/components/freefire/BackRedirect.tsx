@@ -12,26 +12,32 @@ const BackRedirect: React.FC<BackRedirectProps> = ({ redirectTo }) => {
   const router = useRouter();
 
   useEffect(() => {
-    // A URL atual (por exemplo, /buy)
-    const currentUrl = window.location.pathname;
+    // Garante que este código só rode no navegador
+    if (typeof window === 'undefined') {
+      return;
+    }
 
-    // Adiciona uma nova entrada no histórico com a mesma URL.
-    // Isso faz com que, ao clicar em "voltar", o usuário primeiro volte para
-    // esta entrada que acabamos de adicionar, em vez de voltar para a página anterior.
-    window.history.pushState(null, '', currentUrl);
+    const currentPath = window.location.pathname;
 
-    // Agora, monitoramos o evento 'popstate', que é disparado quando
-    // o usuário clica em voltar (acionando a volta para a entrada que criamos).
-    const handlePopState = (event: PopStateEvent) => {
-      // Impede o comportamento padrão de "voltar"
-      event.preventDefault();
-      // Redireciona para a URL de upsell
-      router.push(redirectTo);
+    // Esta função será chamada quando o usuário tentar voltar
+    const handlePopState = () => {
+        // Redireciona imediatamente para a página de destino (upsell)
+        router.push(redirectTo);
     };
 
+    // 1. Substitui o estado atual no histórico por um estado "neutro".
+    //    Isso limpa qualquer estado anterior que possa interferir.
+    window.history.replaceState({ page: 'neutral' }, '', currentPath);
+
+    // 2. Adiciona um novo estado ao histórico. Este é o estado que vamos "capturar".
+    //    Quando o usuário clicar em "voltar", o navegador tentará voltar para o estado
+    //    "neutral" que definimos acima, e isso disparará nosso evento 'popstate'.
+    window.history.pushState({ page: 'redirect' }, '', currentPath);
+
+    // 3. Adiciona o listener para o evento 'popstate'.
     window.addEventListener('popstate', handlePopState);
 
-    // Limpa o listener quando o componente for desmontado para evitar memory leaks.
+    // 4. Limpa o listener quando o componente for desmontado para evitar memory leaks.
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
@@ -41,5 +47,3 @@ const BackRedirect: React.FC<BackRedirectProps> = ({ redirectTo }) => {
 };
 
 export default BackRedirect;
-
-    
