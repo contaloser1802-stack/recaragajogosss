@@ -1,78 +1,61 @@
-// src/app/api/ghostpay-webhook/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 
-// Lida com as requisições POST do webhook da GhostPay
 export async function POST(request: NextRequest) {
   try {
-    // Adicionando verificação de segurança do webhook
     const ghostpayToken = request.headers.get('authorization');
     const secretKey = process.env.GHOSTPAY_SECRET_KEY;
 
     if (!secretKey) {
       console.error('[ghostpay-webhook] ❌ GHOSTPAY_SECRET_KEY não está configurado no servidor.');
-      // Não retorne detalhes do erro para o chamador por segurança
       return NextResponse.json({ error: 'Internal Server Configuration Error' }, { status: 500 });
     }
 
     if (ghostpayToken !== secretKey) {
-      console.warn(`[ghostpay-webhook]  unauthorized webhook call blocked.`);
+      console.warn(`[ghostpay-webhook]  Chamada de webhook não autorizada bloqueada.`);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const event = await request.json();
     console.log('[ghostpay-webhook] 🔄 Payload do webhook recebido:', JSON.stringify(event, null, 2));
 
-    // Validação básica do payload
-    if (!event.id || !event.status) {
-      console.error('[ghostpay-webhook] ❌ Payload inválido. Campos "id" ou "status" não encontrados.');
+    if (!event.id || !event.status || !event.customer || !event.items) {
+      console.error('[ghostpay-webhook] ❌ Payload inválido. Campos essenciais como id, status, customer ou items não encontrados.');
       return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
     }
 
     const paymentStatus = event.status.toUpperCase();
+    const totalAmountInCents = event.amount || 0;
 
-    // Processa apenas pagamentos aprovados (PAID ou APPROVED)
     if (paymentStatus === 'APPROVED' || paymentStatus === 'PAID') {
       console.log(`[ghostpay-webhook] ✅ Pagamento APROVADO (ID: ${event.id}). Iniciando envio para Utmify.`);
 
-      const totalAmountInCents = event.amount || 0;
-
-      // Como as taxas são configuradas na Utmify, enviamos o valor bruto.
-      // A Utmify calculará a taxa e a comissão líquida.
-      const gatewayFeeInCents = 0;
-      const userCommissionInCents = totalAmountInCents; // Enviamos o valor total como comissão do usuário.
-
-      console.log(`[ghostpay-webhook] 💰 Enviando para Utmify (pedido ${event.id}):`);
-      console.log(`- Valor Total (Bruto): ${totalAmountInCents} centavos`);
-      console.log(`- Taxa Gateway (Enviada): ${gatewayFeeInCents} (será calculada pela Utmify)`);
-      console.log(`- Comissão Líquida (Enviada): ${userCommissionInCents} (será calculada pela Utmify)`);
-
-      // Monta o payload para a Utmify a partir dos dados do webhook da GhostPay
       const utmifyPayload: UtmifyOrderPayload = {
         orderId: event.id,
-        platform: 'RecargaJogo', // Deve ser o mesmo nome de plataforma da criação
-        paymentMethod: 'pix', // Mapear se houver outros métodos
-        status: 'paid', // Status para a Utmify
+        platform: 'RecargaJogo',
+        paymentMethod: 'pix',
+        status: 'paid',
         createdAt: formatToUtmifyDate(new Date(event.createdAt || Date.now())),
         approvedDate: formatToUtmifyDate(new Date(event.paidAt || Date.now())),
         refundedAt: null,
         customer: {
-          name: event.customer?.name || 'N/A',
-          email: event.customer?.email || 'N/A',
-          phone: event.customer?.phone?.replace(/\D/g, '') || null,
-          document: event.customer?.cpf?.replace(/\D/g, '') || null,
+          name: event.customer.name || 'N/A',
+          email: event.customer.email || 'N/A',
+          phone: event.customer.phone?.replace(/\D/g, '') || null,
+          document: event.customer.cpf?.replace(/\D/g, '') || null,
           country: 'BR',
-          ip: event.customer?.ipAddress || null,
+          ip: event.customer.ipAddress || null,
         },
-        products: event.items?.map((item: any) => ({
+        products: event.items.map((item: any) => ({
           id: item.id || `prod_${Date.now()}`,
           name: item.title || 'Produto',
           planId: null,
           planName: null,
           quantity: item.quantity || 1,
           priceInCents: item.unitPrice || 0,
-        })) || [],
+        })),
         trackingParameters: {
             src: event.utmQuery?.utm_source || null,
             sck: event.utmQuery?.sck || null,
@@ -84,29 +67,25 @@ export async function POST(request: NextRequest) {
         },
         commission: {
           totalPriceInCents: totalAmountInCents,
-          gatewayFeeInCents: gatewayFeeInCents,
-          userCommissionInCents: userCommissionInCents,
+          gatewayFeeInCents: 0,
+          userCommissionInCents: totalAmountInCents,
           currency: 'BRL',
         },
-        isTest: false, // Mude para true se estiver em ambiente de teste
+        isTest: false,
       };
 
       console.log(`[ghostpay-webhook] 📦 Payload montado para enviar à Utmify:`, JSON.stringify(utmifyPayload, null, 2));
 
       try {
-        // Envia os dados para a Utmify
         await sendOrderToUtmify(utmifyPayload);
         console.log(`[ghostpay-webhook] ✅ Dados do pedido APROVADO ${event.id} enviados para Utmify com sucesso.`);
       } catch (utmifyError: any) {
-        // Loga o erro, mas não retorna erro para a GhostPay, pois o pagamento foi recebido.
-        // O importante é registrar que o envio para a Utmify falhou para análise posterior.
         console.error(`[ghostpay-webhook] ❌ Erro ao enviar dados APROVADOS para Utmify para o pedido ${event.id}:`, utmifyError.message);
       }
     } else {
       console.log(`[ghostpay-webhook] ℹ️ Status do pagamento é '${paymentStatus}'. Nenhuma ação necessária.`);
     }
 
-    // Retorna uma resposta de sucesso para a GhostPay para confirmar o recebimento do webhook
     return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso' }, { status: 200 });
 
   } catch (error: any) {
@@ -114,3 +93,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
+
+    

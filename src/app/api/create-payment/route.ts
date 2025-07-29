@@ -4,16 +4,7 @@ import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import { gerarCPFValido } from '@/lib/utils';
 
-
-// !!! IMPORTANTE !!!
-// Ajuste estas URLs para corresponder EXATAMENTE ao domínio do seu frontend.
-const BASE_URL_PROD = 'https://recargajogo.com.br'; // Substitua pelo seu domínio de produção real
-
-const allowedOrigins = [
-  // Adicione a versão com 'www' se aplicável, sem a barra final
-  'https://www.recargajogo.com.br',
-  'http://localhost:3000', // Para desenvolvimento local
-];
+const BASE_URL_PROD = 'https://recargajogo.com.br';
 
 // Lida com requisições OPTIONS (pre-flight CORS)
 export async function OPTIONS(request: NextRequest) {
@@ -24,7 +15,7 @@ export async function OPTIONS(request: NextRequest) {
   headers.set('Access-Control-Allow-Origin', origin);
   headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
   headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  headers.set('Access-Control-Max-Age', '86400'); // Cache pre-flight por 24 horas
+  headers.set('Access-Control-Max-Age', '86400');
 
   return new NextResponse(null, {
     status: 204,
@@ -36,7 +27,6 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
   console.log(`[create-payment POST] Recebida requisição POST de Origin: ${origin}`);
-  console.log(`[create-payment POST] URL da Requisição: ${request.url}`);
 
   try {
     const body = await request.json();
@@ -73,33 +63,30 @@ export async function POST(request: NextRequest) {
 
     let calculatedTotalFromItems = 0;
     const formattedItems = items.map((item: any) => {
-      const unitPriceInCents = Math.round(parseFloat(item.unitPrice || item.price) * 100); 
-      const quantity = item.quantity ? parseInt(item.quantity) : 1;
+      const unitPriceInCents = Math.round(parseFloat(item.unitPrice || 0) * 100);
+      const quantity = parseInt(item.quantity || 1);
 
       if (isNaN(unitPriceInCents) || unitPriceInCents <= 0 || isNaN(quantity) || quantity <= 0) {
-        throw new Error(`Dados inválidos para o item '${item.title || item.name || "desconhecido"}'. Verifique unitPrice e quantity.`);
+        throw new Error(`Dados inválidos para o item '${item.title || "desconhecido"}'. Verifique unitPrice e quantity.`);
       }
       
       calculatedTotalFromItems += unitPriceInCents * quantity;
 
       return {
         unitPrice: unitPriceInCents,
-        title: item.title || item.name || 'Produto Sem Título',
+        title: item.title || 'Produto Sem Título',
         quantity: quantity,
         tangible: item.tangible !== undefined ? item.tangible : false
       };
     });
 
     if (amountInCents !== calculatedTotalFromItems) {
-        console.warn(`[create-payment POST] AVISO: O 'amount' total (${amountInCents}) não corresponde à soma dos itens (${calculatedTotalFromItems}).`);
+        console.warn(`[create-payment POST] AVISO: O 'amount' total (${amountInCents}) não corresponde à soma dos itens (${calculatedTotalFromItems}). Usando o 'amount' fornecido.`);
     }
 
-    // Determina a URL base para o ambiente atual de forma mais robusta
     const host = request.headers.get('host') || '';
     const protocol = host.startsWith('localhost') ? 'http' : 'https';
     const currentBaseUrl = `${protocol}://${host}`;
-
-    // Gera um CPF válido no backend se não for fornecido
     const finalCpf = (cpf || gerarCPFValido()).replace(/\D/g, '');
 
     const payloadForGhostPay = {
@@ -112,8 +99,7 @@ export async function POST(request: NextRequest) {
       traceable: true,
       items: formattedItems,
       externalId: externalId,
-      // Use a URL base dinâmica para postback e checkout
-      postbackUrl: `${currentBaseUrl}/api/ghostpay-webhook`, // Seu webhook
+      postbackUrl: `${currentBaseUrl}/api/ghostpay-webhook`,
       checkoutUrl: `${currentBaseUrl}/checkout`,
       referrerUrl: currentBaseUrl,
       utmQuery: utmQuery,
@@ -138,14 +124,11 @@ export async function POST(request: NextRequest) {
       data = await ghostpayResponse.json();
       console.log(`[create-payment POST] ✅ Resposta da GhostPay (HTTP ${ghostpayResponse.status}, JSON):`, JSON.stringify(data, null, 2));
     } else {
-      data = await ghostpayResponse.text();
-      console.error(`[create-payment POST] ❌ Resposta da GhostPay (HTTP ${ghostpayResponse.status}, Não-JSON):`, data);
+      const textData = await ghostpayResponse.text();
+      console.error(`[create-payment POST] ❌ Resposta da GhostPay (HTTP ${ghostpayResponse.status}, Não-JSON):`, textData);
       return NextResponse.json(
-        { error: 'Falha ao criar pagamento: Resposta inesperada da GhostPay', details: data },
-        {
-          status: ghostpayResponse.status,
-          headers: { 'Access-Control-Allow-Origin': origin, 'Content-Type': 'application/json' }
-        }
+        { error: 'Falha ao criar pagamento: Resposta inesperada da GhostPay', details: textData },
+        { status: ghostpayResponse.status }
       );
     }
 
@@ -153,24 +136,19 @@ export async function POST(request: NextRequest) {
       console.error("[create-payment POST] ERRO DA GHOSTPAY:", data);
       return NextResponse.json(
         { error: data.message || data.error || 'Falha ao criar pagamento na GhostPay.' },
-        {
-          status: ghostpayResponse.status,
-          headers: { 'Access-Control-Allow-Origin': origin, 'Content-Type': 'application/json' }
-        }
+        { status: ghostpayResponse.status }
       );
     }
     
-    // Se o pagamento foi criado com sucesso, envie o status PENDENTE para a Utmify
     if (data.id) {
         console.log(`[create-payment POST] Pagamento criado (ID: ${data.id}). Enviando status 'waiting_payment' para Utmify.`);
         
         const utmParams = new URLSearchParams(utmQuery);
-        // Maneira confiável de obter o IP do cliente no ambiente Vercel/Next.js
         const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
         const utmifyPayload: UtmifyOrderPayload = {
             orderId: data.id,
-            platform: 'RecargaJogo', // Nome da sua plataforma
+            platform: 'RecargaJogo',
             paymentMethod: 'pix',
             status: 'waiting_payment',
             createdAt: formatToUtmifyDate(new Date()),
@@ -190,7 +168,7 @@ export async function POST(request: NextRequest) {
                 planId: null,
                 planName: null,
                 quantity: item.quantity || 1,
-                priceInCents: Math.round(parseFloat(item.unitPrice || item.price) * 100),
+                priceInCents: Math.round(parseFloat(item.unitPrice || 0) * 100),
             })),
             trackingParameters: {
                 src: utmParams.get('utm_source'),
@@ -203,8 +181,8 @@ export async function POST(request: NextRequest) {
             },
             commission: {
                 totalPriceInCents: amountInCents,
-                gatewayFeeInCents: 0, // A taxa será configurada na Utmify
-                userCommissionInCents: amountInCents, // Enviamos o valor total, a Utmify calcula o líquido.
+                gatewayFeeInCents: 0,
+                userCommissionInCents: amountInCents,
                 currency: 'BRL',
             },
             isTest: false,
@@ -215,7 +193,6 @@ export async function POST(request: NextRequest) {
             console.log(`[create-payment POST] Dados do pedido pendente ${data.id} enviados para Utmify com sucesso.`);
         } catch (utmifyError: any) {
             console.error(`[create-payment POST] Erro ao enviar dados PENDENTES para Utmify para o pedido ${data.id}:`, utmifyError.message);
-            // Não bloqueie o fluxo principal por falha no envio para a Utmify
         }
     }
 
@@ -231,11 +208,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("[create-payment POST] ERRO INTERNO NO SERVIDOR:", error);
     return NextResponse.json({ error: error.message || 'Erro interno do servidor ao processar pagamento.' }, {
-      status: 500,
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Content-Type': 'application/json'
-      }
+      status: 500
     });
   }
 }
@@ -243,9 +216,6 @@ export async function POST(request: NextRequest) {
 // Lida com requisições GET para verificar o status do pagamento (polling)
 export async function GET(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
-  console.log(`[create-payment GET] Recebida requisição GET de Origin: ${origin}`);
-  console.log(`[create-payment GET] URL da Requisição: ${request.url}`);
-
   const { searchParams } = new URL(request.url);
   const externalId = searchParams.get('externalId');
 
@@ -275,12 +245,21 @@ export async function GET(request: NextRequest) {
       statusData = await ghostpayStatusResponse.json();
       console.log(`[create-payment GET] ✅ Resposta de Status da GhostPay (HTTP ${ghostpayStatusResponse.status}, JSON):`, JSON.stringify(statusData, null, 2));
     } else {
-      statusData = await ghostpayStatusResponse.text();
-      console.error(`[create-payment GET] ❌ Resposta de Status da GhostPay (HTTP ${ghostpayStatusResponse.status}, Não-JSON):`, statusData);
+      const textData = await ghostpayStatusResponse.text();
+      console.error(`[create-payment GET] ❌ Resposta de Status da GhostPay (HTTP ${ghostpayStatusResponse.status}, Não-JSON):`, textData);
       return NextResponse.json(
-        { error: 'Falha ao consultar status: Resposta inesperada da GhostPay', details: statusData },
+        { error: 'Falha ao consultar status: Resposta inesperada da GhostPay', details: textData },
         { status: ghostpayStatusResponse.status }
       );
+    }
+    
+    // Se a transação não for encontrada (404), tratamos como pendente para a UI
+    if (ghostpayStatusResponse.status === 404) {
+        console.log(`[create-payment GET] Transação com externalId ${externalId} não encontrada. Retornando PENDING.`);
+        return NextResponse.json({ status: 'PENDING' }, {
+            status: 200,
+            headers: { 'Access-Control-Allow-Origin': origin, 'Content-Type': 'application/json' }
+        });
     }
 
     if (!ghostpayStatusResponse.ok) {
@@ -306,3 +285,5 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message || 'Erro interno do servidor ao consultar status.' }, { status: 500 });
   }
 }
+
+    
