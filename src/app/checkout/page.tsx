@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Checkbox } from '@/components/ui/checkbox';
 import { specialOfferItems } from '@/lib/data';
 import { PaymentPayload, ProductData } from '@/interfaces/types';
-import { formatPhoneNumber } from '@/lib/utils';
+import { formatPhoneNumber, gerarCPFValido } from '@/lib/utils';
 
 const formSchema = z.object({
   name: z.string()
@@ -445,8 +445,12 @@ function CheckoutPageContent() {
           </DialogHeader>
           <div className="p-6 py-0 space-y-4">
             {specialOfferItems.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-3 rounded-lg border">
-                <div className="flex items-center gap-4">
+              <div 
+                key={item.id} 
+                className="flex items-center justify-between p-3 rounded-lg border cursor-pointer"
+                onClick={() => handleOfferChange(item.id)}
+              >
+                <div className="flex items-center gap-4 pointer-events-none">
                   <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
                     <Image src={item.image} alt={item.name} width={200} height={200} className="w-full h-full object-cover" data-ai-hint="game item icon" />
                   </div>
@@ -507,5 +511,3 @@ export default function CheckoutPage() {
         </div>
     )
 }
-
-    
