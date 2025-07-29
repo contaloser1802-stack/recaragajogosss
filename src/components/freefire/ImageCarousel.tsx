@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { banners } from '@/lib/data';
 
 const NavButton = ({ direction, onClick }: { direction: 'prev' | 'next', onClick: () => void }) => {
   const isPrev = direction === 'prev';
@@ -23,12 +24,6 @@ const NavButton = ({ direction, onClick }: { direction: 'prev' | 'next', onClick
 };
 
 export function ImageCarousel() {
-  const banners = useMemo(() => [
-    { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/100067br-JAN22-pc.png?v=1750094508', alt: 'Banner 1' },
-    { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/26B06340B596B357.png?v=1729016596', alt: 'Banner 2' },
-    { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/47BED91C7ABCF1EA.png?v=1750167188', alt: 'Banner 3' },
-  ], []);
-
   const [currentIndex, setCurrentIndex] = useState(1);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -38,7 +33,7 @@ export function ImageCarousel() {
     const first = banners[0];
     const last = banners[banners.length - 1];
     return [last, ...banners, first];
-  }, [banners]);
+  }, []);
 
   const resetTimeout = useCallback(() => {
     if (timeoutRef.current) {
