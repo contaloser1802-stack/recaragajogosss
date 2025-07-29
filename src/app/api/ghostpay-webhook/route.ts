@@ -1,4 +1,3 @@
-
 // src/app/api/ghostpay-webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
@@ -7,6 +6,21 @@ import { UtmifyOrderPayload } from '@/interfaces/utmify';
 // Lida com as requisições POST do webhook da GhostPay
 export async function POST(request: NextRequest) {
   try {
+    // Adicionando verificação de segurança do webhook
+    const ghostpayToken = request.headers.get('authorization');
+    const secretKey = process.env.GHOSTPAY_SECRET_KEY;
+
+    if (!secretKey) {
+      console.error('[ghostpay-webhook] ❌ GHOSTPAY_SECRET_KEY não está configurado no servidor.');
+      // Não retorne detalhes do erro para o chamador por segurança
+      return NextResponse.json({ error: 'Internal Server Configuration Error' }, { status: 500 });
+    }
+
+    if (ghostpayToken !== secretKey) {
+      console.warn(`[ghostpay-webhook]  unauthorized webhook call blocked.`);
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const event = await request.json();
     console.log('[ghostpay-webhook] 🔄 Payload do webhook recebido:', JSON.stringify(event, null, 2));
 

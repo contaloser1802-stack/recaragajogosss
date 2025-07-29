@@ -11,9 +11,9 @@ import axios from 'axios';
  */
 export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<any> {
   const UTMIFY_API_URL = process.env.UTMIFY_API_URL;
-  const UTMIFY_API_KEY = process.env.UTMIFY_API_KEY;
+  const UTMIFY_API_TOKEN = process.env.UTMIFY_API_KEY;
 
-  if (!UTMIFY_API_KEY || !UTMIFY_API_URL) {
+  if (!UTMIFY_API_TOKEN || !UTMIFY_API_URL) {
     const errorMessage = "Credenciais da Utmify (UTMIFY_API_URL ou UTMIFY_API_KEY) não estão configuradas no servidor.";
     console.error(`[UtmifyService] ${errorMessage}`);
     throw new Error(errorMessage);
@@ -25,7 +25,7 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
     const response = await axios.post(UTMIFY_API_URL, payload, {
       headers: {
         'Content-Type': 'application/json',
-        'x-api-token': UTMIFY_API_KEY,
+        'x-api-token': UTMIFY_API_TOKEN,
       },
     });
 
