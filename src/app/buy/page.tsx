@@ -194,20 +194,18 @@ t.async = !0;
                     if (intervalId) clearInterval(intervalId);
                     if (timerId) clearInterval(timerId);
 
-                    // Lógica de redirecionamento pós-pagamento
-                    const isUpsell1 = skinOffers.some(o => o.id === parsed.productId);
-                    const isDownsell = downsellOffers.some(o => o.id === parsed.productId);
-                    const isUpsell2 = upsellOffers.some(o => o.id === parsed.productId);
-                    
-                    localStorage.removeItem('paymentData'); // Limpa dados da transação atual
+                    const redirectPath = getSuccessRedirectPath(parsed.productId);
 
-                    if (isUpsell1 || isDownsell) {
-                        router.push('/upsell-2');
-                    } else if (isUpsell2) {
-                        router.push('/success');
+                    // Lógica especial para o Downsell vindo do BackRedirect
+                    const cameFromBackRedirect = sessionStorage.getItem('cameFromBackRedirect') === 'true';
+                    if (downsellOffers.some(o => o.id === parsed.productId) && cameFromBackRedirect) {
+                        sessionStorage.removeItem('cameFromBackRedirect');
+                        router.push('/upsell'); // Volta pro upsell 1
                     } else {
-                        router.push('/upsell'); // Pagou compra principal, vai para upsell 1
+                        router.push(redirectPath);
                     }
+                    
+                    localStorage.removeItem('paymentData');
 
                   } else if (newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
                     if (intervalId) clearInterval(intervalId);
@@ -291,16 +289,22 @@ t.async = !0;
 
   const showTimeLeft = timeLeft !== null && paymentStatus === 'PENDING' && timeLeft > 0;
   
-  const getSuccessRedirectPath = () => {
-    if (!paymentData?.productId) return '/upsell'; // Default para compra principal
-    const isUpsell1 = skinOffers.some(o => o.id === paymentData.productId);
-    const isDownsell = downsellOffers.some(o => o.id === paymentData.productId);
-    const isUpsell2 = upsellOffers.some(o => o.id === paymentData.productId);
-    
-    if (isUpsell1 || isDownsell) return '/upsell-2';
-    if (isUpsell2) return '/success';
-    return '/upsell'; 
+  const getSuccessRedirectPath = (productId?: string) => {
+    if (!productId) return '/upsell'; // Default da compra principal
+  
+    const isUpsell1 = skinOffers.some(o => o.id === productId);
+    const isDownsell = downsellOffers.some(o => o.id === productId);
+    const isUpsell2 = upsellOffers.some(o => o.id === productId);
+    const isUpsell3 = taxOffer.some(o => o.id === productId);
+  
+    if (isUpsell1) return '/upsell-2'; // Pagou upsell 1, vai pro 2
+    if (isUpsell2) return '/upsell-3'; // Pagou upsell 2, vai pro 3
+    if (isDownsell || isUpsell3) return '/success'; // Pagou downsell ou taxa, vai pro sucesso
+  
+    return '/upsell'; // Fallback para compra principal
   };
+
+  const currentRedirectPath = getSuccessRedirectPath(paymentData?.productId);
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -451,7 +455,7 @@ t.async = !0;
               </div>
             </div>
             {paymentStatus === 'APPROVED' && (
-                <Link href={getSuccessRedirectPath()} className="mt-8">
+                <Link href={currentRedirectPath} className="mt-8">
                   <Button variant="default">Ir para a próxima etapa</Button>
                 </Link>
             )}

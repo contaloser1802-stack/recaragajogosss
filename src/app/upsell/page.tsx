@@ -9,10 +9,11 @@ import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { skinOffers, taxOffer } from '@/lib/data';
+import { skinOffers } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { PaymentPayload } from '@/interfaces/types';
 import { gerarCPFValido } from '@/lib/utils';
+import BackRedirect from '@/components/freefire/BackRedirect';
 
 // Tipos para os dados do cliente
 interface CustomerData {
@@ -28,7 +29,6 @@ const UpsellPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleDecline = () => {
-        // Redireciona para a página de downsell se a oferta for recusada.
         router.push('/downsell');
     };
     
@@ -120,7 +120,6 @@ const UpsellPage = () => {
                 throw new Error(data.message || "Erro ao criar o pagamento para as skins.");
             }
 
-            // Salva os dados de pagamento da taxa
             localStorage.setItem('paymentData', JSON.stringify({
                 ...data,
                 playerName: playerName,
@@ -130,7 +129,7 @@ const UpsellPage = () => {
                 originalAmount: '',
                 bonusAmount: '',
                 totalAmount: 'Skins',
-                productId: taxOffer[0].id, // ID genérico para esta etapa
+                productId: selectedProducts[0].id, // Usa o ID do primeiro item para a lógica de redirect
             }));
             
             router.push('/buy');
@@ -147,6 +146,7 @@ const UpsellPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
+            <BackRedirect redirectTo="/downsell" />
             <Header />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">

