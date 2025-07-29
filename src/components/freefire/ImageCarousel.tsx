@@ -104,7 +104,7 @@ export function ImageCarousel() {
                   src={banner.src}
                   alt={banner.alt}
                   fill
-                  priority={index > 0 && index <= banners.length}
+                  priority={index === 1}
                   data-ai-hint="game banner"
                 />
               </div>
