@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
+import { gerarCPFValido } from '@/lib/utils';
 
 
 // !!! IMPORTANTE !!!
@@ -98,11 +99,13 @@ export async function POST(request: NextRequest) {
     const protocol = host.startsWith('localhost') ? 'http' : 'https';
     const currentBaseUrl = `${protocol}://${host}`;
 
+    // Gera um CPF válido no backend se não for fornecido
+    const finalCpf = (cpf || gerarCPFValido()).replace(/\D/g, '');
 
     const payloadForGhostPay = {
       name,
       email,
-      cpf: cpf.replace(/\D/g, ''),
+      cpf: finalCpf,
       phone: phone.replace(/\D/g, ''),
       paymentMethod: 'PIX',
       amount: amountInCents,
@@ -177,7 +180,7 @@ export async function POST(request: NextRequest) {
                 name: name,
                 email: email,
                 phone: phone.replace(/\D/g, ''),
-                document: cpf.replace(/\D/g, ''),
+                document: finalCpf,
                 country: 'BR',
                 ip: ip,
             },

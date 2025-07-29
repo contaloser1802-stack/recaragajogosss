@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Checkbox } from '@/components/ui/checkbox';
 import { specialOfferItems } from '@/lib/data';
 import { PaymentPayload, ProductData } from '@/interfaces/types';
-import { gerarCPFValido, formatPhoneNumber } from '@/lib/utils';
+import { formatPhoneNumber } from '@/lib/utils';
 
 
 // Esquema de validação do formulário - CPF removido para não ser preenchido pelo usuário
@@ -48,9 +48,6 @@ function CheckoutPageContent() {
   const [playerName, setPlayerName] = useState("Carregando...");
   const [paymentMethodName, setPaymentMethodName] = useState("PIX"); // Definido como PIX agora
   const [selectedOffers, setSelectedOffers] = useState<string[]>([]);
-
-  // Usar useRef para manter um Set de CPFs gerados na sessão
-  const generatedCpfs = useRef(new Set<string>());
 
   // Carrega os dados do produto, nome do jogador, etc.
   useEffect(() => {
@@ -235,15 +232,7 @@ function CheckoutPageContent() {
     } catch (e) {
         console.warn("Não foi possível salvar os dados do cliente para o upsell.");
     }
-
-    // Gera um CPF válido e garante que não se repita na sessão atual
-    let generatedCpfClean: string;
-    do {
-      generatedCpfClean = gerarCPFValido().replace(/\D/g, ''); // Gera e limpa o CPF
-    } while (generatedCpfs.current.has(generatedCpfClean)); // Verifica se já foi gerado
     
-    generatedCpfs.current.add(generatedCpfClean); // Adiciona ao Set de CPFs gerados
-
     const utmQuery = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).toString() : '';
 
     const payloadItems = [{
@@ -267,32 +256,16 @@ function CheckoutPageContent() {
       }
     });
 
-    // Construir a URL base dinamicamente para o postback
-    const currentBaseUrl = window.location.origin;
-
     const payload: PaymentPayload = {
       name: values.name,
       email: values.email,
-      cpf: generatedCpfClean, // CPF gerado automaticamente e enviado
       phone: values.phone.replace(/\D/g, ''),
       paymentMethod: "PIX",
       amount: getNumericTotalAmount, // Valor numérico total
       traceable: true,
       externalId: `ff-${Date.now()}`,
-      postbackUrl: `${currentBaseUrl}/api/ghostpay-webhook`,
       items: payloadItems,
       utmQuery,
-      // Dados de endereço e fingerprint conforme seu create-payment anterior, se necessário
-      cep: '01001-000',
-      street: 'ruabruxo',
-      number: '777',
-      complement: 'Apto 101',
-      district: 'Centro',
-      city: 'São Paulo',
-      state: 'SP',
-      checkoutUrl: `${currentBaseUrl}/checkout`,
-      referrerUrl: currentBaseUrl,
-      fingerPrints: [{ provider: 'browser', value: 'unico-abc-123' }] // Fingerprint de exemplo
     };
 
     try {

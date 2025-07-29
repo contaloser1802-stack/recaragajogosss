@@ -2,13 +2,12 @@
 export interface PaymentPayload {
   name: string;
   email: string;
-  cpf: string;
+  cpf?: string; // CPF é opcional, pois pode ser gerado no backend
   phone: string;
   paymentMethod: 'PIX';
   amount: number;
   traceable: boolean;
   externalId: string;
-  postbackUrl: string;
   items: {
     id: string; // Adicionado id do produto
     unitPrice: number;
@@ -17,16 +16,6 @@ export interface PaymentPayload {
     tangible: boolean;
   }[];
   utmQuery?: string;
-  cep?: string;
-  street?: string;
-  number?: string;
-  complement?: string;
-  district?: string;
-  city?: string;
-  state?: string;
-  checkoutUrl?: string;
-  referrerUrl?: string;
-  fingerPrints?: { provider: string; value: string; }[];
 }
 
 export interface ProductData {
