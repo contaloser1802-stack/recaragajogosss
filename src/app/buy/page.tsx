@@ -196,14 +196,8 @@ const BuyContent = () => {
                   if (newStatus === 'APPROVED') {
                     if (intervalId) clearInterval(intervalId);
                     if (timerId) clearInterval(timerId);
-                    toast({
-                      title: "Pagamento Aprovado!",
-                      description: "Seus diamantes serão creditados em breve.",
-                      variant: "default",
-                      icon: <CheckCircle className="text-green-500" />,
-                    });
                     localStorage.removeItem('paymentData');
-                    router.push('/sucess'); // Correção para a rota de sucesso
+                    router.push('/success'); // Redireciona para a página de sucesso
                   } else if (newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
                     if (intervalId) clearInterval(intervalId);
                     if (timerId) clearInterval(timerId);
@@ -439,7 +433,7 @@ const BuyContent = () => {
             </div>
             {/* Botões de ação baseados no status do pagamento */}
             {paymentStatus === 'APPROVED' && (
-                <Link href="/sucess" className="mt-8"> {/* Redireciona para /sucess */}
+                <Link href="/success" className="mt-8"> {/* Redireciona para /success */}
                   <Button variant="default">Voltar para o Início</Button>
                 </Link>
             )}
@@ -463,3 +457,5 @@ const BuyContent = () => {
 };
 
 export default BuyContent; // Exporta BuyContent diretamente como a página
+
+    
