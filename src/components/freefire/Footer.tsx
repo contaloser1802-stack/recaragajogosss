@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 export function Footer() {
   const currentYear = new Date().getFullYear();
   return (
@@ -9,11 +7,11 @@ export function Footer() {
                 <div className="flex flex-col items-center gap-3 leading-none md:w-full md:flex-row md:justify-between">
                     <div className="md:text-start">© {currentYear} Garena Online. Todos os direitos reservados.</div>
                     <div className="flex shrink-0 flex-wrap items-center justify-center gap-x-4 gap-y-1">
-                        <Link href="#" className="transition-opacity hover:opacity-70">FAQ</Link>
+                        <a href="#" className="transition-opacity hover:opacity-70">FAQ</a>
                         <div className="h-3 w-px bg-gray-300"></div>
-                        <Link href="https://content.garena.com/legal/tos/tos_pt.html" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70">Termos e Condições</Link>
+                        <a href="https://content.garena.com/legal/tos/tos_pt.html" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70">Termos e Condições</a>
                         <div className="h-3 w-px bg-gray-300"></div>
-                        <Link href="https://content.garena.com/legal/pp/pp_pt.html" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70">Política de Privacidade</Link>
+                        <a href="https://content.garena.com/legal/pp/pp_pt.html" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70">Política de Privacidade</a>
                     </div>
                 </div>
             </div>
