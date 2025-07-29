@@ -26,12 +26,6 @@ const DownsellPage = () => {
     const [selectedOfferId, setSelectedOfferId] = useState<string | null>(downsellOffers[0]?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleDecline = () => {
-        // Limpa os dados do cliente se ele recusar a oferta final
-        localStorage.removeItem('customerData');
-        router.push('/success');
-    };
-
     const handlePurchase = async () => {
         if (!selectedOfferId) {
             toast({
@@ -168,13 +162,6 @@ const DownsellPage = () => {
                             variant="destructive"
                         >
                             {isSubmitting ? 'Processando...' : 'Sim, Levo Esta!'}
-                        </Button>
-                        <Button
-                            onClick={handleDecline}
-                            variant="link"
-                            className="text-gray-500 hover:text-gray-700"
-                        >
-                            Não, obrigado. Leve-me para a confirmação.
                         </Button>
                     </div>
                 </div>
