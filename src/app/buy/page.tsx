@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -305,7 +304,7 @@ t.async = !0;
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
-      <BackRedirect redirectTo="/upsell" />
+      <BackRedirect redirectTo="/downsell" />
       <Header />
       <main className="flex-1 bg-white">
         <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-gray-50 overflow-hidden">
@@ -475,5 +474,3 @@ t.async = !0;
 };
 
 export default BuyPage;
-
-    

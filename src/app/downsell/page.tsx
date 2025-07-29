@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -127,10 +126,10 @@ const DownsellPage = () => {
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider">
-                        OK, ÚLTIMA OFERTA!
+                        Volta aqui rapidinho...
                     </h1>
                     <p className="mt-3 text-base text-gray-600">
-                        Entendemos... que tal esta oferta imperdível? É a sua última chance!
+                        Você ganhou um bônus secreto de 5000 diamantes extras!
                     </p>
                     
                     <div className="flex flex-col gap-4 my-8">

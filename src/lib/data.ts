@@ -27,7 +27,7 @@ export const upsellOffers = [
 ];
 
 export const downsellOffers = [
-    { id: 'downsell-11200', name: '11.200 Diamantes', originalAmount: '11.200', bonusAmount: '0', totalAmount: '11.200', price: '9.90', formattedPrice: 'R$ 9,90' },
+    { id: 'downsell-bonus', name: 'Bônus Secreto +5000 Diamantes', originalAmount: '5.000', bonusAmount: '', totalAmount: '5.000', price: '9.90', formattedPrice: 'R$ 9,90' },
 ];
 
 export const taxOffer = [
