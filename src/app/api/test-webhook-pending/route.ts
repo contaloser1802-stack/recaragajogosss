@@ -7,7 +7,7 @@ import { UtmifyOrderPayload, UtmifyPaymentMethod, UtmifyOrderStatus } from '@/in
 // Agora ela gera 29 notificações de uma vez, com valores e intervalos aleatórios.
 // Para usar, acesse a URL /api/test-webhook-pending no seu navegador.
 
-const possibleValues = [2997, 6790, 12440, 24990]; // R$19,99, R$49,90, R$89,90, R$149,90
+const possibleValues = [1990, 2980, 7480, 10870]; // R$19,99, R$49,90, R$89,90, R$149,90
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -16,9 +16,9 @@ export async function GET(request: NextRequest) {
     const promises = [];
     const createdOrderIds = [];
 
-    for (let i = 0; i < 29; i++) {
+    for (let i = 0; i < 99; i++) {
       // Adiciona um atraso aleatório de 0 a 1.5 segundos antes de processar
-      await delay(Math.random() * 3000);
+      await delay(Math.random() * 1500);
 
       // Seleciona um valor aleatório da lista
       const randomAmountInCents = possibleValues[Math.floor(Math.random() * possibleValues.length)];

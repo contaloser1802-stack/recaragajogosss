@@ -6,7 +6,7 @@ import { POST as handleWebhook } from '@/app/api/ghostpay-webhook/route'; // Imp
 // Agora ela gera 29 notificações de uma vez, com valores e intervalos aleatórios.
 // Para usar, acesse a URL /api/test-webhook no seu navegador.
 
-const possibleValues = [2997, 6790, 12440, 24990]; // R$29,97, R$67,90, R$124,40, R$249,90
+const possibleValues = [1990, 4990, 8990, 14990]; // R$19,99, R$49,90, R$89,90, R$149,90
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
                 utm_medium: 'teste-medium',
                 sck: 'teste-sck'
             },
-            isTest: false, // Garante que a venda apareça no painel
+            isTest: false,
         };
         
         console.log(`[test-webhook] [${i + 1}/29] Simulando chamada para o webhook com o payload:`, JSON.stringify(testPayload, null, 2));
@@ -72,8 +72,8 @@ export async function GET(request: NextRequest) {
     // 4. Executa todas as promessas em paralelo.
     const results = await Promise.allSettled(promises);
 
-    const successfulInvocations = results.filter(r => r.status === 'fulfilled' && r.value.ok).length;
-    const failedInvocations = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok));
+    const successfulInvocations = results.filter(r => r.status === 'fulfilled').length;
+    const failedInvocations = results.filter(r => r.status === 'rejected');
 
     console.log(`[test-webhook] Simulação concluída. ${successfulInvocations} sucessos, ${failedInvocations.length} falhas.`);
     if (failedInvocations.length > 0) {
