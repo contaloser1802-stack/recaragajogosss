@@ -63,6 +63,8 @@ const DownsellPage = () => {
             const utmQuery = new URLSearchParams(window.location.search).toString();
             const currentBaseUrl = window.location.origin;
 
+            const cameFromBackRedirect = sessionStorage.getItem('cameFromBackRedirect') === 'true';
+
             const payload: PaymentPayload = {
                 name: customerData.name,
                 email: customerData.email,
@@ -106,6 +108,11 @@ const DownsellPage = () => {
                 totalAmount: selectedProduct.totalAmount,
                 productId: selectedProduct.id, 
             }));
+
+            // Se o usuário veio do back redirect, setamos o sessionStorage antes de ir para a compra
+            if (cameFromBackRedirect) {
+                sessionStorage.setItem('downsellPurchaseAfterBackRedirect', 'true');
+            }
             
             router.push('/buy');
 
@@ -121,7 +128,7 @@ const DownsellPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <BackRedirect redirectTo="/success" />
+            <BackRedirect redirectTo="/tax-warning" />
             <Header />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">

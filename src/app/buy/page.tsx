@@ -297,9 +297,10 @@ t.async = !0;
     const isUpsell2 = upsellOffers.some(o => o.id === productId);
     const isUpsell3 = taxOffer.some(o => o.id === productId);
   
-    if (isUpsell1) return '/upsell-2'; // Pagou upsell 1, vai pro 2
-    if (isUpsell2) return '/upsell-3'; // Pagou upsell 2, vai pro 3
-    if (isDownsell || isUpsell3) return '/success'; // Pagou downsell ou taxa, vai pro sucesso
+    if (isUpsell1) return '/upsell-2'; // Pagou upsell 1 (skins), vai pro 2
+    if (isUpsell2) return '/upsell-3'; // Pagou upsell 2 (diamantes), vai pro 3
+    if (isDownsell) return '/upsell';  // Pagou downsell, volta pro upsell 1
+    if (isUpsell3) return '/success';  // Pagou upsell 3 (taxa), vai pro sucesso
   
     return '/upsell'; // Fallback para compra principal
   };
