@@ -21,6 +21,11 @@ export const specialOffers = [
     { id: 'offer-level-pack', name: 'Passe de Nível', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/004/790/logo.png', price: '74.80', formattedPrice: 'R$ 74,80', originalAmount: '7.800', bonusAmount: '5.600', totalAmount: '13.400' }
 ];
 
+export const upsellOffers = [
+    { id: 'upsell-5600', name: 'Oferta Especial 5.600 Diamantes', originalAmount: '5.600', bonusAmount: '0', totalAmount: '5.600', price: '9.90', formattedPrice: 'R$ 9,90' },
+    { id: 'upsell-11200', name: 'Oferta Especial 11.200 Diamantes', originalAmount: '11.200', bonusAmount: '0', totalAmount: '11.200', price: '19.90', formattedPrice: 'R$ 19,90' },
+];
+
 export const paymentMethods = [
   { id: 'payment-pix', name: 'PIX', displayName: 'Pix via PagSeguro', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/pix_boa_mb.png', type: 'pix' },
   { id: 'payment-cc', name: 'Credit Card', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/creditcard_mb.png', type: 'cc' },

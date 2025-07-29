@@ -196,7 +196,7 @@ const BuyPage = () => {
                     if (intervalId) clearInterval(intervalId);
                     if (timerId) clearInterval(timerId);
                     localStorage.removeItem('paymentData');
-                    router.push('/success'); // Redireciona para a página de sucesso
+                    router.push('/upsell'); // Redireciona para a página de upsell
                   } else if (newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
                     if (intervalId) clearInterval(intervalId);
                     if (timerId) clearInterval(timerId);
@@ -381,7 +381,7 @@ const BuyPage = () => {
                     Após o pagamento, os diamantes podem levar alguns minutos para serem creditados.
                   </>
                 )}
-                {paymentStatus === 'APPROVED' && 'Seus diamantes serão creditados na conta do jogo em instantes.'}
+                {paymentStatus === 'APPROVED' && 'Seus diamantes serão creditados na conta do jogo em instantes. Estamos te redirecionando...'}
                 {(paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') && 'O tempo para pagamento se esgotou ou foi cancelado. Por favor, inicie uma nova compra.'}
                 {paymentStatus === 'UNKNOWN' && 'Não foi possível verificar o status do pagamento. Por favor, aguarde ou recarregue a página.'}
               </AlertDescription>
@@ -432,8 +432,8 @@ const BuyPage = () => {
             </div>
             {/* Botões de ação baseados no status do pagamento */}
             {paymentStatus === 'APPROVED' && (
-                <Link href="/success" className="mt-8"> {/* Redireciona para /success */}
-                  <Button variant="default">Voltar para o Início</Button>
+                <Link href="/upsell" className="mt-8">
+                  <Button variant="default">Ir para a próxima etapa</Button>
                 </Link>
             )}
             {(paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') && (
