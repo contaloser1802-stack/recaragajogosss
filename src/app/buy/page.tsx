@@ -10,10 +10,11 @@ import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next/navigation'; // Importa useRouter
-import { CheckCircle, Hourglass, Info, RefreshCcw } from 'lucide-react'; // Ícones para status
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Componentes de alerta
-import { upsellOffers, taxOffer, downsellOffers } from '@/lib/data'; // Importa dados dos upsells
+import { useRouter } from 'next/navigation';
+import { CheckCircle, Hourglass, Info, RefreshCcw } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { upsellOffers, taxOffer, downsellOffers } from '@/lib/data';
+import BackRedirect from '@/components/freefire/BackRedirect';
 
 // Interface para os dados de pagamento recebidos do localStorage (e da API)
 interface PaymentData {
@@ -304,6 +305,7 @@ t.async = !0;
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      <BackRedirect redirectTo="/upsell" />
       <Header />
       <main className="flex-1 bg-white">
         <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-gray-50 overflow-hidden">
@@ -473,3 +475,5 @@ t.async = !0;
 };
 
 export default BuyPage;
+
+    
