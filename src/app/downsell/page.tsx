@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,16 @@ const DownsellPage = () => {
     const { toast } = useToast();
     const [selectedOfferId, setSelectedOfferId] = useState<string | null>(downsellOffers[0]?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Este useEffect é novo, para limpar o sinalizador do back redirect ao entrar na página
+    useEffect(() => {
+        // Marca que o usuário veio do back redirect para lógica especial na página /buy
+        sessionStorage.setItem('cameFromBackRedirect', 'true');
+    }, []);
+
+    const handleDecline = () => {
+        router.push('/upsell');
+    };
 
     const handlePurchase = async () => {
         if (!selectedOfferId) {
@@ -62,8 +72,6 @@ const DownsellPage = () => {
             const customerData: CustomerData = JSON.parse(customerDataString);
             const utmQuery = new URLSearchParams(window.location.search).toString();
             const currentBaseUrl = window.location.origin;
-
-            const cameFromBackRedirect = sessionStorage.getItem('cameFromBackRedirect') === 'true';
 
             const payload: PaymentPayload = {
                 name: customerData.name,
@@ -108,11 +116,6 @@ const DownsellPage = () => {
                 totalAmount: selectedProduct.totalAmount,
                 productId: selectedProduct.id, 
             }));
-
-            // Se o usuário veio do back redirect, setamos o sessionStorage antes de ir para a compra
-            if (cameFromBackRedirect) {
-                sessionStorage.setItem('downsellPurchaseAfterBackRedirect', 'true');
-            }
             
             router.push('/buy');
 
@@ -128,7 +131,7 @@ const DownsellPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <BackRedirect redirectTo="/tax-warning" />
+            <BackRedirect redirectTo="/upsell" />
             <Header />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">
@@ -168,6 +171,13 @@ const DownsellPage = () => {
                             variant="destructive"
                         >
                             {isSubmitting ? 'Processando...' : 'Sim, Levo Esta!'}
+                        </Button>
+                        <Button
+                            onClick={handleDecline}
+                            variant="link"
+                            className="text-gray-500 hover:text-gray-700"
+                        >
+                            Não, obrigado.
                         </Button>
                     </div>
                 </div>
