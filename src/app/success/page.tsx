@@ -12,9 +12,10 @@ export default function SuccessPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Opcional: Limpar dados de pagamento do localStorage se ainda existirem
-    // Isso é uma redundância, pois já limpamos no buy.tsx, mas garante a limpeza.
+    // Limpa todos os dados de transação e cliente do localStorage
     localStorage.removeItem('paymentData');
+    localStorage.removeItem('customerData');
+
 
     // Exibe um toast de sucesso ao carregar a página
     toast({

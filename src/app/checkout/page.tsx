@@ -225,6 +225,17 @@ function CheckoutPageContent() {
     setIsSubmitting(true);
     const values = form.getValues();
 
+    // Salva os dados do cliente para o upsell
+    try {
+        localStorage.setItem('customerData', JSON.stringify({
+            name: values.name,
+            email: values.email,
+            phone: values.phone,
+        }));
+    } catch (e) {
+        console.warn("Não foi possível salvar os dados do cliente para o upsell.");
+    }
+
     // Gera um CPF válido e garante que não se repita na sessão atual
     let generatedCpfClean: string;
     do {
@@ -240,6 +251,7 @@ function CheckoutPageContent() {
       title: product.name,
       quantity: 1,
       tangible: false,
+      id: product.id,
     }];
 
     selectedOffers.forEach(offerId => {
@@ -249,7 +261,8 @@ function CheckoutPageContent() {
           unitPrice: offer.price,
           title: offer.name,
           quantity: 1,
-          tangible: false
+          tangible: false,
+          id: offer.id,
         });
       }
     });

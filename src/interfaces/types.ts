@@ -10,6 +10,7 @@ export interface PaymentPayload {
   externalId: string;
   postbackUrl: string;
   items: {
+    id: string; // Adicionado id do produto
     unitPrice: number;
     title: string;
     quantity: number;
