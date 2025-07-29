@@ -30,9 +30,15 @@ export const downsellOffers = [
     { id: 'downsell-bonus', name: 'Bônus Secreto +5000 Diamantes', originalAmount: '5.000', bonusAmount: '', totalAmount: '5.000', price: '9.90', formattedPrice: 'R$ 9,90' },
 ];
 
-export const taxOffer = [
-    { id: 'tax-unlock', name: 'Taxa de Liberação Imediata', originalAmount: '', bonusAmount: '', totalAmount: '', price: '4.99', formattedPrice: 'R$ 4,99' },
-]
+export const skinOffers = [
+    { id: 'skin-itachi', name: 'Skin Itachi', price: '9.90', formattedPrice: 'R$ 9,90', image: 'https://p.novaskin.me/latest/5916365731774464.png?v=1' },
+    { id: 'skin-madara', name: 'Skin Madara', price: '9.90', formattedPrice: 'R$ 9,90', image: 'https://p.novaskin.me/latest/5801386125131776.png?v=1' },
+    { id: 'skin-minato', name: 'Skin Minato', price: '9.90', formattedPrice: 'R$ 9,90', image: 'https://p.novaskin.me/latest/6277271970250752.png?v=1' },
+    { id: 'skin-obito', name: 'Skin Obito', price: '9.90', formattedPrice: 'R$ 9,90', image: 'https://p.novaskin.me/latest/6698188151521280.png?v=1' },
+    { id: 'skin-orochimaru', name: 'Skin Orochimaru', price: '9.90', formattedPrice: 'R$ 9,90', image: 'https://p.novaskin.me/latest/6321245039034368.png?v=1' },
+    { id: 'skin-pain', name: 'Skin Pain', price: '9.90', formattedPrice: 'R$ 9,90', image: 'https://p.novaskin.me/latest/5742303023267840.png?v=1' },
+];
+
 
 export const paymentMethods = [
   { id: 'payment-pix', name: 'PIX', displayName: 'Pix via PagSeguro', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/pix_boa_mb.png', type: 'pix' },
