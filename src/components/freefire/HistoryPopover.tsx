@@ -1,9 +1,11 @@
 
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
-import { X, Trash2, ChevronLeft } from 'lucide-react';
+import { X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { SheetContent } from '@/components/ui/sheet';
 import { PopoverContent } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -19,7 +21,7 @@ interface HistoryPopoverContentProps {
     onRemove: (id: string) => void;
 }
 
-export const HistoryPopover: React.FC<HistoryPopoverContentProps> = ({ history, onClose, onSelect, onRemove }) => {
+const HistoryPopoverContent: React.FC<HistoryPopoverContentProps> = ({ history, onClose, onSelect, onRemove }) => {
     const isMobile = useIsMobile();
 
     const content = (
@@ -79,3 +81,13 @@ export const HistoryPopover: React.FC<HistoryPopoverContentProps> = ({ history, 
     );
 };
 
+
+export function HistoryPopover(props: HistoryPopoverContentProps) {
+    const isMobile = useIsMobile();
+    // Since Sheet and Popover control their own visibility via open/onOpenChange props
+    // passed to them in the parent (page.tsx), we just need to render the correct wrapper.
+    if (isMobile) {
+        return <HistoryPopoverContent {...props} />;
+    }
+    return <HistoryPopoverContent {...props} />;
+}
