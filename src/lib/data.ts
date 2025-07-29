@@ -31,7 +31,7 @@ export const downsellOffers = [
 ];
 
 export const taxOffer = [
-    { id: 'tax-release', name: 'Taxa de Liberação Imediata', originalAmount: '', bonusAmount: '', totalAmount: 'Liberação', price: 4.99, formattedPrice: 'R$ 4,99' }
+    { id: 'tax-release', name: 'Taxa de Liberação Imediata', originalAmount: '', bonusAmount: '', totalAmount: 'Liberação', price: 9.99, formattedPrice: 'R$ 9,99' }
 ];
 
 export const skinOffers = [
@@ -59,4 +59,3 @@ export const specialOfferItems = [
     { id: 'dunk-master', name: 'Dunk Master', price: 7.50, originalPrice: 75.90, image: 'https://i.ibb.co/RTBdyFsP/Screenshot-34.png' },
 ];
 
-    

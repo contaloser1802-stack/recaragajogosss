@@ -47,6 +47,22 @@ const BuyPage = () => {
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | 'EXPIRED' | 'CANCELLED' | 'UNKNOWN'>('PENDING');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
+  const getSuccessRedirectPath = (productId?: string) => {
+    if (!productId) return '/upsell'; // Default da compra principal
+  
+    const isUpsell1 = skinOffers.some(o => o.id === productId);
+    const isUpsell2 = upsellOffers.some(o => o.id === productId);
+    const isUpsell3 = taxOffer.some(o => o.id === productId);
+    const isDownsell = downsellOffers.some(o => o.id === productId);
+    
+    if (isDownsell) return '/upsell'; // Pagou downsell, vai pro upsell 1
+    if (isUpsell1) return '/upsell-2'; // Pagou upsell 1 (skins), vai pro 2
+    if (isUpsell2) return '/upsell-3'; // Pagou upsell 2 (diamantes), vai pro 3
+    if (isUpsell3) return '/success';  // Pagou upsell 3 (taxa), vai pro sucesso
+  
+    return '/upsell'; // Fallback para compra principal
+  };
+
   useEffect(() => {
     let timerId: NodeJS.Timeout | null = null;
     let pollTimeoutId: NodeJS.Timeout | null = null;
@@ -76,7 +92,8 @@ const BuyPage = () => {
           setPlayerName(parsed.playerName || "Desconhecido");
           setPaymentData(parsed); 
           setIsLoading(false);
-          setPaymentStatus(parsed.status ? parsed.status.toUpperCase() as any : 'PENDING');
+          const currentStatus = parsed.status ? parsed.status.toUpperCase() as any : 'PENDING';
+          setPaymentStatus(currentStatus);
 
           const startPolling = (externalId: string) => {
             let attempt = 0;
@@ -145,7 +162,7 @@ const BuyPage = () => {
             }
           }
 
-          if (parsed.externalId && paymentStatus === 'PENDING') {
+          if (parsed.externalId && currentStatus === 'PENDING') {
             startPolling(parsed.externalId);
           }
 
@@ -176,7 +193,7 @@ const BuyPage = () => {
       if (timerId) clearInterval(timerId);
       if (pollTimeoutId) clearTimeout(pollTimeoutId);
     };
-  }, []); // Dependências vazias para rodar apenas uma vez na montagem
+  }, []); 
 
 
   useEffect(() => {
@@ -281,24 +298,6 @@ const BuyPage = () => {
 
   const showTimeLeft = timeLeft !== null && paymentStatus === 'PENDING' && timeLeft > 0;
   
-  const getSuccessRedirectPath = (productId?: string) => {
-      if (!productId) return '/upsell'; // Default da compra principal
-    
-      const isUpsell1 = skinOffers.some(o => o.id === productId);
-      const isUpsell2 = upsellOffers.some(o => o.id === productId);
-      const isUpsell3 = taxOffer.some(o => o.id === productId);
-      const isDownsell = downsellOffers.some(o => o.id === productId);
-      
-      if (isDownsell) return '/upsell'; // Pagou downsell, vai pro upsell 1
-      if (isUpsell1) return '/upsell-2'; // Pagou upsell 1 (skins), vai pro 2
-      if (isUpsell2) return '/upsell-3'; // Pagou upsell 2 (diamantes), vai pro 3
-      if (isUpsell3) return '/success';  // Pagou upsell 3 (taxa), vai pro sucesso
-    
-      return '/upsell'; // Fallback para compra principal
-    };
-
-  const currentRedirectPath = getSuccessRedirectPath(paymentData?.productId);
-
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <BackRedirect redirectTo="/downsell" />
@@ -452,11 +451,7 @@ const BuyPage = () => {
                 </p>
               </div>
             </div>
-            {paymentStatus === 'APPROVED' && (
-                <Link href={currentRedirectPath} className="mt-8">
-                  <Button variant="default">Ir para a próxima etapa</Button>
-                </Link>
-            )}
+            
             {(paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') && (
                 <Link href="/" className="mt-8">
                   <Button variant="destructive">Iniciar Nova Compra</Button>
@@ -476,5 +471,3 @@ const BuyPage = () => {
 };
 
 export default BuyPage;
-
-    
