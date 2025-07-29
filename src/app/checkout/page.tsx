@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
@@ -20,8 +20,6 @@ import { specialOfferItems } from '@/lib/data';
 import { PaymentPayload, ProductData } from '@/interfaces/types';
 import { formatPhoneNumber } from '@/lib/utils';
 
-
-// Esquema de validação do formulário - CPF removido para não ser preenchido pelo usuário
 const formSchema = z.object({
   name: z.string()
     .min(1, { message: "Nome é obrigatório." })
@@ -46,12 +44,10 @@ function CheckoutPageContent() {
 
   const [product, setProduct] = useState<ProductData | null>(null);
   const [playerName, setPlayerName] = useState("Carregando...");
-  const [paymentMethodName, setPaymentMethodName] = useState("PIX"); // Definido como PIX agora
+  const [paymentMethodName, setPaymentMethodName] = useState("PIX");
   const [selectedOffers, setSelectedOffers] = useState<string[]>([]);
 
-  // Carrega os dados do produto, nome do jogador, etc.
   useEffect(() => {
-    // CÓDIGO DO PIXEL (mantido, pois é um script externo)
     window.pixelId = "68652c2603b34a13ee47f2dd";
     const utmScript = document.createElement("script");
     utmScript.src = "https://cdn.utmify.com.br/scripts/pixel/pixel.js";
@@ -86,7 +82,6 @@ function CheckoutPageContent() {
 
     window.fbq("init", "1264486768354584");
     window.fbq("track", "PageView");
-    // FIM CÓDIGO DO PIXEL
 
     try {
       const storedProduct = localStorage.getItem('selectedProduct');
@@ -106,7 +101,7 @@ function CheckoutPageContent() {
       if (storedPlayerName) {
         setPlayerName(storedPlayerName);
       } else {
-        setPlayerName("Não encontrado"); // Fallback caso não encontre
+        setPlayerName("Não encontrado");
       }
     } catch (error) {
       console.error("Failed to access localStorage or parse data", error);
@@ -118,7 +113,6 @@ function CheckoutPageContent() {
       router.push('/');
     }
   }, [router, toast]);
-
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -137,39 +131,27 @@ function CheckoutPageContent() {
     );
   };
 
-  // Calcula o total dinamicamente
   const calculateTotal = useMemo(() => {
     if (!product) return 'R$ 0,00';
-
     let mainProductPrice = parseFloat(product.price);
-    if (isNaN(mainProductPrice)) mainProductPrice = 0; // Garante que é um número
-
-    let totalOffersPrice = 0;
-    selectedOffers.forEach(offerId => {
+    if (isNaN(mainProductPrice)) mainProductPrice = 0;
+    let totalOffersPrice = selectedOffers.reduce((sum, offerId) => {
       const offer = specialOfferItems.find(o => o.id === offerId);
-      if (offer) {
-        totalOffersPrice += offer.price;
-      }
-    });
+      return sum + (offer ? offer.price : 0);
+    }, 0);
     return (mainProductPrice + totalOffersPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }, [product, selectedOffers]);
 
-  // Calcula o valor total numérico para o payload
   const getNumericTotalAmount = useMemo(() => {
     if (!product) return 0;
     let mainProductPrice = parseFloat(product.price);
     if (isNaN(mainProductPrice)) mainProductPrice = 0;
-
-    let totalOffersPrice = 0;
-    selectedOffers.forEach(offerId => {
+    let totalOffersPrice = selectedOffers.reduce((sum, offerId) => {
       const offer = specialOfferItems.find(o => o.id === offerId);
-      if (offer) {
-        totalOffersPrice += offer.price;
-      }
-    });
+      return sum + (offer ? offer.price : 0);
+    }, 0);
     return mainProductPrice + totalOffersPrice;
   }, [product, selectedOffers]);
-
 
   const promoCodeValue = form.watch("promoCode");
 
@@ -195,7 +177,6 @@ function CheckoutPageContent() {
   };
 
   const proceedToPayment = async () => {
-    // Dispara a validação do formulário para nome, email, telefone
     const isValid = await form.trigger(['name', 'email', 'phone']);
     if (isValid) {
       setIsModalOpen(true);
@@ -208,27 +189,17 @@ function CheckoutPageContent() {
     }
   };
 
-  // Função que será chamada ao clicar em "Finalizar Pedido" no modal
   const handleFinalSubmit = async () => {
     if (!product) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Produto não encontrado. Tente novamente.",
-      });
+      toast({ variant: "destructive", title: "Erro", description: "Produto não encontrado. Tente novamente." });
       return;
     }
 
     setIsSubmitting(true);
     const values = form.getValues();
 
-    // Salva os dados do cliente para o upsell
     try {
-        localStorage.setItem('customerData', JSON.stringify({
-            name: values.name,
-            email: values.email,
-            phone: values.phone,
-        }));
+        localStorage.setItem('customerData', JSON.stringify({ name: values.name, email: values.email, phone: values.phone }));
     } catch (e) {
         console.warn("Não foi possível salvar os dados do cliente para o upsell.");
     }
@@ -256,12 +227,12 @@ function CheckoutPageContent() {
       }
     });
 
-    const payload: PaymentPayload = {
+    const payload: Omit<PaymentPayload, 'cpf'> = {
       name: values.name,
       email: values.email,
       phone: values.phone.replace(/\D/g, ''),
       paymentMethod: "PIX",
-      amount: getNumericTotalAmount, // Valor numérico total
+      amount: getNumericTotalAmount,
       traceable: true,
       externalId: `ff-${Date.now()}`,
       items: payloadItems,
@@ -275,17 +246,7 @@ function CheckoutPageContent() {
         body: JSON.stringify(payload),
       });
 
-      let data;
-      const contentType = response.headers.get('content-type');
-
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        // Se não for JSON, leia como texto para depuração
-        const textData = await response.text();
-        console.error("Resposta não-JSON da API de pagamento:", textData);
-        throw new Error(`Ocorreu um erro no servidor. Tente novamente mais tarde. (Status: ${response.status})`);
-      }
+      const data = await response.json();
 
       if (!response.ok) {
         const errorMessage = data.message || data.error || "Erro ao processar o pagamento";
@@ -302,16 +263,11 @@ function CheckoutPageContent() {
         bonusAmount: product.bonusAmount,
         totalAmount: product.totalAmount,
         selectedOffers: selectedOffers.map(id => specialOfferItems.find(o => o.id === id)?.name).filter(Boolean),
-        productId: product.id, // Salva o ID do produto para lógica de redirecionamento
+        productId: product.id,
       }));
 
-      if (data.pixQrCode || data.pixCode) {
-        router.push('/buy');
-      } else if (data.payment_url) {
-        window.location.href = data.payment_url;
-      } else {
-        throw new Error("Pagamento retornou sem dados válidos para Pix ou redirecionamento.");
-      }
+      router.push('/buy');
+
     } catch (error: any) {
       toast({ variant: "destructive", title: "Erro no pagamento", description: error.message });
     } finally {
@@ -319,8 +275,14 @@ function CheckoutPageContent() {
       setIsModalOpen(false);
     }
   };
+  
+  if (!product) {
+    return (
+      <div className="flex items-center justify-center h-full">Carregando...</div>
+    );
+  }
 
-  const pageContent = (
+  return (
     <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-white overflow-hidden">
       <div className="mb-3 bg-gray-50 md:mb-4 md:rounded-t-2xl md:p-2 md:pb-0">
         <div className="relative h-20 overflow-hidden md:h-[120px] md:rounded-t-lg">
@@ -476,7 +438,6 @@ function CheckoutPageContent() {
         </form>
       </Form>
 
-      {/* Modal de Promoção Especial */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[425px] p-0">
           <DialogHeader className="p-6 pb-0">
@@ -523,28 +484,6 @@ function CheckoutPageContent() {
       </Dialog>
     </div>
   );
-
-  if (!product) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-1">
-          <Image
-            src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png"
-            alt="Free Fire background"
-            layout="fill"
-            objectFit="cover"
-            className="-z-10"
-            priority
-          />
-          <div className="flex items-center justify-center h-full">Carregando...</div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  return pageContent;
 }
 
 export default function CheckoutPage() {
@@ -568,3 +507,5 @@ export default function CheckoutPage() {
         </div>
     )
 }
+
+    

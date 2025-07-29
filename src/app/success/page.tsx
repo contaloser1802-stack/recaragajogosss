@@ -20,7 +20,7 @@ export default function SuccessPage() {
     // Exibe um toast de sucesso ao carregar a página
     toast({
       title: "Sucesso!",
-      description: "Seu pagamento foi aprovado e seus diamantes serão creditados em breve.",
+      description: "Seu pagamento foi aprovado e seus itens serão creditados em breve.",
       variant: "default",
     });
   }, [toast]);
@@ -33,7 +33,7 @@ export default function SuccessPage() {
           <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
           <h1 className="text-3xl font-bold text-gray-800 mb-4">Pagamento Aprovado!</h1>
           <p className="text-gray-600 mb-8">
-            Seus diamantes serão creditados na sua conta de jogo em instantes.
+            Seus itens serão creditados na sua conta de jogo em instantes.
             Agradecemos a sua compra!
           </p>
           <Link href="/">
@@ -47,3 +47,5 @@ export default function SuccessPage() {
     </div>
   );
 }
+
+    

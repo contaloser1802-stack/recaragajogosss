@@ -44,8 +44,8 @@ const BuyPage = () => {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
     let timerId: NodeJS.Timeout | null = null;
+    let pollTimeoutId: NodeJS.Timeout | null = null;
 
     const loadAndMonitorPaymentData = () => {
       try {
@@ -90,7 +90,7 @@ t.async = !0;
 
         if (storedPaymentData) {
           const parsed: PaymentData = JSON.parse(storedPaymentData);
-          console.log("Dados parseados do localStorage na BuyPage:", parsed); // Log para depuração
+          console.log("Dados parseados do localStorage na BuyPage:", parsed);
 
           if (!parsed.pixQrCode || !parsed.pixCode || !parsed.externalId) {
             console.error("Dados de pagamento incompletos no localStorage:", parsed);
@@ -109,124 +109,75 @@ t.async = !0;
           setPlayerName(parsed.playerName || "Desconhecido");
           setPaymentData(parsed); 
           setIsLoading(false);
-
           setPaymentStatus(parsed.status ? parsed.status.toUpperCase() as any : 'PENDING');
+
+          const startPolling = (externalId: string) => {
+            let attempt = 0;
+            const maxAttempts = 12; // 1 minuto de polling intenso
+            const initialDelay = 5000; // 5 segundos
+            const maxDelay = 30000; // 30 segundos
+            
+            const poll = async () => {
+              if (paymentStatus === 'APPROVED' || attempt >= maxAttempts) {
+                  return; // Para de pollar se já estiver aprovado ou exceder tentativas
+              }
+              try {
+                const res = await fetch(`/api/create-payment?externalId=${externalId}`);
+                if (!res.ok) {
+                   console.error("Erro na API de status do pagamento:", res.status, await res.text());
+                   setPaymentStatus('UNKNOWN');
+                   return;
+                }
+                const statusData = await res.json();
+                console.log("Resposta do status da API (backend):", statusData);
+                let newStatus: typeof paymentStatus = statusData.status?.toUpperCase() || 'UNKNOWN';
+                if (newStatus === 'PAID') newStatus = 'APPROVED';
+
+                setPaymentStatus(newStatus);
+                
+                if (newStatus === 'APPROVED' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
+                  // Parar de pollar se o status for final
+                  return; 
+                }
+
+              } catch (error) {
+                console.error("Erro ao checar status do pagamento:", error);
+                setPaymentStatus('UNKNOWN');
+                return; // Para em caso de erro
+              }
+              
+              attempt++;
+              // Lógica de backoff exponencial
+              const delay = Math.min(initialDelay * Math.pow(1.5, attempt), maxDelay);
+              pollTimeoutId = setTimeout(poll, delay);
+            };
+            poll();
+          };
+
 
           if (parsed.expiresAt) {
             const expiresAtTimestamp = new Date(parsed.expiresAt).getTime();
             const initialTimeLeft = Math.max(0, Math.floor((expiresAtTimestamp - Date.now()) / 1000));
             setTimeLeft(initialTimeLeft);
-
+            
             if (initialTimeLeft <= 0) {
               setPaymentStatus('EXPIRED');
-              toast({
-                variant: "destructive",
-                title: "Pagamento Expirado!",
-                description: "O tempo para pagamento se esgotou. Inicie uma nova compra.",
-              });
-              localStorage.removeItem('paymentData');
             } else {
               timerId = setInterval(() => {
                 setTimeLeft(prevTime => {
-                  if (prevTime === null) return null;
-                  if (prevTime <= 1) {
+                  if (prevTime === null || prevTime <= 1) {
                     clearInterval(timerId as NodeJS.Timeout);
-                    if (paymentStatus === 'PENDING') {
-                      setPaymentStatus('EXPIRED');
-                      toast({
-                        variant: "destructive",
-                        title: "Pagamento Expirado!",
-                        description: "O tempo para pagamento se esgotou. Inicie uma nova compra.",
-                      });
-                      localStorage.removeItem('paymentData');
-                    }
+                    if (paymentStatus === 'PENDING') setPaymentStatus('EXPIRED');
                     return 0;
                   }
                   return prevTime - 1;
                 });
               }, 1000);
             }
-          } else {
-            console.warn("expiresAt não encontrado nos dados de pagamento. Usando tempo fixo de 10 minutos para o contador.");
-            setTimeLeft(600); // Fallback para 10 minutos
-            timerId = setInterval(() => {
-                setTimeLeft(prevTime => {
-                  if (prevTime === null) return null;
-                  if (prevTime <= 1) {
-                    clearInterval(timerId as NodeJS.Timeout);
-                    if (paymentStatus === 'PENDING') {
-                      setPaymentStatus('EXPIRED');
-                      toast({
-                        variant: "destructive",
-                        title: "Pagamento Expirado!",
-                        description: "O tempo para pagamento se esgotou. Inicie uma nova compra.",
-                      });
-                      localStorage.removeItem('paymentData');
-                    }
-                    return 0;
-                  }
-                  return prevTime - 1;
-                });
-              }, 1000);
           }
 
-          if (parsed.externalId && paymentStatus !== 'EXPIRED' && paymentStatus !== 'APPROVED') {
-            intervalId = setInterval(async () => {
-              try {
-                console.log("Consultando status para externalId:", parsed.externalId);
-                const res = await fetch(`/api/create-payment?externalId=${parsed.externalId}`);
-                if (!res.ok) {
-                   console.error("Erro na API de status do pagamento:", res.status, await res.text());
-                   setPaymentStatus('UNKNOWN'); 
-                   if (intervalId) clearInterval(intervalId);
-                   return;
-                }
-                const statusData = await res.json();
-                console.log("Resposta do status da API (backend):", statusData);
-
-                if (res.ok && statusData.status) {
-                  let newStatus: typeof paymentStatus = statusData.status.toUpperCase();
-                  if (newStatus === 'PAID') newStatus = 'APPROVED';
-                  
-                  setPaymentStatus(newStatus);
-
-                  if (newStatus === 'APPROVED') {
-                    if (intervalId) clearInterval(intervalId);
-                    if (timerId) clearInterval(timerId);
-
-                    const redirectPath = getSuccessRedirectPath(parsed.productId);
-
-                    // Lógica especial para o Downsell vindo do BackRedirect
-                    const cameFromBackRedirect = sessionStorage.getItem('cameFromBackRedirect') === 'true';
-                    if (downsellOffers.some(o => o.id === parsed.productId) && cameFromBackRedirect) {
-                        sessionStorage.removeItem('cameFromBackRedirect');
-                        router.push('/upsell'); // Volta pro upsell 1
-                    } else {
-                        router.push(redirectPath);
-                    }
-                    
-                    localStorage.removeItem('paymentData');
-
-                  } else if (newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
-                    if (intervalId) clearInterval(intervalId);
-                    if (timerId) clearInterval(timerId);
-                    toast({
-                      variant: "destructive",
-                      title: "Pagamento Expirado/Cancelado",
-                      description: "Por favor, inicie uma nova compra.",
-                    });
-                    localStorage.removeItem('paymentData');
-                    setTimeout(() => router.push('/'), 3000);
-                  }
-                } else {
-                  console.warn("Resposta de status da API inválida ou sem status:", statusData);
-                }
-              } catch (error) {
-                console.error("Erro ao checar status do pagamento:", error);
-                setPaymentStatus('UNKNOWN');
-                if (intervalId) clearInterval(intervalId);
-              }
-            }, 5000);
+          if (parsed.externalId && paymentStatus === 'PENDING') {
+            startPolling(parsed.externalId);
           }
 
         } else {
@@ -253,10 +204,34 @@ t.async = !0;
     loadAndMonitorPaymentData();
 
     return () => {
-      if (intervalId) clearInterval(intervalId);
       if (timerId) clearInterval(timerId);
+      if (pollTimeoutId) clearTimeout(pollTimeoutId);
     };
-  }, [router, toast, paymentStatus]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // A dependência do paymentStatus foi removida para evitar re-iniciar o polling
+
+  useEffect(() => {
+      if (paymentStatus === 'APPROVED') {
+          const redirectPath = getSuccessRedirectPath(paymentData?.productId);
+          const cameFromBackRedirect = sessionStorage.getItem('cameFromBackRedirect') === 'true';
+
+          if (downsellOffers.some(o => o.id === paymentData?.productId) && cameFromBackRedirect) {
+              sessionStorage.removeItem('cameFromBackRedirect');
+              router.push('/upsell');
+          } else {
+              router.push(redirectPath);
+          }
+          localStorage.removeItem('paymentData');
+      } else if (paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') {
+          toast({
+              variant: "destructive",
+              title: "Pagamento Expirado/Cancelado",
+              description: "Por favor, inicie uma nova compra.",
+          });
+          localStorage.removeItem('paymentData');
+          setTimeout(() => router.push('/'), 3000);
+      }
+  }, [paymentStatus, paymentData, router, toast]);
 
   const handleCopyCode = () => {
     if (navigator.clipboard && pixCode) {
@@ -290,20 +265,20 @@ t.async = !0;
   const showTimeLeft = timeLeft !== null && paymentStatus === 'PENDING' && timeLeft > 0;
   
   const getSuccessRedirectPath = (productId?: string) => {
-    if (!productId) return '/upsell'; // Default da compra principal
-  
-    const isUpsell1 = skinOffers.some(o => o.id === productId);
-    const isDownsell = downsellOffers.some(o => o.id === productId);
-    const isUpsell2 = upsellOffers.some(o => o.id === productId);
-    const isUpsell3 = taxOffer.some(o => o.id === productId);
-  
-    if (isUpsell1) return '/upsell-2'; // Pagou upsell 1 (skins), vai pro 2
-    if (isUpsell2) return '/upsell-3'; // Pagou upsell 2 (diamantes), vai pro 3
-    if (isDownsell) return '/upsell';  // Pagou downsell, volta pro upsell 1
-    if (isUpsell3) return '/success';  // Pagou upsell 3 (taxa), vai pro sucesso
-  
-    return '/upsell'; // Fallback para compra principal
-  };
+      if (!productId) return '/upsell'; // Default da compra principal
+    
+      const isUpsell1 = skinOffers.some(o => o.id === productId);
+      const isUpsell2 = upsellOffers.some(o => o.id === productId);
+      const isUpsell3 = taxOffer.some(o => o.id === productId);
+      const isDownsell = downsellOffers.some(o => o.id === productId);
+      
+      if (isDownsell) return '/upsell'; // Pagou downsell, vai pro upsell 1
+      if (isUpsell1) return '/upsell-2'; // Pagou upsell 1 (skins), vai pro 2
+      if (isUpsell2) return '/upsell-3'; // Pagou upsell 2 (diamantes), vai pro 3
+      if (isUpsell3) return '/success';  // Pagou upsell 3 (taxa), vai pro sucesso
+    
+      return '/upsell'; // Fallback para compra principal
+    };
 
   const currentRedirectPath = getSuccessRedirectPath(paymentData?.productId);
 
@@ -479,3 +454,5 @@ t.async = !0;
 };
 
 export default BuyPage;
+
+    

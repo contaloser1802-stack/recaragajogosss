@@ -116,13 +116,22 @@ function CheckoutCreditCardPageContent() {
         },
     });
 
+    const promoCodeValue = form.watch("promoCode");
+
     const handleApplyPromoCode = () => {
-        // Mock logic
-        toast({
-            variant: "destructive",
-            title: "Erro",
-            description: "Código promocional inválido.",
-        })
+        if (promoCodeValue === 'DIAMANTE100') {
+            setIsPromoApplied(true);
+            toast({
+                title: "Sucesso!",
+                description: "Código promocional aplicado.",
+            })
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Erro",
+                description: "Código promocional inválido.",
+            })
+        }
     };
 
     const handleMaskedChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void, mask: (value: string) => string) => {
@@ -292,7 +301,7 @@ function CheckoutCreditCardPageContent() {
                                     <FormControl>
                                         <Input {...field} placeholder="Código Promocional" className="flex-1 rounded-r-none border-r-0 focus-visible:ring-offset-0" disabled={isPromoApplied} />
                                     </FormControl>
-                                    <Button type="button" className="rounded-l-none h-11 px-5 text-base" variant="destructive" disabled={!field.value || isPromoApplied} onClick={handleApplyPromoCode}>
+                                    <Button type="button" className="rounded-l-none h-11 px-5 text-base" variant="destructive" disabled={promoCodeValue !== 'DIAMANTE100' || isPromoApplied} onClick={handleApplyPromoCode}>
                                         {isPromoApplied ? "Aplicado" : "Aplicar"}
                                     </Button>
                                 </div>
@@ -426,7 +435,7 @@ function CheckoutCreditCardPageContent() {
                     </div>
 
                     <div className="mt-2">
-                         <Button type="submit" className="w-full h-11 text-base" variant="destructive" disabled={!form.formState.isValid || isSubmitting}>
+                         <Button type="submit" className="w-full h-11 text-base" variant="destructive" disabled={isSubmitting}>
                             {isSubmitting ? 'Processando...' : 'Prosseguir para pagamento'}
                         </Button>
                     </div>
@@ -457,3 +466,5 @@ export default function CheckoutCreditCardPage() {
         </div>
     );
 }
+
+    
