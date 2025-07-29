@@ -2,11 +2,51 @@
 // src/app/api/test-webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
-// Esta é uma rota de TESTE para simular o webhook da GhostPay.
-// Agora ela gera 29 notificações de uma vez, com valores e intervalos aleatórios.
-// Para usar, acesse a URL /api/test-webhook no seu navegador.
+// --- Funções de Geração de Dados Aleatórios ---
 
-const possibleValues = [1990, 4990, 8990, 14990]; // R$19,99, R$49,90, R$89,90, R$149,90
+const firstNames = ["Carlos", "Fernanda", "Juliano", "Beatriz", "Lucas", "Patrícia", "Ricardo", "Camila", "Márcio", "Vanessa", "Leonardo", "Tatiane", "Eduardo", "Renata", "Fábio", "Cristina", "Sandro", "Daniela", "Leandro", "Priscila"];
+const lastNames = ["Rocha", "Nunes", "Mendes", "Rezende", "Cardoso", "Teixeira", "Araújo", "Campos", "Freitas", "Pinto", "Moura", "Dias", "Castro", "Nascimento", "Moreira", "Neves", "Siqueira", "Brandão", "Queiroz", "Borges"];
+const domains = ["uol.com.br", "terra.com.br", "ig.com.br", "bol.com.br", "globomail.com"];
+const ddds = ["11", "21", "31", "41", "51", "61", "71", "81", "91", "12", "19", "22", "27", "48", "85"];
+
+const utmSources = ['MetaAds', 'GoogleAds', 'TikTokAds', 'Taboola', 'KwaiAds'];
+const utmCampaigns = ['FreeFireQuiz', 'DiamondPromo', 'LevelUpJuly', 'WinterSale', 'BooyahPass'];
+const utmMediums = ['Paid_Social', 'CPC', 'Display', 'Video', 'retargeting'];
+const utmScks = ['ad1-video-desktop', 'ad2-banner-mobile', 'ad3-story-reels', 'ad4-search-top', 'ad5-carousel-feed'];
+
+
+const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
+const generateRandomName = () => `${getRandomItem(firstNames)} ${getRandomItem(lastNames)}`;
+const generateRandomEmail = (name: string) => `${name.toLowerCase().replace(' ', '_').substring(0, 15)}${Math.floor(Math.random() * 99)}@${getRandomItem(domains)}`;
+const generateRandomPhone = () => {
+    const ddd = getRandomItem(ddds);
+    const number = Math.floor(100000000 + Math.random() * 900000000).toString().substring(0, 9);
+    return `${ddd}9${number}`;
+};
+
+function gerarDigitoVerificador(cpfParcial: string) {
+    let soma = 0;
+    for (let i = 0, peso = cpfParcial.length + 1; i < cpfParcial.length; i++, peso--) {
+        soma += parseInt(cpfParcial.charAt(i)) * peso;
+    }
+    const resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+}
+
+function gerarCPFValido() {
+    let cpf = '';
+    for (let i = 0; i < 9; i++) {
+        cpf += Math.floor(Math.random() * 10);
+    }
+    cpf += gerarDigitoVerificador(cpf);
+    cpf += gerarDigitoVerificador(cpf);
+    return cpf;
+}
+
+// --- Fim das Funções de Geração ---
+
+const possibleValues = [2990, 5780, 12790]; 
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -16,50 +56,47 @@ export async function GET(request: NextRequest) {
     const createdOrderIds = [];
     const webhookUrl = new URL('/api/ghostpay-webhook', request.url).toString();
 
-    for (let i = 0; i < 29; i++) {
-        // Adiciona um atraso aleatório de 0 a 1.5 segundos antes de processar
+    for (let i = 0; i < 5; i++) {
         await delay(Math.random() * 1500);
 
-        // Seleciona um valor aleatório da lista
         const randomAmount = possibleValues[Math.floor(Math.random() * possibleValues.length)];
-
-        // 1. Crie um payload de exemplo que imita o que a GhostPay enviaria.
         const testOrderId = `TEST-APPROVED-${Date.now()}-${i}`;
         createdOrderIds.push(testOrderId);
+
+        const randomName = generateRandomName();
 
         const testPayload = {
             id: testOrderId,
             status: 'APPROVED',
-            amount: randomAmount, // Usa o valor aleatório
+            amount: randomAmount,
             createdAt: new Date().toISOString(),
             paidAt: new Date().toISOString(),
             customer: {
-                name: 'Cliente Teste Aprovado',
-                email: 'aprovado@example.com',
-                phone: '11999998888',
-                cpf: '12345678900',
+                name: randomName,
+                email: generateRandomEmail(randomName),
+                phone: generateRandomPhone(),
+                cpf: gerarCPFValido(),
                 ipAddress: '127.0.0.1',
             },
             items: [
                 {
-                    id: `prod-teste-${randomAmount}`,
-                    title: `@jaozw.7`,
+                    id: `Prod-${randomAmount}`,
+                    title: `@rogi.sensi`,
                     quantity: 1,
-                    unitPrice: randomAmount, // O preço do item é o valor total
+                    unitPrice: randomAmount,
                 },
             ],
             utmQuery: {
-                utm_source: 'teste-source',
-                utm_campaign: 'teste-campaign',
-                utm_medium: 'teste-medium',
-                sck: 'teste-sck'
+                utm_source: getRandomItem(utmSources),
+                utm_campaign: getRandomItem(utmCampaigns),
+                utm_medium: getRandomItem(utmMediums),
+                sck: getRandomItem(utmScks)
             },
             isTest: false,
         };
         
-        console.log(`[test-webhook] [${i + 1}/29] Simulando chamada para o webhook com o payload:`, JSON.stringify(testPayload, null, 2));
+        console.log(`[test-webhook] [${i + 1}/5] Simulando chamada para o webhook com o payload:`, JSON.stringify(testPayload, null, 2));
 
-        // 2. Simula a chamada do webhook usando fetch para a própria API
         const promise = fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -77,7 +114,6 @@ export async function GET(request: NextRequest) {
         promises.push(promise);
     }
 
-    // 4. Executa todas as promessas em paralelo.
     const results = await Promise.allSettled(promises);
 
     const successfulInvocations = results.filter(r => r.status === 'fulfilled').length;
@@ -91,7 +127,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: `Simulação de webhook APROVADO executada. ${successfulInvocations} de 29 pedidos enviados para a Utmify.`,
+        message: `Simulação de webhook APROVADO executada. ${successfulInvocations} de 5 pedidos enviados para a Utmify.`,
         createdOrderIds: createdOrderIds,
         results: results.map(r => r.status)
       },
@@ -103,4 +139,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
-
