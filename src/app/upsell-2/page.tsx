@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -8,7 +9,7 @@ import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { skinOffers } from '@/lib/data';
+import { skinOffers, taxOffer } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { PaymentPayload } from '@/interfaces/types';
 import { gerarCPFValido } from '@/lib/utils';
@@ -27,9 +28,8 @@ const Upsell2Page = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleDecline = () => {
-        // Limpa os dados do cliente se ele recusar a oferta final, pois o fluxo termina aqui.
-        localStorage.removeItem('customerData');
-        router.push('/success');
+        // Redireciona para a página de downsell se a oferta for recusada.
+        router.push('/downsell');
     };
     
     const handleSkinSelection = (skinId: string) => {
@@ -130,11 +130,8 @@ const Upsell2Page = () => {
                 originalAmount: '',
                 bonusAmount: '',
                 totalAmount: 'Skins',
-                productId: 'skins-upsell', // ID genérico para esta etapa
+                productId: taxOffer[0].id, // ID genérico para esta etapa
             }));
-            
-            // Limpa os dados do cliente pois este é o final do fluxo
-            localStorage.removeItem('customerData');
             
             router.push('/buy');
 
