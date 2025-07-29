@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
 import { cn } from '@/lib/utils';
-import { upsellOffers } from '@/lib/data';
+import { downsellOffers } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { PaymentPayload } from '@/interfaces/types';
 import { gerarCPFValido } from '@/lib/utils';
@@ -20,38 +20,16 @@ interface CustomerData {
     phone: string;
 }
 
-const UpsellPage = () => {
+const DownsellPage = () => {
     const router = useRouter();
     const { toast } = useToast();
-    const [selectedOfferId, setSelectedOfferId] = useState<string | null>(upsellOffers[0]?.id || null);
-    const [timeLeft, setTimeLeft] = useState(300); // 5 minutos em segundos
+    const [selectedOfferId, setSelectedOfferId] = useState<string | null>(downsellOffers[0]?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft(prevTime => {
-                if (prevTime <= 1) {
-                    clearInterval(timer);
-                    // Se o tempo acabar, vai para o downsell
-                    router.push('/downsell'); 
-                    return 0;
-                }
-                return prevTime - 1;
-            });
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [router]);
-
-    const formatTime = (seconds: number) => {
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    };
-
     const handleDecline = () => {
-        // Redireciona para o downsell se recusar a oferta
-        router.push('/downsell');
+        // Limpa os dados do cliente se ele recusar a oferta final
+        localStorage.removeItem('customerData');
+        router.push('/success');
     };
 
     const handlePurchase = async () => {
@@ -66,7 +44,7 @@ const UpsellPage = () => {
 
         setIsSubmitting(true);
 
-        const selectedProduct = upsellOffers.find(p => p.id === selectedOfferId);
+        const selectedProduct = downsellOffers.find(p => p.id === selectedOfferId);
         if (!selectedProduct) {
             setIsSubmitting(false);
             return;
@@ -98,7 +76,7 @@ const UpsellPage = () => {
                 cpf: gerarCPFValido().replace(/\D/g, ''), // Gera um novo CPF para a transação
                 paymentMethod: "PIX",
                 amount: parseFloat(selectedProduct.price),
-                externalId: `ff-upsell1-${Date.now()}`,
+                externalId: `ff-downsell-${Date.now()}`,
                 items: [{
                     id: selectedProduct.id,
                     title: selectedProduct.name,
@@ -120,10 +98,10 @@ const UpsellPage = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Erro ao criar o pagamento para o upsell.");
+                throw new Error(data.message || "Erro ao criar o pagamento para o downsell.");
             }
             
-            // Salva os novos dados de pagamento do upsell
+            // Salva os novos dados de pagamento do downsell
             localStorage.setItem('paymentData', JSON.stringify({
                 ...data,
                 playerName: playerName,
@@ -133,7 +111,8 @@ const UpsellPage = () => {
                 originalAmount: selectedProduct.originalAmount,
                 bonusAmount: selectedProduct.bonusAmount,
                 totalAmount: selectedProduct.totalAmount,
-                productId: selectedProduct.id,
+                // Redireciona para o upsell-2 após o pagamento do downsell
+                productId: selectedProduct.id, 
             }));
             
             router.push('/buy');
@@ -154,19 +133,14 @@ const UpsellPage = () => {
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider">
-                        Espere! Oferta Especial!
+                        OK, ÚLTIMA OFERTA!
                     </h1>
                     <p className="mt-3 text-base text-gray-600">
-                        Sua compra foi aprovada! Antes de prosseguir, aproveite esta oferta exclusiva por tempo limitado.
+                        Entendemos... que tal esta oferta imperdível? É a sua última chance!
                     </p>
                     
-                    <div className="my-6">
-                        <p className="text-sm uppercase font-semibold text-gray-500">A oferta termina em:</p>
-                        <div className="text-5xl font-bold text-destructive mt-1">{formatTime(timeLeft)}</div>
-                    </div>
-
                     <div className="flex flex-col gap-4 my-8">
-                        {upsellOffers.map(offer => (
+                        {downsellOffers.map(offer => (
                             <div
                                 key={offer.id}
                                 onClick={() => setSelectedOfferId(offer.id)}
@@ -193,14 +167,14 @@ const UpsellPage = () => {
                             className="w-full text-lg py-6 font-bold"
                             variant="destructive"
                         >
-                            {isSubmitting ? 'Processando...' : 'Sim, Eu Quero Esta Oferta!'}
+                            {isSubmitting ? 'Processando...' : 'Sim, Levo Esta!'}
                         </Button>
                         <Button
                             onClick={handleDecline}
                             variant="link"
                             className="text-gray-500 hover:text-gray-700"
                         >
-                            Não, obrigado.
+                            Não, obrigado. Leve-me para a confirmação.
                         </Button>
                     </div>
                 </div>
@@ -210,4 +184,4 @@ const UpsellPage = () => {
     );
 };
 
-export default UpsellPage;
+export default DownsellPage;

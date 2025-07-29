@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation'; // Importa useRouter
 import { CheckCircle, Hourglass, Info, RefreshCcw } from 'lucide-react'; // Ícones para status
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Componentes de alerta
-import { upsellOffers, taxOffer } from '@/lib/data'; // Importa dados dos upsells
+import { upsellOffers, taxOffer, downsellOffers } from '@/lib/data'; // Importa dados dos upsells
 
 // Interface para os dados de pagamento recebidos do localStorage (e da API)
 interface PaymentData {
@@ -195,16 +196,17 @@ t.async = !0;
 
                     // Lógica de redirecionamento pós-pagamento
                     const isUpsell1 = upsellOffers.some(o => o.id === parsed.productId);
+                    const isDownsell = downsellOffers.some(o => o.id === parsed.productId);
                     const isUpsell2 = taxOffer.some(o => o.id === parsed.productId);
                     
                     localStorage.removeItem('paymentData'); // Limpa dados da transação atual
 
-                    if (isUpsell1) {
-                      router.push('/upsell-2'); // Pagou upsell 1, vai para upsell 2
+                    if (isUpsell1 || isDownsell) {
+                        router.push('/upsell-2'); // Pagou upsell 1 OU downsell, vai para upsell 2 (taxa)
                     } else if (isUpsell2) {
-                      router.push('/success'); // Pagou upsell 2, vai para sucesso
+                        router.push('/success'); // Pagou upsell 2 (taxa), vai para sucesso
                     } else {
-                      router.push('/upsell'); // Pagou compra principal, vai para upsell 1
+                        router.push('/upsell'); // Pagou compra principal, vai para upsell 1
                     }
 
                   } else if (newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
@@ -292,9 +294,10 @@ t.async = !0;
   const getSuccessRedirectPath = () => {
     if (!paymentData?.productId) return '/upsell';
     const isUpsell1 = upsellOffers.some(o => o.id === paymentData.productId);
+    const isDownsell = downsellOffers.some(o => o.id === paymentData.productId);
     const isUpsell2 = taxOffer.some(o => o.id === paymentData.productId);
-
-    if (isUpsell1) return '/upsell-2';
+    
+    if (isUpsell1 || isDownsell) return '/upsell-2';
     if (isUpsell2) return '/success';
     return '/upsell'; // Default para compra principal
   };

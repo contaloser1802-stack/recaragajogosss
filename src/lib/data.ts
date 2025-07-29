@@ -1,3 +1,4 @@
+
 export const banners = [
     { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/100067br-JAN22-pc.png?v=1750094508', alt: 'Banner 1' },
     { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/26B06340B596B357.png?v=1729016596', alt: 'Banner 2' },
@@ -23,6 +24,10 @@ export const specialOffers = [
 
 export const upsellOffers = [
     { id: 'upsell-5600', name: '5.600 Diamantes', originalAmount: '5.600', bonusAmount: '0', totalAmount: '5.600', price: '9.90', formattedPrice: 'R$ 9,90' },
+];
+
+export const downsellOffers = [
+    { id: 'downsell-11200', name: '11.200 Diamantes', originalAmount: '11.200', bonusAmount: '0', totalAmount: '11.200', price: '9.90', formattedPrice: 'R$ 9,90' },
 ];
 
 export const taxOffer = [
