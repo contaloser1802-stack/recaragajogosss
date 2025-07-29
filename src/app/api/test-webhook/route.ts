@@ -1,7 +1,6 @@
 
 // src/app/api/test-webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { POST as handleWebhook } from '@/app/api/ghostpay-webhook/route'; // Importa a função do webhook
 
 // Esta é uma rota de TESTE para simular o webhook da GhostPay.
 // Agora ela gera 29 notificações de uma vez, com valores e intervalos aleatórios.
@@ -15,6 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     const promises = [];
     const createdOrderIds = [];
+    const webhookUrl = new URL('/api/ghostpay-webhook', request.url).toString();
 
     for (let i = 0; i < 29; i++) {
         // Adiciona um atraso aleatório de 0 a 1.5 segundos antes de processar
@@ -59,15 +59,22 @@ export async function GET(request: NextRequest) {
         
         console.log(`[test-webhook] [${i + 1}/29] Simulando chamada para o webhook com o payload:`, JSON.stringify(testPayload, null, 2));
 
-        // 2. Crie um objeto de requisição simulado para passar para a função do webhook.
-        const mockRequest = new NextRequest(new URL(request.url).origin, {
+        // 2. Simula a chamada do webhook usando fetch para a própria API
+        const promise = fetch(webhookUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(testPayload),
+        }).then(res => {
+            if (!res.ok) {
+                console.error(`[test-webhook] Chamada para webhook falhou para o pedido ${testOrderId} com status ${res.status}`);
+            }
+            return res.json();
+        }).catch(err => {
+            console.error(`[test-webhook] Erro de fetch para o pedido ${testOrderId}:`, err);
+            return { status: 'rejected', reason: err.message };
         });
 
-        // 3. Adiciona a promessa de chamada do webhook à lista.
-        promises.push(handleWebhook(mockRequest));
+        promises.push(promise);
     }
 
     // 4. Executa todas as promessas em paralelo.
@@ -96,3 +103,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
