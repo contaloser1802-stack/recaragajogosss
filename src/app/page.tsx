@@ -53,6 +53,24 @@ const SwitchAccountIcon = () => (
   </svg>
 );
 
+const NavButton = ({ direction, onClick }: { direction: 'prev' | 'next', onClick: () => void }) => {
+  const isPrev = direction === 'prev';
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'absolute top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white transition hover:bg-black/60 z-10 hidden md:block',
+        isPrev ? 'left-4' : 'right-4'
+      )}
+    >
+      {isPrev ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
+    </button>
+  );
+};
+
+
 const ImageCarousel = () => {
   const banners = useMemo(() => [
     { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/100067br-JAN22-pc.png?v=1750094508', alt: 'Banner 1' },
@@ -121,27 +139,6 @@ const ImageCarousel = () => {
     }
   }, [isTransitioning]);
 
-  const NavButton = ({ direction }: { direction: 'prev' | 'next' }) => {
-    const isPrev = direction === 'prev';
-    const handleClick = () => {
-      resetTimeout();
-      isPrev ? handlePrev() : handleNext();
-    };
-
-    return (
-      <button
-        type="button"
-        onClick={handleClick}
-        className={cn(
-          'absolute top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white transition hover:bg-black/60 z-10 hidden md:block',
-          isPrev ? 'left-4' : 'right-4'
-        )}
-      >
-        {isPrev ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
-      </button>
-    );
-  };
-
   return (
     <div className="bg-[#151515]">
       <div className="mx-auto w-full max-w-[900px] py-2.5 lg:py-5">
@@ -168,8 +165,8 @@ const ImageCarousel = () => {
             ))}
           </div>
 
-          <NavButton direction="prev" />
-          <NavButton direction="next" />
+          <NavButton direction="prev" onClick={() => { resetTimeout(); handlePrev(); }} />
+          <NavButton direction="next" onClick={() => { resetTimeout(); handleNext(); }} />
 
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
             {banners.map((_, index) => (
@@ -800,3 +797,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

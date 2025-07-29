@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo, useRef } from 'react'; // Adicionado useRef
+import { useState, useEffect, useMemo, useRef } from 'react'; // Adicionado useRef
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
@@ -123,7 +123,7 @@ const specialOfferItems = [
 ];
 
 
-function CheckoutForm() {
+export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isPromoApplied, setIsPromoApplied] = useState(false);
@@ -433,16 +433,7 @@ function CheckoutForm() {
     }
   };
 
-
-  if (!product) {
-    return (
-      <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-white overflow-hidden items-center justify-center p-10">
-        <p>Carregando produto...</p>
-      </div>
-    );
-  }
-
-  return (
+  const pageContent = (
     <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-white overflow-hidden">
       <div className="mb-3 bg-gray-50 md:mb-4 md:rounded-t-2xl md:p-2 md:pb-0">
         <div className="relative h-20 overflow-hidden md:h-[120px] md:rounded-t-lg">
@@ -479,7 +470,7 @@ function CheckoutForm() {
         <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Total</dt>
         <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">
           <Image className="h-3.5 w-3.5" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={14} height={14} alt="Diamante" data-ai-hint="diamond gem" />
-          {product.totalAmount}
+          {product?.totalAmount}
         </dd>
 
         <div className="col-span-2 my-1 w-full">
@@ -488,14 +479,14 @@ function CheckoutForm() {
               <div className="text-gray-600">Preço Original</div>
               <div className="flex shrink-0 items-center gap-1">
                 <Image className="h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={12} height={12} alt="Diamante" data-ai-hint="diamond gem" />
-                <div className="font-medium text-gray-800">{product.originalAmount}</div>
+                <div className="font-medium text-gray-800">{product?.originalAmount}</div>
               </div>
             </li>
             <li className="flex items-center justify-between gap-12">
               <div className="text-gray-600">+ Bônus Geral</div>
               <div className="flex shrink-0 items-center gap-1">
                 <Image className="h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={12} height={12} alt="Diamante" data-ai-hint="diamond gem" />
-                <div className="font-medium text-gray-800">{product.bonusAmount}</div>
+                <div className="font-medium text-gray-800">{product?.bonusAmount}</div>
               </div>
             </li>
           </ul>
@@ -507,7 +498,7 @@ function CheckoutForm() {
 
         <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Preço</dt>
         <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">
-          {product.formattedPrice}
+          {product?.formattedPrice}
         </dd>
 
         <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Método de pagamento</dt>
@@ -645,18 +636,28 @@ function CheckoutForm() {
       </Dialog>
     </div>
   );
-}
 
-export default function CheckoutPage() {
+  if (!product) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <Header />
+        <main className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
+          <div className="flex items-center justify-center h-full">Carregando...</div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
-        <Suspense fallback={<div className="flex items-center justify-center h-full">Carregando...</div>}>
-          <CheckoutForm />
-        </Suspense>
+        {pageContent}
       </main>
       <Footer />
     </div>
   );
 }
+
+    

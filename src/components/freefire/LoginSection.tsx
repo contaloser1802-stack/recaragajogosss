@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck } from 'lucide-react';
@@ -19,8 +18,8 @@ export function LoginSection() {
               placeholder="ID do jogador"
               className="flex-grow border-gray-300 focus:ring-red-500 focus:border-red-500 rounded-lg"
             />
-            <Button asChild className="bg-[#FF4C00] text-white hover:bg-red-700 w-full sm:w-auto rounded-lg">
-              <Link href="/recharge">Login</Link>
+            <Button className="bg-[#FF4C00] text-white hover:bg-red-700 w-full sm:w-auto rounded-lg">
+              Login
             </Button>
           </div>
         </div>
@@ -28,3 +27,5 @@ export function LoginSection() {
     </section>
   );
 }
+
+    

@@ -65,7 +65,7 @@ type CheckoutData = {
     totalAmount: string;
 };
 
-function CheckoutCreditCardForm() {
+export default function CheckoutCreditCardPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [isPromoApplied, setIsPromoApplied] = useState(false);
@@ -74,22 +74,19 @@ function CheckoutCreditCardForm() {
 
     useEffect(() => {
         const storedPlayerName = localStorage.getItem('playerName') || "Não encontrado";
-        const selectedPackJSON = localStorage.getItem('selectedPack');
+        const selectedPackJSON = localStorage.getItem('selectedProduct');
         const storedPaymentMethod = localStorage.getItem('paymentMethodName') || 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)';
 
         if (selectedPackJSON) {
             const selectedPack = JSON.parse(selectedPackJSON);
-            const original = parseInt(selectedPack.amount.replace(/\./g, ''), 10);
-            const bonus = parseInt(selectedPack.bonus.replace(/\./g, ''), 10);
-            const total = (original + bonus).toLocaleString('pt-BR');
-
+            
             setCheckoutData({
                 playerName: storedPlayerName,
-                price: selectedPack.price,
+                price: selectedPack.formattedPrice,
                 paymentMethodName: storedPaymentMethod,
-                originalAmount: selectedPack.amount,
-                bonusAmount: selectedPack.bonus,
-                totalAmount: total,
+                originalAmount: selectedPack.originalAmount,
+                bonusAmount: selectedPack.bonusAmount,
+                totalAmount: selectedPack.totalAmount,
             });
         } else {
              setCheckoutData({
@@ -204,13 +201,7 @@ function CheckoutCreditCardForm() {
         }
     };
     
-    if (!checkoutData) {
-        return (
-            <div className="flex items-center justify-center h-full">Carregando...</div>
-        );
-    }
-
-    return (
+    const pageContent = (
         <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-white overflow-hidden">
              <div className="mb-3 bg-white md:mb-4 md:rounded-t-2xl md:p-2 md:pb-0">
                 <div className="relative h-20 overflow-hidden md:h-[120px] md:rounded-t-lg">
@@ -247,7 +238,7 @@ function CheckoutCreditCardForm() {
                 <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Total</dt>
                 <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">
                     <Image className="h-3.5 w-3.5" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={14} height={14} alt="Diamante" data-ai-hint="diamond gem" />
-                    {checkoutData.totalAmount}
+                    {checkoutData?.totalAmount}
                 </dd>
                 
                 <div className="col-span-2 my-1 w-full">
@@ -256,14 +247,14 @@ function CheckoutCreditCardForm() {
                             <div className="text-gray-600">Preço Original</div>
                             <div className="flex shrink-0 items-center gap-1">
                                 <Image className="h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={12} height={12} alt="Diamante" data-ai-hint="diamond gem" />
-                                <div className="font-medium text-gray-800">{checkoutData.originalAmount}</div>
+                                <div className="font-medium text-gray-800">{checkoutData?.originalAmount}</div>
                             </div>
                         </li>
                         <li className="flex items-center justify-between gap-12">
                             <div className="text-gray-600">+ Bônus Geral</div>
                             <div className="flex shrink-0 items-center gap-1">
                                 <Image className="h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={12} height={12} alt="Diamante" data-ai-hint="diamond gem" />
-                                <div className="font-medium text-gray-800">{checkoutData.bonusAmount}</div>
+                                <div className="font-medium text-gray-800">{checkoutData?.bonusAmount}</div>
                             </div>
                         </li>
                     </ul>
@@ -271,14 +262,14 @@ function CheckoutCreditCardForm() {
                 
                 <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Preço</dt>
                 <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">
-                    {checkoutData.price}
+                    {checkoutData?.price}
                 </dd>
                 
                 <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Método de pagamento</dt>
-                <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">{checkoutData.paymentMethodName}</dd>
+                <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">{checkoutData?.paymentMethodName}</dd>
                 
                 <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Nome do Jogador</dt>
-                <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">{checkoutData.playerName}</dd>
+                <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">{checkoutData?.playerName}</dd>
             </dl>
             
             <div className="h-2 bg-gray-200"></div>
@@ -437,18 +428,30 @@ function CheckoutCreditCardForm() {
             </Form>
         </div>
     );
-}
+    
+    if (!checkoutData) {
+        return (
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
+                <div className="flex items-center justify-center h-full">Carregando...</div>
+              </main>
+              <Footer />
+            </div>
+        );
+    }
 
-export default function CheckoutCreditCardPage() {
     return (
         <div className="flex flex-col min-h-screen">
           <Header />
           <main className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
             <Suspense fallback={<div className="flex items-center justify-center h-full">Carregando...</div>}>
-              <CheckoutCreditCardForm />
+              {pageContent}
             </Suspense>
           </main>
           <Footer />
         </div>
     );
 }
+
+    
