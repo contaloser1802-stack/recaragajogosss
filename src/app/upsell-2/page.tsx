@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -34,11 +35,11 @@ const Upsell2Page = () => {
             setTimeLeft(prevTime => {
                 if (prevTime <= 1) {
                     clearInterval(timer);
-                    router.push('/downsell'); 
+                    setShowUrgencyMessage(true); // Garante que a mensagem apareça quando o tempo acabar
                     return 0;
                 }
                 // Mostra a mensagem quando falta 1 minuto
-                if (prevTime <= 60) {
+                if (prevTime <= 60 && !showUrgencyMessage) {
                     setShowUrgencyMessage(true);
                 }
                 return prevTime - 1;
@@ -46,7 +47,7 @@ const Upsell2Page = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [router]);
+    }, [router, showUrgencyMessage]);
 
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
