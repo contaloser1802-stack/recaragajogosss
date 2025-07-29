@@ -58,4 +58,3 @@ export const specialOfferItems = [
     { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 14.99, originalPrice: 149.90, image: 'https://i.ibb.co/qMX69Lt6/Screenshot-31.png' },
     { id: 'dunk-master', name: 'Dunk Master', price: 7.50, originalPrice: 75.90, image: 'https://i.ibb.co/RTBdyFsP/Screenshot-34.png' },
 ];
-

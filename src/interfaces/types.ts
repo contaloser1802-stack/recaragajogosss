@@ -28,5 +28,3 @@ export interface ProductData {
   formattedPrice: string;
   image?: string; 
 }
-
-    

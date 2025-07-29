@@ -282,5 +282,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message || 'Erro interno do servidor ao consultar status.' }, { status: 500 });
   }
 }
-
-    
