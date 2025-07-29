@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -27,15 +26,20 @@ const Upsell2Page = () => {
     const [selectedOfferId, setSelectedOfferId] = useState<string | null>(upsellOffers[0]?.id || null);
     const [timeLeft, setTimeLeft] = useState(300); // 5 minutos em segundos
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showUrgencyMessage, setShowUrgencyMessage] = useState(false);
+
 
     useEffect(() => {
         const timer = setInterval(() => {
             setTimeLeft(prevTime => {
                 if (prevTime <= 1) {
                     clearInterval(timer);
-                    // Se o tempo acabar, vai para a página de downsell (recusa a oferta)
                     router.push('/downsell'); 
                     return 0;
+                }
+                // Mostra a mensagem quando falta 1 minuto
+                if (prevTime <= 60) {
+                    setShowUrgencyMessage(true);
                 }
                 return prevTime - 1;
             });
@@ -152,10 +156,20 @@ const Upsell2Page = () => {
             <BackRedirect redirectTo="/downsell" />
             <Header />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
-                <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider">
+                <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border relative overflow-hidden">
+
+                    {showUrgencyMessage && (
+                         <div className="absolute top-0 left-0 right-0 z-10 flex justify-center items-center p-4">
+                            <p className="text-3xl font-extrabold text-destructive animate-pulse-intense tracking-wider uppercase">
+                                ÚLTIMOS MINUTOS!!
+                            </p>
+                        </div>
+                    )}
+                    
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider mt-12">
                         Espere! Mais uma Oferta!
                     </h1>
+
                     <p className="mt-3 text-base text-gray-600">
                         Aproveite esta última chance para turbinar sua conta com diamantes extras por um preço imperdível.
                     </p>
