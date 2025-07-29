@@ -43,7 +43,6 @@ const BuyPage = () => {
   const [playerName, setPlayerName] = useState<string>("Carregando...");
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isSimulating, setIsSimulating] = useState<boolean>(false);
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | 'EXPIRED' | 'CANCELLED' | 'UNKNOWN'>('PENDING');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
@@ -199,14 +198,7 @@ const BuyPage = () => {
   useEffect(() => {
       if (paymentStatus === 'APPROVED') {
           const redirectPath = getSuccessRedirectPath(paymentData?.productId);
-          const cameFromBackRedirect = sessionStorage.getItem('cameFromBackRedirect') === 'true';
-
-          if (downsellOffers.some(o => o.id === paymentData?.productId) && cameFromBackRedirect) {
-              sessionStorage.removeItem('cameFromBackRedirect');
-              router.push('/upsell');
-          } else {
-              router.push(redirectPath);
-          }
+          router.push(redirectPath);
           localStorage.removeItem('paymentData');
       } else if (paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') {
           toast({
@@ -228,54 +220,6 @@ const BuyPage = () => {
       });
     }
   };
-
-  const handleSimulatePayment = async () => {
-    if (!paymentData) {
-      toast({ variant: 'destructive', title: 'Erro', description: 'Dados de pagamento não encontrados.' });
-      return;
-    }
-    setIsSimulating(true);
-    try {
-      const payload = {
-        // Usa os dados já existentes na variável de estado `paymentData`
-        id: paymentData.externalId, // O ID da transação original
-        status: 'PAID', // Simula o status 'PAID'
-        amount: paymentData.numericAmount ? paymentData.numericAmount * 100 : 0, // Garante que é um número em centavos
-        customer: {
-          name: paymentData.playerName || 'Jogador Simulado',
-          email: 'simulado@test.com',
-          phone: '99999999999',
-          cpf: '12345678900'
-        },
-        items: paymentData.items,
-        utmQuery: paymentData.utmQuery ? new URLSearchParams(paymentData.utmQuery).toString() : null
-      };
-
-      const res = await fetch('/api/simulate-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Erro interno do servidor ao simular pagamento.');
-      }
-
-      setPaymentStatus('APPROVED');
-      toast({
-        title: 'Simulação Concluída!',
-        description: 'Pagamento simulado com sucesso. Redirecionando...',
-      });
-
-    } catch (error: any) {
-      console.error("Erro na simulação de pagamento:", error);
-      toast({ variant: 'destructive', title: 'Erro na Simulação', description: error.message });
-    } finally {
-      setIsSimulating(false);
-    }
-  };
-
 
   const formatTime = (seconds: number | null) => {
     if (seconds === null) return '';
@@ -429,11 +373,7 @@ const BuyPage = () => {
               <Button className="mb-6 h-11 text-base font-bold" variant="destructive" onClick={handleCopyCode} disabled={!pixCode}>
                 Copiar Código
               </Button>
-              {paymentStatus === 'PENDING' && (
-                <Button className="mb-6 h-11 text-base font-bold" variant="outline" onClick={handleSimulatePayment} disabled={isSimulating}>
-                  {isSimulating ? 'Simulando...' : 'Simular Pagamento Aprovado'}
-                </Button>
-              )}
+              
               <div className="text-gray-500 text-sm/[22px] space-y-4">
                 <p className="font-semibold">Para realizar o pagamento siga os passos abaixo:</p>
                 <ol className="list-decimal list-inside space-y-2 pl-2">

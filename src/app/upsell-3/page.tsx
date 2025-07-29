@@ -29,7 +29,7 @@ const Upsell3Page = () => {
         router.push('/tax-warning');
     };
 
-    const handlePurchase = async (isSimulation = false) => {
+    const handlePurchase = async () => {
         setIsSubmitting(true);
         const selectedProduct = taxOffer[0];
 
@@ -58,32 +58,6 @@ const Upsell3Page = () => {
             tangible: false
         }];
         
-        if(isSimulation) {
-            try {
-                const res = await fetch('/api/simulate-payment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        customer: customerData,
-                        items: payloadItems,
-                        totalAmountInCents: Math.round(selectedProduct.price * 100),
-                        utmQuery: utmQuery,
-                    }),
-                });
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.error || 'Erro na simulação.');
-                }
-                toast({ title: 'Simulação Concluída!', description: 'Venda aprovada enviada para Utmify.'});
-                router.push('/success'); // Redireciona para a página de sucesso
-            } catch (error: any) {
-                toast({ variant: 'destructive', title: 'Erro na Simulação', description: error.message });
-            } finally {
-                setIsSubmitting(false);
-            }
-            return;
-        }
-
         try {
             const payload: Omit<PaymentPayload, 'cpf'> = {
                 name: customerData.name,
@@ -162,20 +136,12 @@ const Upsell3Page = () => {
 
                     <div className="flex flex-col gap-3">
                         <Button
-                            onClick={() => handlePurchase(false)}
+                            onClick={handlePurchase}
                             disabled={isSubmitting}
                             className="w-full text-lg py-6 font-bold"
                             variant="destructive"
                         >
                             {isSubmitting ? 'Processando...' : 'Pagar Taxa de Liberação'}
-                        </Button>
-                         <Button
-                            onClick={() => handlePurchase(true)}
-                            disabled={isSubmitting}
-                            variant="outline"
-                            className="w-full text-lg py-6 font-bold"
-                        >
-                            {isSubmitting ? 'Simulando...' : 'Simular Compra'}
                         </Button>
                         <Button
                             onClick={handleDecline}

@@ -211,32 +211,30 @@ function CheckoutPageContent() {
     return payloadItems;
   }
 
-  const handleFinalSubmit = async (isSimulation = false) => {
+  const handleFinalSubmit = async () => {
     if (!product) {
       toast({ variant: "destructive", title: "Erro", description: "Produto não encontrado. Tente novamente." });
       return;
     }
 
     const values = form.getValues();
-    if (!isSimulation) {
-      const isValid = await form.trigger(['name', 'email', 'phone']);
-      if (!isValid) {
-        toast({
-          variant: "destructive",
-          title: "Erro de Validação",
-          description: "Por favor, preencha todos os campos obrigatórios corretamente.",
-        });
-        return;
-      }
+    const isValid = await form.trigger(['name', 'email', 'phone']);
+    if (!isValid) {
+      toast({
+        variant: "destructive",
+        title: "Erro de Validação",
+        description: "Por favor, preencha todos os campos obrigatórios corretamente.",
+      });
+      return;
     }
     
     setIsSubmitting(true);
     setIsModalOpen(false);
 
     const customerData = { 
-      name: values.name || 'Cliente Simulado', 
-      email: values.email || 'simulado@test.com', 
-      phone: values.phone.replace(/\D/g, '') || '99999999999'
+      name: values.name, 
+      email: values.email, 
+      phone: values.phone.replace(/\D/g, '')
     };
     
     try {
@@ -249,34 +247,6 @@ function CheckoutPageContent() {
     const items = buildPayloadItems();
     const totalAmount = getNumericTotalAmount;
     
-    if (isSimulation) {
-        // --- LÓGICA DE SIMULAÇÃO ---
-        try {
-            const res = await fetch('/api/simulate-payment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    customer: customerData,
-                    items: items,
-                    totalAmountInCents: Math.round(totalAmount * 100),
-                    utmQuery: utmQuery
-                }),
-            });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || 'Erro na simulação.');
-            }
-            toast({ title: 'Simulação Concluída!', description: 'Venda aprovada enviada para Utmify.'});
-            router.push('/upsell'); // Redireciona para a próxima etapa do funil
-        } catch (error: any) {
-            toast({ variant: 'destructive', title: 'Erro na Simulação', description: error.message });
-        } finally {
-            setIsSubmitting(false);
-        }
-        return;
-    }
-
-    // --- LÓGICA DE PAGAMENTO REAL ---
     const payload: Omit<PaymentPayload, 'cpf'> = {
       name: values.name,
       email: values.email,
@@ -525,17 +495,14 @@ function CheckoutPageContent() {
               <span>{calculateTotal}</span>
             </div>
             {selectedOffers.length > 0 ? (
-                <Button onClick={() => handleFinalSubmit(false)} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+                <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
                     {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
                 </Button>
             ) : (
-                <Button onClick={() => handleFinalSubmit(false)} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+                <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
                     {isSubmitting ? "Finalizando..." : "Recusar promoção"}
                 </Button>
             )}
-            <Button onClick={() => handleFinalSubmit(true)} disabled={isSubmitting} variant="outline" className="w-full h-12 text-lg">
-                {isSubmitting ? 'Simulando...' : 'Simular Compra Aprovada'}
-            </Button>
           </div>
         </DialogContent>
       </Dialog>
