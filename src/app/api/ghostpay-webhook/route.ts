@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         orderId: event.id,
         platform: 'RecargaJogo',
         paymentMethod: 'pix',
-        status: 'paid',
+        status: 'paid', // Usar 'paid' para venda aprovada na Utmify
         createdAt: formatToUtmifyDate(new Date(event.createdAt || Date.now())),
         approvedDate: formatToUtmifyDate(new Date(event.paidAt || Date.now())),
         refundedAt: null,
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
           planId: null,
           planName: null,
           quantity: item.quantity || 1,
-          priceInCents: item.unitPrice || 0,
+          priceInCents: item.unitPrice || 0, // GhostPay já envia em centavos
         })),
         trackingParameters: {
             src: event.utmQuery?.utm_source || null,
@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
         },
         commission: {
           totalPriceInCents: totalAmountInCents,
-          gatewayFeeInCents: 0,
-          userCommissionInCents: totalAmountInCents,
+          gatewayFeeInCents: 0, // Se a GhostPay não fornecer, pode ser 0
+          userCommissionInCents: totalAmountInCents, // Ajustar se houver taxas
           currency: 'BRL',
         },
         isTest: false,
@@ -93,5 +93,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
   }
 }
-
-    

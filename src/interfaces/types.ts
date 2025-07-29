@@ -24,7 +24,7 @@ export interface ProductData {
   originalAmount: string;
   bonusAmount: string;
   totalAmount: string;
-  price: string;
+  price: number; // Alterado para number
   formattedPrice: string;
   image?: string; // Adicionado para ofertas especiais
 }

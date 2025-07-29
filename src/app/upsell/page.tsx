@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 import { skinOffers } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { PaymentPayload } from '@/interfaces/types';
-import { gerarCPFValido } from '@/lib/utils';
 import BackRedirect from '@/components/freefire/BackRedirect';
 
 // Tipos para os dados do cliente
@@ -40,12 +39,17 @@ const UpsellPage = () => {
         );
     };
 
-    const totalAmount = useMemo(() => {
-        const selectedCount = selectedSkins.length;
-        if (selectedCount === 0) return 'R$ 0,00';
-        const pricePerSkin = 9.90;
-        return (selectedCount * pricePerSkin).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const totalNumericAmount = useMemo(() => {
+        return selectedSkins.reduce((sum, skinId) => {
+            const offer = skinOffers.find(o => o.id === skinId);
+            return sum + (offer ? offer.price : 0);
+        }, 0);
     }, [selectedSkins]);
+
+    const totalAmount = useMemo(() => {
+        return totalNumericAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }, [totalNumericAmount]);
+
 
     const handlePurchase = async () => {
         if (selectedSkins.length === 0) {
@@ -82,28 +86,24 @@ const UpsellPage = () => {
         try {
             const customerData: CustomerData = JSON.parse(customerDataString);
             const utmQuery = new URLSearchParams(window.location.search).toString();
-            const currentBaseUrl = window.location.origin;
 
             const payloadItems = selectedProducts.map(p => ({
                 id: p.id,
                 title: p.name,
-                unitPrice: parseFloat(p.price),
+                unitPrice: p.price,
                 quantity: 1,
                 tangible: false,
             }));
 
-            const totalNumericAmount = selectedProducts.reduce((sum, p) => sum + parseFloat(p.price), 0);
 
-            const payload: PaymentPayload = {
+            const payload: Omit<PaymentPayload, 'cpf'> = {
                 name: customerData.name,
                 email: customerData.email,
                 phone: customerData.phone.replace(/\D/g, ''),
-                cpf: gerarCPFValido().replace(/\D/g, ''),
                 paymentMethod: "PIX",
                 amount: totalNumericAmount,
                 externalId: `ff-upsell1-skins-${Date.now()}`,
                 items: payloadItems,
-                postbackUrl: `${currentBaseUrl}/api/ghostpay-webhook`,
                 utmQuery,
                 traceable: true,
             };
@@ -125,11 +125,14 @@ const UpsellPage = () => {
                 playerName: playerName,
                 productDescription: selectedProducts.map(p => p.name).join(', '),
                 amount: totalAmount,
+                numericAmount: totalNumericAmount,
                 diamonds: 'Skins Especiais', // Placeholder
                 originalAmount: '',
                 bonusAmount: '',
                 totalAmount: 'Skins',
                 productId: selectedProducts[0].id, // Usa o ID do primeiro item para a lógica de redirect
+                items: payloadItems,
+                utmQuery: utmQuery,
             }));
             
             router.push('/buy');

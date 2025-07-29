@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Checkbox } from '@/components/ui/checkbox';
 import { specialOfferItems } from '@/lib/data';
 import { PaymentPayload, ProductData } from '@/interfaces/types';
-import { formatPhoneNumber, gerarCPFValido } from '@/lib/utils';
+import { formatPhoneNumber } from '@/lib/utils';
 
 const formSchema = z.object({
   name: z.string()
@@ -41,6 +41,7 @@ function CheckoutPageContent() {
   const [isPromoApplied, setIsPromoApplied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   const [product, setProduct] = useState<ProductData | null>(null);
   const [playerName, setPlayerName] = useState("Carregando...");
@@ -48,6 +49,8 @@ function CheckoutPageContent() {
   const [selectedOffers, setSelectedOffers] = useState<string[]>([]);
 
   useEffect(() => {
+    setIsClient(true);
+
     window.pixelId = "68652c2603b34a13ee47f2dd";
     const utmScript = document.createElement("script");
     utmScript.src = "https://cdn.utmify.com.br/scripts/pixel/pixel.js";
@@ -131,27 +134,19 @@ function CheckoutPageContent() {
     );
   };
 
-  const calculateTotal = useMemo(() => {
-    if (!product) return 'R$ 0,00';
-    let mainProductPrice = parseFloat(product.price);
-    if (isNaN(mainProductPrice)) mainProductPrice = 0;
-    let totalOffersPrice = selectedOffers.reduce((sum, offerId) => {
-      const offer = specialOfferItems.find(o => o.id === offerId);
-      return sum + (offer ? offer.price : 0);
-    }, 0);
-    return (mainProductPrice + totalOffersPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  }, [product, selectedOffers]);
-
   const getNumericTotalAmount = useMemo(() => {
     if (!product) return 0;
-    let mainProductPrice = parseFloat(product.price);
-    if (isNaN(mainProductPrice)) mainProductPrice = 0;
+    let mainProductPrice = product.price; // Já é um número
     let totalOffersPrice = selectedOffers.reduce((sum, offerId) => {
       const offer = specialOfferItems.find(o => o.id === offerId);
       return sum + (offer ? offer.price : 0);
     }, 0);
     return mainProductPrice + totalOffersPrice;
   }, [product, selectedOffers]);
+
+  const calculateTotal = useMemo(() => {
+    return getNumericTotalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }, [getNumericTotalAmount]);
 
   const promoCodeValue = form.watch("promoCode");
 
@@ -207,7 +202,7 @@ function CheckoutPageContent() {
     const utmQuery = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).toString() : '';
 
     const payloadItems = [{
-      unitPrice: parseFloat(product.price),
+      unitPrice: product.price,
       title: product.name,
       quantity: 1,
       tangible: false,
@@ -258,12 +253,15 @@ function CheckoutPageContent() {
         playerName: playerName,
         productDescription: product.name,
         amount: calculateTotal,
+        numericAmount: getNumericTotalAmount,
         diamonds: product.totalAmount,
         originalAmount: product.originalAmount,
         bonusAmount: product.bonusAmount,
         totalAmount: product.totalAmount,
         selectedOffers: selectedOffers.map(id => specialOfferItems.find(o => o.id === id)?.name).filter(Boolean),
         productId: product.id,
+        items: payloadItems, // Salva os itens para a simulação
+        utmQuery: utmQuery,
       }));
 
       router.push('/buy');
@@ -276,7 +274,7 @@ function CheckoutPageContent() {
     }
   };
   
-  if (!product) {
+  if (!isClient || !product) {
     return (
       <div className="flex items-center justify-center h-full">Carregando...</div>
     );

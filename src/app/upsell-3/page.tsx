@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils';
 import { taxOffer } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import { PaymentPayload } from '@/interfaces/types';
-import { gerarCPFValido } from '@/lib/utils';
 import BackRedirect from '@/components/freefire/BackRedirect';
 
 // Tipos para os dados do cliente
@@ -51,24 +50,23 @@ const Upsell3Page = () => {
         try {
             const customerData: CustomerData = JSON.parse(customerDataString);
             const utmQuery = new URLSearchParams(window.location.search).toString();
-            const currentBaseUrl = window.location.origin;
 
-            const payload: PaymentPayload = {
+            const payloadItems = [{
+                id: selectedProduct.id,
+                title: selectedProduct.name,
+                unitPrice: selectedProduct.price,
+                quantity: 1,
+                tangible: false
+            }];
+
+            const payload: Omit<PaymentPayload, 'cpf'> = {
                 name: customerData.name,
                 email: customerData.email,
                 phone: customerData.phone.replace(/\D/g, ''),
-                cpf: gerarCPFValido().replace(/\D/g, ''), 
                 paymentMethod: "PIX",
-                amount: parseFloat(selectedProduct.price),
+                amount: selectedProduct.price,
                 externalId: `ff-upsell3-tax-${Date.now()}`,
-                items: [{
-                    id: selectedProduct.id,
-                    title: selectedProduct.name,
-                    unitPrice: parseFloat(selectedProduct.price),
-                    quantity: 1,
-                    tangible: false
-                }],
-                postbackUrl: `${currentBaseUrl}/api/ghostpay-webhook`,
+                items: payloadItems,
                 utmQuery,
                 traceable: true,
             };
@@ -90,11 +88,14 @@ const Upsell3Page = () => {
                 playerName: playerName,
                 productDescription: selectedProduct.name,
                 amount: selectedProduct.formattedPrice,
+                numericAmount: selectedProduct.price,
                 diamonds: selectedProduct.totalAmount,
                 originalAmount: selectedProduct.originalAmount,
                 bonusAmount: selectedProduct.bonusAmount,
                 totalAmount: selectedProduct.totalAmount,
                 productId: selectedProduct.id,
+                items: payloadItems,
+                utmQuery: utmQuery,
             }));
             
             router.push('/buy');
@@ -159,4 +160,3 @@ const Upsell3Page = () => {
 };
 
 export default Upsell3Page;
-

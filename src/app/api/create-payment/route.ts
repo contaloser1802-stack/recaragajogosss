@@ -4,8 +4,6 @@ import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import { gerarCPFValido } from '@/lib/utils';
 
-const BASE_URL_PROD = 'https://recargajogo.com.br';
-
 // Lida com requisições OPTIONS (pre-flight CORS)
 export async function OPTIONS(request: NextRequest) {
   const origin = request.headers.get('origin') || '';
@@ -285,5 +283,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message || 'Erro interno do servidor ao consultar status.' }, { status: 500 });
   }
 }
-
-    
