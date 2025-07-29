@@ -27,10 +27,9 @@ interface PaymentData {
   originalAmount?: string; // Preço original do produto (diamantes)
   bonusAmount?: string;    // Bônus de diamantes
   totalAmount?: string;    // Total de diamantes (original + bônus)
-  // Outras propriedades que você esteja salvando no localStorage e queira exibir
 }
 
-const BuyContent = () => {
+const BuyPage = () => {
   const { toast } = useToast();
   const router = useRouter();
   const [pixCode, setPixCode] = useState<string>("");
@@ -88,7 +87,7 @@ const BuyContent = () => {
 
         if (storedPaymentData) {
           const parsed = JSON.parse(storedPaymentData);
-          console.log("Dados parseados do localStorage na BuyContent:", parsed); // Log para depuração
+          console.log("Dados parseados do localStorage na BuyPage:", parsed); // Log para depuração
 
           // Verifica as propriedades essenciais para exibir o Pix
           if (!parsed.pixQrCode || !parsed.pixCode || !parsed.externalId) {
@@ -297,7 +296,7 @@ const BuyContent = () => {
                 data-ai-hint="gameplay screenshot"
               />
               <Link
-                href="/checkout"
+                href="/"
                 className="absolute start-4 top-4 md:start-6 md:top-6 flex items-center gap-1.5 rounded-full bg-black/40 p-1.5 pr-3 text-sm/none font-medium text-white ring-1 ring-white/70 transition-colors hover:bg-black/60 md:pr-3.5 md:text-base/none"
                 aria-label="Voltar para a pagina anterior"
               >
@@ -447,7 +446,6 @@ const BuyContent = () => {
                     <RefreshCcw className="mr-2 h-4 w-4" /> Recarregar Página
                 </Button>
             )}
-            {/* Removido o botão "Cancelar e Voltar" */}
           </div>
         </div>
       </main>
@@ -456,6 +454,4 @@ const BuyContent = () => {
   );
 };
 
-export default BuyContent; // Exporta BuyContent diretamente como a página
-
-    
+export default BuyPage;
