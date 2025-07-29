@@ -123,8 +123,8 @@ const Upsell3Page = () => {
                     
                     <div className="my-8">
                        <div className={cn("p-4 rounded-lg border-2 border-destructive bg-destructive/5 text-left flex items-center gap-4")}>
-                           <div className="flex-shrink-0">
-                               <Image src="https://i.ibb.co/zTHMnnGZ/Screenshot-25.png" alt="Taxa" width={40} height={40} data-ai-hint="fee icon" />
+                           <div className="flex-shrink-0 text-4xl">
+                               <span>🚨</span>
                            </div>
                            <div>
                                <h2 className="text-lg font-bold text-gray-800">{taxOffer[0].name}</h2>
