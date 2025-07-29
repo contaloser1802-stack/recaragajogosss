@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,19 +34,15 @@ const Upsell2Page = () => {
             setTimeLeft(prevTime => {
                 if (prevTime <= 1) {
                     clearInterval(timer);
-                    setShowUrgencyMessage(true); // Garante que a mensagem apareça quando o tempo acabar
+                    setShowUrgencyMessage(true); // Mostra a mensagem quando o tempo acabar
                     return 0;
-                }
-                // Mostra a mensagem quando falta 1 minuto
-                if (prevTime <= 60 && !showUrgencyMessage) {
-                    setShowUrgencyMessage(true);
                 }
                 return prevTime - 1;
             });
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [router, showUrgencyMessage]);
+    }, []);
 
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -56,7 +51,7 @@ const Upsell2Page = () => {
     };
 
     const handleDecline = () => {
-        router.push('/downsell');
+        router.push('/upsell-3');
     };
 
     const handlePurchase = async () => {
@@ -154,7 +149,7 @@ const Upsell2Page = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <BackRedirect redirectTo="/downsell" />
+            <BackRedirect redirectTo="/upsell-3" />
             <Header />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border relative overflow-hidden">
