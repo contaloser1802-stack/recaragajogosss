@@ -1,29 +1,25 @@
 'use client';
 
 import { Suspense, useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { type FormEvent, type KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Trash2, X } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GameSelection } from '@/components/freefire/GameSelection';
 import { diamondPacks, specialOffers, paymentMethods } from '@/lib/data';
+import { ImageCarousel } from '@/components/freefire/ImageCarousel';
+import { PurchaseFooter } from '@/components/freefire/PurchaseFooter';
 
 const ShieldCheckIcon = () => (
   <svg width="1em" height="1em" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[18px] w-[18px]">
@@ -54,177 +50,6 @@ const SwitchAccountIcon = () => (
   </svg>
 );
 
-const NavButton = ({ direction, onClick }: { direction: 'prev' | 'next', onClick: () => void }) => {
-  const isPrev = direction === 'prev';
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'absolute top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white transition hover:bg-black/60 z-10 hidden md:block',
-        isPrev ? 'left-4' : 'right-4'
-      )}
-    >
-      {isPrev ? <ChevronLeft className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
-    </button>
-  );
-};
-
-
-const ImageCarousel = () => {
-  const banners = useMemo(() => [
-    { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/100067br-JAN22-pc.png?v=1750094508', alt: 'Banner 1' },
-    { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/26B06340B596B357.png?v=1729016596', alt: 'Banner 2' },
-    { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/47BED91C7ABCF1EA.png?v=1750167188', alt: 'Banner 3' },
-  ], []);
-
-  const [currentIndex, setCurrentIndex] = useState(1);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const loopedBanners = useMemo(() => {
-    if (banners.length === 0) return [];
-    const first = banners[0];
-    const last = banners[banners.length - 1];
-    return [last, ...banners, first];
-  }, [banners]);
-
-  const resetTimeout = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-  }, []);
-
-  const handleNext = useCallback(() => {
-    if (isTransitioning) return;
-    setCurrentIndex(prev => prev + 1);
-  }, [isTransitioning]);
-
-  const handlePrev = () => {
-    if (isTransitioning) return;
-    setCurrentIndex(prev => prev - 1);
-  };
-
-  const handleDotClick = (index: number) => {
-    if (isTransitioning) return;
-    setCurrentIndex(index + 1);
-  };
-
-  const handleTransitionEnd = useCallback(() => {
-    if (currentIndex <= 0) {
-      setIsTransitioning(true);
-      setCurrentIndex(banners.length);
-    } else if (currentIndex >= banners.length + 1) {
-      setIsTransitioning(true);
-      setCurrentIndex(1);
-    }
-  }, [currentIndex, banners.length]);
-
-  // Auto-play
-  useEffect(() => {
-    resetTimeout();
-    if (!isTransitioning) {
-      timeoutRef.current = setTimeout(handleNext, 3000);
-    }
-    return () => {
-      resetTimeout();
-    };
-  }, [currentIndex, isTransitioning, handleNext, resetTimeout]);
-
-  // Re-enable transitions after the jump
-  useEffect(() => {
-    if (isTransitioning) {
-      const timer = setTimeout(() => setIsTransitioning(false), 50);
-      return () => clearTimeout(timer);
-    }
-  }, [isTransitioning]);
-
-  return (
-    <div className="bg-[#151515]">
-      <div className="mx-auto w-full max-w-[900px] py-2.5 lg:py-5">
-        <div className="relative overflow-hidden">
-          <div
-            className="flex"
-            onTransitionEnd={handleTransitionEnd}
-            style={{
-              transform: `translateX(-${currentIndex * 100}%)`,
-              transition: isTransitioning ? 'none' : 'transform 500ms ease-in-out',
-            }}
-          >
-            {loopedBanners.map((banner, index) => (
-              <div key={index} className="relative w-full flex-shrink-0 pt-[37.77%]">
-                <Image
-                  className="absolute inset-0 h-full w-full object-cover md:rounded-xl"
-                  src={banner.src}
-                  alt={banner.alt}
-                  fill
-                  priority={index > 0 && index <= banners.length}
-                  data-ai-hint="game banner"
-                />
-              </div>
-            ))}
-          </div>
-
-          <NavButton direction="prev" onClick={() => { resetTimeout(); handlePrev(); }} />
-          <NavButton direction="next" onClick={() => { resetTimeout(); handleNext(); }} />
-
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {banners.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => handleDotClick(index)}
-                className={cn(
-                  "h-2 w-2 cursor-pointer rounded-full transition-colors",
-                  (currentIndex === index + 1 || (currentIndex === 0 && index === banners.length - 1) || (currentIndex === banners.length + 1 && index === 0)) ? 'bg-destructive' : 'bg-white/50'
-                )}
-                aria-label={`Go to slide ${index + 1}`}
-              ></button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const PurchaseFooter = ({ selectedRechargeId, selectedPaymentId, onPurchase }: { selectedRechargeId: string | null; selectedPaymentId: string | null; onPurchase: () => void; }) => {
-  if (!selectedRechargeId) {
-    return null;
-  }
-
-  const allItems = [...diamondPacks, ...specialOffers];
-  const selectedItem = allItems.find(item => item.id === selectedRechargeId);
-
-  if (!selectedItem) {
-    return null;
-  }
-
-  const isPurchaseDisabled = !selectedPaymentId;
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
-      <div className="pointer-events-auto relative mx-auto flex w-full max-w-5xl items-center justify-between gap-4 p-4 md:justify-end md:gap-10 lg:px-10">
-        <div className="flex flex-col md:items-end">
-          <div className="flex items-center gap-1 text-sm/none font-bold md:text-end md:text-base/none">
-            <>
-              <Image className="h-4 w-4 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
-              <span dir="ltr">{selectedItem.originalAmount} + {selectedItem.bonusAmount}</span>
-            </>
-          </div>
-          <div className="mt-2 flex items-center gap-1 text-sm/none md:text-end md:text-base/none">
-            <span className="font-medium text-gray-600">Total:</span>
-            <span className="font-bold text-destructive">{selectedItem.formattedPrice}</span>
-          </div>
-        </div>
-        <Button className="px-5 text-base font-bold h-11" variant="destructive" disabled={isPurchaseDisabled} onClick={onPurchase}>
-          <ShieldCheckIcon />
-          Compre agora
-        </Button>
-      </div>
-    </div>
-  );
-};
 
 export default function HomePage() {
   const router = useRouter();
