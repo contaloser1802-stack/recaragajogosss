@@ -177,6 +177,13 @@ const BuyContent = () => {
               try {
                 console.log("Consultando status para externalId:", parsed.externalId);
                 const res = await fetch(`/api/create-payment?externalId=${parsed.externalId}`);
+                if (!res.ok) {
+                  // Se a resposta da API não for OK, pare de tentar e mostre um erro.
+                   console.error("Erro na API de status do pagamento:", res.status, await res.text());
+                   setPaymentStatus('UNKNOWN'); // Define um estado de erro/incerteza
+                   if (intervalId) clearInterval(intervalId); // Para o polling
+                   return;
+                }
                 const statusData = await res.json();
                 console.log("Resposta do status da API (backend):", statusData);
 
@@ -213,6 +220,8 @@ const BuyContent = () => {
                 }
               } catch (error) {
                 console.error("Erro ao checar status do pagamento:", error);
+                setPaymentStatus('UNKNOWN');
+                if (intervalId) clearInterval(intervalId);
               }
             }, 5000); // Consulta a cada 5 segundos
           }

@@ -6,16 +6,10 @@ import { UtmifyOrderPayload } from '@/interfaces/utmify';
 
 // !!! IMPORTANTE !!!
 // Ajuste estas URLs para corresponder EXATAMENTE ao domínio do seu frontend.
-// Remova a barra final se o navegador não a envia no cabeçalho 'Origin'.
-// Adicione 'http://localhost:3000' para testes locais.
-const BASE_URL_DEV = 'https://6000-firebase-studio-1750702713496.cluster-vpxjqdstfzgs6qeiaf7rdlsqrc.cloudworkstations.dev';
 const BASE_URL_PROD = 'https://recargajogo.com.br'; // Substitua pelo seu domínio de produção real
 
 const allowedOrigins = [
-  BASE_URL_DEV,
   // Adicione a versão com 'www' se aplicável, sem a barra final
-  'https://www.6000-firebase-studio-1750702713496.cluster-vpxjqdstfzgs6qeiaf7rdlsqrc.cloudworkstations.dev',
-  BASE_URL_PROD,
   'https://www.recargajogo.com.br',
   'http://localhost:3000', // Para desenvolvimento local
 ];
@@ -99,8 +93,11 @@ export async function POST(request: NextRequest) {
         console.warn(`[create-payment POST] AVISO: O 'amount' total (${amountInCents}) não corresponde à soma dos itens (${calculatedTotalFromItems}).`);
     }
 
-    // Determine a URL base para o ambiente atual
-    const currentBaseUrl = process.env.NODE_ENV === 'production' ? BASE_URL_PROD : (origin || BASE_URL_DEV);
+    // Determina a URL base para o ambiente atual de forma mais robusta
+    const host = request.headers.get('host') || '';
+    const protocol = host.startsWith('localhost') ? 'http' : 'https';
+    const currentBaseUrl = `${protocol}://${host}`;
+
 
     const payloadForGhostPay = {
       name,
@@ -203,8 +200,8 @@ export async function POST(request: NextRequest) {
             },
             commission: {
                 totalPriceInCents: amountInCents,
-                gatewayFeeInCents: 0, // A GhostPay não informa a taxa na criação
-                userCommissionInCents: amountInCents, // Valor líquido = valor total
+                gatewayFeeInCents: 0, // A taxa será configurada na Utmify
+                userCommissionInCents: amountInCents, // Enviamos o valor total, a Utmify calcula o líquido.
                 currency: 'BRL',
             },
             isTest: false,

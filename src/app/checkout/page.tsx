@@ -396,13 +396,13 @@ function CheckoutForm() {
         data = await response.json();
       } else {
         // Se não for JSON, leia como texto para depuração
-        data = await response.text();
-        console.error("Resposta não-JSON da API de pagamento:", data);
-        throw new Error(`Resposta inesperada da API: ${response.status} - ${data.substring(0, 100)}...`);
+        const textData = await response.text();
+        console.error("Resposta não-JSON da API de pagamento:", textData);
+        throw new Error(`Ocorreu um erro no servidor. Tente novamente mais tarde. (Status: ${response.status})`);
       }
 
       if (!response.ok) {
-        const errorMessage = data.message || data.error || data.response?.errors?.customer?.document || "Erro ao processar o pagamento";
+        const errorMessage = data.message || data.error || "Erro ao processar o pagamento";
         throw new Error(errorMessage);
       }
 
