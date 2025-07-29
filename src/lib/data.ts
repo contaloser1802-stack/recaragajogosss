@@ -1,4 +1,3 @@
-
 export const banners = [
     { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/100067br-JAN22-pc.png?v=1750094508', alt: 'Banner 1' },
     { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/26B06340B596B357.png?v=1729016596', alt: 'Banner 2' },

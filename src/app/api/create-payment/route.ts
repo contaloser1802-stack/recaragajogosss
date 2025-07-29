@@ -267,7 +267,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const paymentStatus = statusData.status || 'UNKNOWN'; 
+    const paymentStatus = statusData.status?.toUpperCase() || 'UNKNOWN'; 
 
     return NextResponse.json({ status: paymentStatus }, {
       status: 200,
