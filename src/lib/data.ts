@@ -1,0 +1,32 @@
+export const diamondPacks = [
+    { id: 'pack-1060', name: '1.060 Diamantes', originalAmount: '1.060', bonusAmount: '1.060', totalAmount: '2.120', price: '19.99', formattedPrice: 'R$ 19,99' },
+    { id: 'pack-2180', name: '2.180 Diamantes', originalAmount: '2.180', bonusAmount: '2.180', totalAmount: '4.360', price: '27.99', formattedPrice: 'R$ 27,99' },
+    { id: 'pack-5600', name: '5.600 Diamantes', originalAmount: '5.600', bonusAmount: '5.600', totalAmount: '11.200', price: '62.99', formattedPrice: 'R$ 62,99' },
+    { id: 'pack-12800', name: '12.800 Diamantes', originalAmount: '12.800', bonusAmount: '12.800', totalAmount: '25.600', price: '109.99', formattedPrice: 'R$ 109,99' },
+    { id: 'pack-25600', name: '25.600 Diamantes', originalAmount: '25.600', bonusAmount: '25.600', totalAmount: '51.200', price: '174.99', formattedPrice: 'R$ 174,99' },
+    { id: 'pack-29900', name: '29.900 Diamantes', originalAmount: '29.900', bonusAmount: '29.900', totalAmount: '59.800', price: '209.99', formattedPrice: 'R$ 209,99' },
+    { id: 'pack-44900', name: '44.900 Diamantes', originalAmount: '44.900', bonusAmount: '44.900', totalAmount: '89.800', price: '329.99', formattedPrice: 'R$ 329,99' },
+];
+
+export const specialOffers = [
+    { id: 'offer-weekly-sub', name: 'Assinatura Semanal', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/000/002/logo.png', price: '19.99', formattedPrice: 'R$ 19,99', originalAmount: '1.000', bonusAmount: '300', totalAmount: '1.300' },
+    { id: 'offer-monthly-sub', name: 'Assinatura Mensal', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/081/041/logo.png', price: '32.90', formattedPrice: 'R$ 32,90', originalAmount: '2.000', bonusAmount: '600', totalAmount: '2.600' },
+    { id: 'offer-booyah-pass', name: 'Passe Booyah', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/item/0803/000/000/logo.png', price: '34.90', formattedPrice: 'R$ 34,90', originalAmount: '1.000', bonusAmount: 'Passe Booyah', totalAmount: 'Passe Booyah' },
+    { id: 'offer-level-pack', name: 'Passe de Nível', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/rebate/0000/004/790/logo.png', price: '74.80', formattedPrice: 'R$ 74,80', originalAmount: '7.800', bonusAmount: '5.600', totalAmount: '13.400' }
+];
+
+export const paymentMethods = [
+  { id: 'payment-pix', name: 'PIX', displayName: 'Pix via PagSeguro', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/pix_boa_mb.png', type: 'pix' },
+  { id: 'payment-cc', name: 'Credit Card', displayName: 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/creditcard_mb.png', type: 'cc' },
+  { id: 'payment-picpay', name: 'PicPay', displayName: 'PicPay via Loja dos Gamers', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/picpay_mb.png', type: 'pix' },
+  { id: 'payment-nupay', name: 'Nupay', displayName: 'NuPay via Loja dos Gamers', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/br_nupay_mb.png', type: 'pix' },
+  { id: 'payment-mercadopago', name: 'Mercado Pago', displayName: 'Mercado Pago', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/mx/menu/mx_mercado_mb.png', type: 'pix' },
+];
+
+export const specialOfferItems = [
+  { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/20xnTqXn/calca-angelical-free-fire-1-1-1.png' },
+  { id: 'dima-bonus', name: '9999 Diamantes Bônus', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/zTHMnnGZ/Screenshot-25.png' },
+  { id: 'dunk-master', name: 'Dunk Master', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/hFbybXQs/maxresdefault-1-910x512-1.jpg' },
+  { id: 'barba-velho', name: 'Barba do Velho', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/C5zTtbx7/barbinha-ff-1-1.jpg' },
+  { id: 'sombra-roxa', name: 'Sombra Roxa', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/DDYCDq6Z/uni20pinea0dfd15-5b98-4a3f-96de-f77eccea8f06-1-1-1.png' },
+];

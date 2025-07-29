@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react'; // Adicionado useRef
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
+import { specialOfferItems } from '@/lib/data';
+import { PaymentPayload, ProductData } from '@/interfaces/types';
 
 // --- Funções de Geração de CPF REAL (e válido) ---
 function gerarDigitoVerificador(cpfParcial: string) {
@@ -72,56 +74,6 @@ const formSchema = z.object({
     .regex(/^\(\d{2}\) \d \d{4}-\d{4}$/, { message: "Formato de telefone inválido." }),
   promoCode: z.string().optional(),
 });
-
-
-// Interface para o payload da sua API create-payment (GhostPay)
-interface PaymentPayload {
-  name: string;
-  email: string;
-  cpf: string; // CPF agora é enviado, mas gerado automaticamente
-  phone: string;
-  paymentMethod: 'PIX'; // Hardcoded para PIX
-  amount: number;
-  traceable: boolean;
-  externalId: string;
-  postbackUrl: string;
-  items: {
-    unitPrice: number;
-    title: string;
-    quantity: number;
-    tangible: boolean;
-  }[];
-  utmQuery?: string; // utmQuery é opcional
-  cep?: string; // Adicionado do seu create-payment anterior
-  street?: string;
-  number?: string;
-  complement?: string;
-  district?: string;
-  city?: string;
-  state?: string;
-  checkoutUrl?: string;
-  referrerUrl?: string;
-  fingerPrints?: { provider: string; value: string; }[];
-}
-
-interface ProductData {
-  id: string;
-  name: string;
-  originalAmount: string; // Estes valores são strings para exibição
-  bonusAmount: string;
-  totalAmount: string; // total de diamantes ou pontos
-  price: string; // Preço do item principal em BRL (string para exibição)
-  formattedPrice: string; // Preço formatado para exibição
-}
-
-const specialOfferItems = [
-  { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/20xnTqXn/calca-angelical-free-fire-1-1-1.png' },
-  { id: 'dima-bonus', name: '9999 Diamantes Bônus', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/zTHMnnGZ/Screenshot-25.png' },
-  { id: 'dunk-master', name: 'Dunk Master', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/hFbybXQs/maxresdefault-1-910x512-1.jpg' },
-  { id: 'barba-velho', name: 'Barba do Velho', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/C5zTtbx7/barbinha-ff-1-1.jpg' },
-  { id: 'sombra-roxa', name: 'Sombra Roxa', price: 19.99, originalPrice: 99.99, image: 'https://i.ibb.co/DDYCDq6Z/uni20pinea0dfd15-5b98-4a3f-96de-f77eccea8f06-1-1-1.png' },
-];
-
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -659,5 +611,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    
