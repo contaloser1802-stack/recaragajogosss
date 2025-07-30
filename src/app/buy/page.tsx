@@ -192,6 +192,7 @@ const BuyPage = () => {
       if (timerId) clearInterval(timerId);
       if (pollTimeoutId) clearTimeout(pollTimeoutId);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
 
 
