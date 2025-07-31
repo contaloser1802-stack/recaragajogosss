@@ -216,6 +216,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const externalId = searchParams.get('externalId');
 
+  console.log(`[create-payment GET] Consultando status para externalId: ${externalId}`);
+
   if (!externalId) {
     return NextResponse.json({ error: 'externalId é obrigatório para consulta de status.' }, { status: 400 });
   }
