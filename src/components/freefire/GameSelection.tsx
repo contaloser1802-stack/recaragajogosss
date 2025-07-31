@@ -25,6 +25,11 @@ const games = [
         id: 'df',
         name: 'Delta Force',
         icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png'
+    },
+    {
+        id: 'hq',
+        name: 'HAIKYU!! FLY HIGH',
+        icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/153/icon.png',
     }
 ];
 
@@ -67,7 +72,7 @@ export function GameSelection() {
     const [isAlertOpen, setIsAlertOpen] = useState(false);
 
     const handleGameClick = (gameId: string) => {
-        if (gameId === 'df') {
+        if (gameId === 'df' || gameId === 'hq') {
             setIsAlertOpen(true);
         } else {
             setSelectedGame(gameId);
