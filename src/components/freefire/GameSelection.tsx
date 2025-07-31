@@ -8,6 +8,7 @@ import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogContent,
+    AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
@@ -132,6 +133,9 @@ export function GameSelection() {
                 <AlertDialogContent className="max-w-[320px] rounded-lg p-6">
                     <AlertDialogHeader className="text-center space-y-3">
                         <AlertDialogTitle>Serviço indisponível</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Este jogo ainda não está disponível para recarga.
+                        </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogAction onClick={() => setIsAlertOpen(false)} className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90">OK</AlertDialogAction>

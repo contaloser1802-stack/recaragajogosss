@@ -507,8 +507,8 @@ export default function HomePage() {
       <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
         <AlertDialogContent className="max-w-[320px] rounded-lg p-6">
           <AlertDialogHeader className="text-justfy center space-y-3">
-            <AlertDialogTitle className="text-base font-bold">Não é sua conta?</AlertDialogTitle>
-            <AlertDialogDescription className="text-sm text-gray-500">
+            <AlertDialogTitle>Não é sua conta?</AlertDialogTitle>
+            <AlertDialogDescription>
               Por favor, saia e faça login com sua outra conta
             </AlertDialogDescription>
           </AlertDialogHeader>
