@@ -454,9 +454,8 @@ export default function CheckoutCreditCardPage() {
              <Image
                 src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png"
                 alt="Free Fire background"
-                layout="fill"
-                objectFit="cover"
-                className="-z-10"
+                fill
+                className="-z-10 object-cover"
                 priority
             />
             <Suspense fallback={<div className="flex items-center justify-center h-full">Carregando...</div>}>

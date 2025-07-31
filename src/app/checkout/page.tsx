@@ -489,8 +489,7 @@ export default function CheckoutPage() {
                     src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png"
                     alt="Free Fire background"
                     fill
-                    objectFit="cover"
-                    className="-z-10"
+                    className="-z-10 object-cover"
                     priority
                 />
                 <Suspense fallback={<div className="flex items-center justify-center h-full">Carregando...</div>}>
