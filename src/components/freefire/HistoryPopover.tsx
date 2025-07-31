@@ -5,7 +5,7 @@ import React from 'react';
 import Image from 'next/image';
 import { X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { PopoverContent } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DialogTitle } from '@radix-ui/react-dialog';
@@ -37,6 +37,9 @@ const HistoryPopoverContent: React.FC<HistoryPopoverContentProps> = ({ history, 
                         <X className="h-5 w-5" />
                     </button>
                     <SheetTitle>Select Player ID</SheetTitle>
+                    <SheetDescription className="sr-only">
+                        Select a saved account from your history or remove items.
+                    </SheetDescription>
                 </SheetHeader>
             ) : (
                 <div className="p-4 border-b text-center">
