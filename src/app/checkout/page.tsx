@@ -278,6 +278,7 @@ function CheckoutPageContent() {
             src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg"
             alt="Free Fire Banner"
             fill
+            priority
             data-ai-hint="gameplay screenshot"
           />
           <Link
@@ -498,3 +499,5 @@ export default function CheckoutPage() {
         </div>
     )
 }
+
+    

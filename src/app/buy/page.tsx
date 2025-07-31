@@ -256,6 +256,7 @@ const BuyPage = () => {
                 src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg"
                 alt="Free Fire Banner"
                 fill
+                priority
                 data-ai-hint="gameplay screenshot"
               />
               <Link
@@ -412,3 +413,5 @@ const BuyPage = () => {
 };
 
 export default BuyPage;
+
+    
