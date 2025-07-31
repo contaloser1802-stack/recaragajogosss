@@ -5,9 +5,10 @@ import React from 'react';
 import Image from 'next/image';
 import { X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SheetContent } from '@/components/ui/sheet';
+import { SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { PopoverContent } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
 type LoginHistoryItem = {
     id: string;
@@ -27,19 +28,19 @@ const HistoryPopoverContent: React.FC<HistoryPopoverContentProps> = ({ history, 
     const content = (
         <>
             {isMobile ? (
-                <div className="relative p-4 border-b">
-                    <button
+                <SheetHeader className="relative p-4 border-b text-center">
+                     <button
                         onClick={onClose}
                         className="absolute inset-y-0 start-4 my-auto h-fit text-2xl text-gray-500 transition-opacity hover:opacity-70"
                         aria-label="Close"
                     >
                         <X className="h-5 w-5" />
                     </button>
-                    <h3 className="text-center text-lg/none font-medium text-gray-800">Select Player ID</h3>
-                </div>
+                    <SheetTitle>Select Player ID</SheetTitle>
+                </SheetHeader>
             ) : (
-                <div className="p-4 border-b">
-                    <h3 className="text-center text-lg/none font-medium text-gray-800">Select Player ID</h3>
+                <div className="p-4 border-b text-center">
+                    <DialogTitle className="text-lg/none font-medium text-gray-800">Select Player ID</DialogTitle>
                 </div>
             )}
             <ul className="md:p-1">

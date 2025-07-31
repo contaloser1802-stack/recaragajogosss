@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -14,7 +15,7 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { specialOfferItems } from '@/lib/data';
 import { PaymentPayload, ProductData } from '@/interfaces/types';
@@ -430,6 +431,7 @@ function CheckoutPageContent() {
         <DialogContent className="sm:max-w-[425px] p-0">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-center text-xl">Promoção Especial</DialogTitle>
+            <DialogDescription className="text-center text-sm text-muted-foreground pt-2">Aproveite estas ofertas exclusivas para turbinar ainda mais sua conta!</DialogDescription>
           </DialogHeader>
           <div className="p-6 py-0 space-y-4">
             {specialOfferItems.map((item) => (
@@ -499,5 +501,3 @@ export default function CheckoutPage() {
         </div>
     )
 }
-
-    
