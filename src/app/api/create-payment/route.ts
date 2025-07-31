@@ -2,6 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import { gerarCPFValido } from '@/lib/utils';
+import axios from 'axios';
+
+// Função para obter dados de geolocalização do IP
+async function getGeoData(ip: string) {
+  // Evitar chamadas para IPs locais/privados
+  if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
+    return { countryCode: 'BR' }; // Retorna 'BR' como padrão para testes locais
+  }
+  try {
+    const response = await axios.get(`http://ip-api.com/json/${ip}?fields=countryCode`);
+    return {
+      countryCode: response.data.countryCode || 'BR',
+    };
+  } catch (error) {
+    console.error(`[GeoData] Falha ao obter dados de geolocalização para o IP ${ip}:`, error);
+    return { countryCode: 'BR' }; // Retorna 'BR' em caso de erro
+  }
+}
+
 
 // Lida com requisições OPTIONS (pre-flight CORS)
 export async function OPTIONS(request: NextRequest) {
@@ -142,6 +161,8 @@ export async function POST(request: NextRequest) {
         
         const utmParams = new URLSearchParams(utmQuery);
         const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+        const geoData = await getGeoData(ip);
+
 
         const utmifyPayload: UtmifyOrderPayload = {
             orderId: data.id,
@@ -156,7 +177,7 @@ export async function POST(request: NextRequest) {
                 email: email,
                 phone: phone.replace(/\D/g, ''),
                 document: finalCpf,
-                country: 'BR',
+                country: geoData.countryCode,
                 ip: ip,
             },
             products: items.map((item: any) => ({
