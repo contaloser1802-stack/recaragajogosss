@@ -134,7 +134,7 @@ export function GameSelection() {
                     </div>
                 </div>
             </div>
-            <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen} oncloseautofocus={(e) => e.preventDefault()}>
+            <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
                 <AlertDialogContent className="max-w-[320px] rounded-lg p-6">
                     <AlertDialogHeader className="text-center space-y-3">
                         <AlertDialogTitle>Serviço indisponível</AlertDialogTitle>
