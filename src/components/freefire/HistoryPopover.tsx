@@ -43,7 +43,7 @@ const HistoryPopoverContent: React.FC<HistoryPopoverContentProps> = ({ history, 
                 </SheetHeader>
             ) : (
                 <div className="p-4 border-b text-center">
-                    <DialogTitle className="text-lg/none font-medium text-gray-800">Select Player ID</DialogTitle>
+                    <h3 className="text-lg/none font-medium text-gray-800">Select Player ID</h3>
                 </div>
             )}
             <ul className="md:p-1">
