@@ -102,7 +102,7 @@ export function GameSelection() {
                                             <div className="relative">
                                                 <div className={cn("relative overflow-hidden rounded-[25%] border-[3px] border-transparent transition-colors md:border-4", isSelected && "border-destructive")}>
                                                     <div className="relative pt-[100%]">
-                                                        <Image className="pointer-events-none absolute inset-0 h-full w-full bg-white object-cover" src={game.icon} alt={game.name} fill data-ai-hint="game icon" />
+                                                        <Image sizes="(max-width: 768px) 70px, 105px" className="pointer-events-none absolute inset-0 h-full w-full bg-white object-cover" src={game.icon} alt={game.name} fill data-ai-hint="game icon" />
                                                     </div>
                                                 </div>
                                                 <div

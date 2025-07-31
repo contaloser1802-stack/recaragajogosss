@@ -420,7 +420,7 @@ export default function HomePage() {
                                 )}
                               >
                                 <div className="relative mb-2 w-full overflow-hidden rounded-sm pt-[56.25%]">
-                                  <Image className="pointer-events-none absolute inset-0 h-full w-full object-cover" src={offer.image} fill alt={offer.name} data-ai-hint="game offer" />
+                                  <Image className="pointer-events-none absolute inset-0 h-full w-full object-cover" src={offer.image} sizes="(max-width: 768px) 50vw, 25vw" fill alt={offer.name} data-ai-hint="game offer" />
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <div className="line-clamp-2 text-center text-sm/[18px] font-medium">{offer.name}</div>
