@@ -10,6 +10,13 @@ import { banners } from '@/lib/data';
 export function ImageCarousel() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const resetTimeout = useCallback(() => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+    }, []);
 
     const handleNext = useCallback(() => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % banners.length);
@@ -24,22 +31,24 @@ export function ImageCarousel() {
     };
 
     useEffect(() => {
+        resetTimeout();
+        timeoutRef.current = setTimeout(handleNext, 3000);
+
+        return () => {
+            resetTimeout();
+        };
+    }, [currentIndex, handleNext, resetTimeout]);
+
+    useEffect(() => {
         if (scrollRef.current) {
-            const children = scrollRef.current.children;
-            if (children[currentIndex]) {
-                children[currentIndex].scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                    inline: 'center'
-                });
-            }
+            const scrollWidth = scrollRef.current.scrollWidth;
+            const childWidth = scrollWidth / banners.length;
+            scrollRef.current.scrollTo({
+                left: childWidth * currentIndex,
+                behavior: 'smooth',
+            });
         }
     }, [currentIndex]);
-    
-    useEffect(() => {
-        const timer = setTimeout(handleNext, 3000);
-        return () => clearTimeout(timer);
-    }, [currentIndex, handleNext]);
 
 
     return (
@@ -65,7 +74,7 @@ export function ImageCarousel() {
                                     src={banner.src}
                                     alt={banner.alt}
                                     fill
-                                    sizes="(max-width: 768px) 100vw, 50vw"
+                                    sizes="(max-width: 768px) 100vw, 50.577vw"
                                     priority={index === 0}
                                 />
                             </Link>
@@ -73,12 +82,12 @@ export function ImageCarousel() {
                     </div>
                     <div className="pointer-events-none absolute inset-y-0 hidden w-[21.783%] items-center from-[#151515] md:flex start-0 justify-end bg-gradient-to-r rtl:bg-gradient-to-l">
                         <button onClick={handlePrev} type="button" className="pointer-events-auto hidden rounded-full bg-black/70 p-4 text-sm text-white transition-colors hover:bg-black md:group-hover:block">
-                            <svg width="1em" height="1em" viewBox="0 0 7 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="-scale-x-100 rtl:scale-x-100"><path d="M6.81438 5.99466L1.68092 0.209207C1.43343 -0.0697356 1.03194 -0.0697356 0.784449 0.209207L0.185654 0.884087C-0.0615759 1.16273 -0.0618396 1.61404 0.184598 1.89328L4.25306 6.49985L0.184862 11.1067C-0.0618401 11.386 -0.0613112 11.8373 0.185919 12.1159L0.784713 12.7908C1.03221 13.0697 1.43369 13.0697 1.68119 12.7908L6.81438 7.00504C7.06187 6.7261 7.06187 6.2736 6.81438 5.99466Z" fill="currentColor"></path></svg>
+                            <ChevronLeft className="h-4 w-4" />
                         </button>
                     </div>
                     <div className="pointer-events-none absolute inset-y-0 hidden w-[21.783%] items-center from-[#151515] md:flex end-0 justify-start bg-gradient-to-l rtl:bg-gradient-to-r">
                         <button onClick={handleNext} type="button" className="pointer-events-auto hidden rounded-full bg-black/70 p-4 text-sm text-white transition-colors hover:bg-black md:group-hover:block">
-                            <svg width="1em" height="1em" viewBox="0 0 7 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-x-100 rtl:-scale-x-100"><path d="M6.81438 5.99466L1.68092 0.209207C1.43343 -0.0697356 1.03194 -0.0697356 0.784449 0.209207L0.185654 0.884087C-0.0615759 1.16273 -0.0618396 1.61404 0.184598 1.89328L4.25306 6.49985L0.184862 11.1067C-0.0618401 11.386 -0.0613112 11.8373 0.185919 12.1159L0.784713 12.7908C1.03221 13.0697 1.43369 13.0697 1.68119 12.7908L6.81438 7.00504C7.06187 6.7261 7.06187 6.2736 6.81438 5.99466Z" fill="currentColor"></path></svg>
+                            <ChevronRight className="h-4 w-4" />
                         </button>
                     </div>
                     <div className="absolute bottom-2.5 flex gap-2 md:gap-3">
