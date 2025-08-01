@@ -15,9 +15,8 @@ import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/compon
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GameSelection } from '@/components/freefire/GameSelection';
-import { diamondPacks, specialOffers, paymentMethods } from '@/lib/data';
+import { diamondPacks, specialOffers, paymentMethods, deltaForcePacks, deltaForceSpecialOffers } from '@/lib/data';
 import { ImageCarousel } from '@/components/freefire/ImageCarousel';
 import { PurchaseFooter } from '@/components/freefire/PurchaseFooter';
 import { ShieldCheckIcon, StepMarker, InfoIcon, SwitchAccountIcon } from '@/components/freefire/Icons';
@@ -45,8 +44,9 @@ function HomePageContent() {
   const isMobile = useIsMobile();
   const [isSocialLoginAlertOpen, setIsSocialLoginAlertOpen] = useState(false);
 
-  const showFreeFireContent = searchParams.get('app') === '100067' || !searchParams.has('app');
-  const showDeltaForceContent = searchParams.get('app') === '100151';
+  const selectedApp = searchParams.get('app') || '100067';
+  const showFreeFireContent = selectedApp === '100067';
+  const showDeltaForceContent = selectedApp === '100151';
 
   useEffect(() => {
     try {
@@ -162,7 +162,13 @@ function HomePageContent() {
     setIsLogoutAlertOpen(false);
   };
 
-  const allRechargeOptions = [...diamondPacks, ...specialOffers];
+  const getAllRechargeOptions = () => {
+    if (showDeltaForceContent) {
+      return [...deltaForcePacks, ...deltaForceSpecialOffers];
+    }
+    // Padrão é Free Fire
+    return [...diamondPacks, ...specialOffers];
+  };
 
   const handlePurchase = () => {
     if (!isLoggedIn) {
@@ -196,6 +202,7 @@ function HomePageContent() {
         return;
     }
 
+    const allRechargeOptions = getAllRechargeOptions();
     const selectedProduct = allRechargeOptions.find(p => p.id === selectedRechargeId);
     if (!selectedProduct) return;
 
@@ -375,67 +382,63 @@ function HomePageContent() {
                         <StepMarker number="2" />
                         Valor de Recarga
                       </div>
-                      <Tabs defaultValue="buy" className="w-full">
-                        <TabsContent value="buy">
-                          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6 md:gap-4">
-                            {diamondPacks.map((pack) => {
-                              const itemId = pack.id;
-                              const isSelected = selectedRechargeId === itemId;
-                              return (
-                                <div
-                                  key={itemId}
-                                  role="radio"
-                                  aria-checked={isSelected}
-                                  tabIndex={0}
-                                  onKeyDown={(e) => handleSelectionKeyDown(e, () => handleRechargeSelection(itemId))}
-                                  onClick={() => handleRechargeSelection(itemId)}
-                                  className={cn(
-                                    "group relative flex min-h-[50px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-md bg-white p-1 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
-                                    "focus-visible:ring-2 focus-visible:ring-ring",
-                                    "aria-checked:ring-2 aria-checked:ring-destructive"
-                                  )}
-                                >
-                                  <div className="flex flex-1 items-center">
-                                    <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
-                                    <span className="text-sm/none font-medium md:text-lg/none max-[350px]:text-xs/none">{pack.originalAmount}</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <div className="my-4 flex items-center" role="none">
-                            <div className="text-base/none font-bold text-gray-500" role="none">Ofertas especiais</div>
-                            <hr className="ms-2 grow border-gray-300" role="none" />
-                          </div>
-                          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-4">
-                            {specialOffers.map((offer) => {
-                              const itemId = offer.id;
-                              const isSelected = selectedRechargeId === itemId;
-                              return (
-                                <div
-                                  key={itemId}
-                                  role="radio"
-                                  aria-checked={isSelected}
-                                  tabIndex={0}
-                                  onKeyDown={(e) => handleSelectionKeyDown(e, () => handleRechargeSelection(itemId))}
-                                  onClick={() => handleRechargeSelection(itemId)}
-                                  className={cn("group peer relative flex h-full cursor-pointer flex-col items-center rounded-md bg-white p-1.5 pb-2 border border-gray-200",
-                                    "focus-visible:ring-2 focus-visible:ring-ring",
-                                    "aria-checked:ring-2 aria-checked:ring-destructive"
-                                  )}
-                                >
-                                  <div className="relative mb-2 w-full overflow-hidden rounded-sm pt-[56.25%]">
-                                    <Image className="pointer-events-none absolute inset-0 h-full w-full object-cover" src={offer.image} sizes="(max-width: 768px) 50vw, 25vw" fill alt={offer.name} data-ai-hint="game offer" />
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <div className="line-clamp-2 text-center text-sm/[18px] font-medium">{offer.name}</div>
-                                  </div>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        </TabsContent>
-                      </Tabs>
+                      <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6 md:gap-4">
+                        {diamondPacks.map((pack) => {
+                          const itemId = pack.id;
+                          const isSelected = selectedRechargeId === itemId;
+                          return (
+                            <div
+                              key={itemId}
+                              role="radio"
+                              aria-checked={isSelected}
+                              tabIndex={0}
+                              onKeyDown={(e) => handleSelectionKeyDown(e, () => handleRechargeSelection(itemId))}
+                              onClick={() => handleRechargeSelection(itemId)}
+                              className={cn(
+                                "group relative flex min-h-[50px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-md bg-white p-1 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
+                                "focus-visible:ring-2 focus-visible:ring-ring",
+                                isSelected && "ring-2 ring-destructive"
+                              )}
+                            >
+                              <div className="flex flex-1 items-center">
+                                <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
+                                <span className="text-sm/none font-medium md:text-lg/none max-[350px]:text-xs/none">{pack.originalAmount}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="my-4 flex items-center" role="none">
+                        <div className="text-base/none font-bold text-gray-500" role="none">Ofertas especiais</div>
+                        <hr className="ms-2 grow border-gray-300" role="none" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-4">
+                        {specialOffers.map((offer) => {
+                          const itemId = offer.id;
+                          const isSelected = selectedRechargeId === itemId;
+                          return (
+                            <div
+                              key={itemId}
+                              role="radio"
+                              aria-checked={isSelected}
+                              tabIndex={0}
+                              onKeyDown={(e) => handleSelectionKeyDown(e, () => handleRechargeSelection(itemId))}
+                              onClick={() => handleRechargeSelection(itemId)}
+                              className={cn("group peer relative flex h-full cursor-pointer flex-col items-center rounded-md bg-white p-1.5 pb-2 border border-gray-200",
+                                "focus-visible:ring-2 focus-visible:ring-ring",
+                                isSelected && "ring-2 ring-destructive"
+                              )}
+                            >
+                              <div className="relative mb-2 w-full overflow-hidden rounded-sm pt-[56.25%]">
+                                <Image className="pointer-events-none absolute inset-0 h-full w-full object-cover" src={offer.image} sizes="(max-width: 768px) 50vw, 25vw" fill alt={offer.name} data-ai-hint="game offer" />
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <div className="line-clamp-2 text-center text-sm/[18px] font-medium">{offer.name}</div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
 
                     {/* Payment Method Section */}
@@ -449,7 +452,7 @@ function HomePageContent() {
                           const itemId = method.id;
                           const isSelected = selectedPaymentId === itemId;
                           const showPriceAndBonus = !!selectedRechargeId;
-                          const selectedProduct = allRechargeOptions.find(p => p.id === selectedRechargeId);
+                          const selectedProduct = getAllRechargeOptions().find(p => p.id === selectedRechargeId);
 
                           return (
                             <div
@@ -461,7 +464,7 @@ function HomePageContent() {
                               onClick={() => handlePaymentSelection(itemId)}
                               className={cn(
                                 "group relative flex h-full min-h-[80px] cursor-pointer items-start gap-2 rounded-md border border-gray-200 bg-white p-2.5 transition-all focus-visible:ring-2 focus-visible:ring-ring max-md:flex-col max-md:justify-between md:items-center md:gap-3 md:p-3",
-                                "aria-checked:border-destructive aria-checked:bg-destructive/5"
+                                isSelected && "border-destructive bg-destructive/5"
                               )}
                             >
                               <div className="shrink-0">
@@ -506,11 +509,19 @@ function HomePageContent() {
               </div>
             </div>
           )}
-          {showDeltaForceContent && <DeltaForceContent />}
+          {showDeltaForceContent && (
+            <DeltaForceContent
+              selectedRechargeId={selectedRechargeId}
+              selectedPaymentId={selectedPaymentId}
+              onRechargeSelect={handleRechargeSelection}
+              onPaymentSelect={handlePaymentSelection}
+              onSelectionKeyDown={handleSelectionKeyDown}
+            />
+          )}
         </div>
         <div className="z-[9] pointer-events-none sticky bottom-0"></div>
       </main>
-      {showFreeFireContent && <PurchaseFooter selectedRechargeId={selectedRechargeId} selectedPaymentId={selectedPaymentId} onPurchase={handlePurchase} />}
+      {(showFreeFireContent || showDeltaForceContent) && <PurchaseFooter selectedRechargeId={selectedRechargeId} selectedPaymentId={selectedPaymentId} onPurchase={handlePurchase} gameId={selectedApp} />}
       <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen} oncloseautofocus={(e) => e.preventDefault()}>
         <AlertDialogContent className="max-w-[320px] rounded-lg p-6">
           <AlertDialogHeader className="text-justfy center space-y-3">

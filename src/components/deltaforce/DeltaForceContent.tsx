@@ -4,20 +4,32 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { deltaForcePacks, deltaForceSpecialOffers, paymentMethods } from '@/lib/data';
 import { ShieldCheckIcon, StepMarker, InfoIcon, SwitchAccountIcon } from '@/components/freefire/Icons';
 
 
-export function DeltaForceContent() {
+interface DeltaForceContentProps {
+  selectedRechargeId: string | null;
+  selectedPaymentId: string | null;
+  onRechargeSelect: (id: string) => void;
+  onPaymentSelect: (id: string) => void;
+  onSelectionKeyDown: (e: React.KeyboardEvent<HTMLDivElement>, callback: () => void) => void;
+}
+
+
+export function DeltaForceContent({
+  selectedRechargeId,
+  selectedPaymentId,
+  onRechargeSelect,
+  onPaymentSelect,
+  onSelectionKeyDown,
+}: DeltaForceContentProps) {
     const [playerId, setPlayerId] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [playerName, setPlayerName] = useState('JogadorDelta'); // Placeholder
-    const [selectedRechargeId, setSelectedRechargeId] = useState<string | null>(null);
-    const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
 
 
     const handleLogin = (e: React.FormEvent) => {
@@ -43,14 +55,7 @@ export function DeltaForceContent() {
         setError('');
     };
 
-     const handleRechargeSelection = (id: string) => {
-        setSelectedRechargeId(prev => prev === id ? null : id);
-     }
-     
-     const handlePaymentSelection = (id: string) => {
-        setSelectedPaymentId(prev => prev === id ? null : id);
-     }
-
+    const allRechargeOptions = [...deltaForcePacks, ...deltaForceSpecialOffers];
 
     return (
         <div className="bg-white">
@@ -145,61 +150,69 @@ export function DeltaForceContent() {
 
                     {/* Denomination Section */}
                      <div>
-                      <div className="mb-3 flex scroll-mt-16 items-center gap-2 text-lg/none font-bold text-gray-800 md:text-xl/none">
-                        <StepMarker number="2" />
-                        Valor de Recarga
-                      </div>
-                       <Tabs defaultValue="buy" className="w-full">
-                          <TabsList>
-                            <TabsTrigger value="buy">Comprar</TabsTrigger>
-                            <TabsTrigger value="redeem">Resgatar</TabsTrigger>
-                          </TabsList>
-                          <TabsContent value="buy" className="mt-4">
-                              <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6 md:gap-4">
-                                {deltaForcePacks.map((pack) => (
-                                    <div 
-                                      key={pack.id} 
-                                      onClick={() => handleRechargeSelection(pack.id)}
-                                      className={cn("group relative flex min-h-[50px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-md bg-gray-100 p-1 sm:min-h-[64px] md:min-h-[72px] border transition-all",
-                                        selectedRechargeId === pack.id ? "border-destructive ring-2 ring-destructive" : "border-gray-200 hover:border-destructive"
-                                      )}
-                                    >
-                                      <div className="flex flex-1 items-center">
-                                        <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/point.png" width={16} height={16} alt="Delta Coin" data-ai-hint="coin"/>
-                                        <span className="text-sm/none font-medium md:text-lg/none max-[350px]:text-xs/none">{pack.originalAmount}</span>
-                                      </div>
-                                    </div>
-                                  )
+                        <div id="denom-section" className="mb-3 flex scroll-mt-16 items-center gap-2 text-lg/none font-bold text-gray-800 md:text-xl/none">
+                            <StepMarker number="2" />
+                            Valor de Recarga
+                        </div>
+                        <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6 md:gap-4">
+                            {deltaForcePacks.map((pack) => {
+                            const itemId = pack.id;
+                            const isSelected = selectedRechargeId === itemId;
+                            return (
+                                <div
+                                key={itemId}
+                                role="radio"
+                                aria-checked={isSelected}
+                                tabIndex={0}
+                                onKeyDown={(e) => onSelectionKeyDown(e, () => onRechargeSelect(itemId))}
+                                onClick={() => onRechargeSelect(itemId)}
+                                className={cn(
+                                    "group relative flex min-h-[50px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-md bg-white p-1 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
+                                    "focus-visible:ring-2 focus-visible:ring-ring",
+                                    isSelected && "ring-2 ring-destructive"
                                 )}
-                              </div>
-                              <div className="my-4 flex items-center">
-                                <div className="text-base/none font-bold text-gray-500">Ofertas especiais</div>
-                                <hr className="ms-2 grow border-gray-300" />
-                              </div>
-                              <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-4">
-                                  {deltaForceSpecialOffers.map((offer) => (
-                                    <div 
-                                      key={offer.id}
-                                      onClick={() => handleRechargeSelection(offer.id)}
-                                      className={cn("group peer relative flex h-full cursor-pointer flex-col items-center rounded-md bg-gray-100 p-1.5 pb-2 border transition-all",
-                                        selectedRechargeId === offer.id ? "border-destructive ring-2 ring-destructive" : "border-gray-200 hover:border-destructive"
-                                      )}
-                                    >
-                                      <div className="relative mb-2 w-full overflow-hidden rounded-sm pt-[56.25%]">
-                                        <Image className="pointer-events-none absolute inset-0 h-full w-full object-cover" src={offer.image} fill sizes="(max-width: 768px) 50vw, 25vw" alt={offer.name} data-ai-hint="game item"/>
-                                      </div>
-                                      <div className="flex items-center gap-1">
-                                        <div className="line-clamp-2 text-center text-sm/[18px] font-medium">{offer.name}</div>
-                                      </div>
-                                    </div>
-                                  ))}
-                              </div>
-                          </TabsContent>
-                          <TabsContent value="redeem" className="mt-4">
-                              <p className="text-center text-gray-500">A funcionalidade de resgate não está disponível no momento.</p>
-                          </TabsContent>
-                        </Tabs>
+                                >
+                                <div className="flex flex-1 items-center">
+                                    <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/point.png" width={16} height={16} alt="Delta Coin" data-ai-hint="coin"/>
+                                    <span className="text-sm/none font-medium md:text-lg/none max-[350px]:text-xs/none">{pack.originalAmount}</span>
+                                </div>
+                                </div>
+                            );
+                            })}
+                        </div>
+                        <div className="my-4 flex items-center" role="none">
+                            <div className="text-base/none font-bold text-gray-500" role="none">Ofertas especiais</div>
+                            <hr className="ms-2 grow border-gray-300" role="none" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-4">
+                            {deltaForceSpecialOffers.map((offer) => {
+                            const itemId = offer.id;
+                            const isSelected = selectedRechargeId === itemId;
+                            return (
+                                <div
+                                key={itemId}
+                                role="radio"
+                                aria-checked={isSelected}
+                                tabIndex={0}
+                                onKeyDown={(e) => onSelectionKeyDown(e, () => onRechargeSelect(itemId))}
+                                onClick={() => onRechargeSelect(itemId)}
+                                className={cn("group peer relative flex h-full cursor-pointer flex-col items-center rounded-md bg-white p-1.5 pb-2 border border-gray-200",
+                                    "focus-visible:ring-2 focus-visible:ring-ring",
+                                    isSelected && "ring-2 ring-destructive"
+                                )}
+                                >
+                                <div className="relative mb-2 w-full overflow-hidden rounded-sm pt-[56.25%]">
+                                    <Image className="pointer-events-none absolute inset-0 h-full w-full object-cover" src={offer.image} sizes="(max-width: 768px) 50vw, 25vw" fill alt={offer.name} data-ai-hint="game offer" />
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <div className="line-clamp-2 text-center text-sm/[18px] font-medium">{offer.name}</div>
+                                </div>
+                                </div>
+                            )
+                            })}
+                        </div>
                     </div>
+
 
                     {/* Payment Method Section */}
                      <div>
@@ -207,37 +220,45 @@ export function DeltaForceContent() {
                         <StepMarker number="3" />
                         <div>Método de pagamento</div>
                       </div>
-                      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-4">
+                      <div role="radiogroup" className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-4">
                         {paymentMethods.map((method) => {
-                          const isSelected = selectedPaymentId === method.id;
+                          const itemId = method.id;
+                          const isSelected = selectedPaymentId === itemId;
                           const showPriceAndBonus = !!selectedRechargeId;
-                          const selectedProduct = [...deltaForcePacks, ...deltaForceSpecialOffers].find(p => p.id === selectedRechargeId);
+                          const selectedProduct = allRechargeOptions.find(p => p.id === selectedRechargeId);
 
                           return (
-                              <div 
-                                key={method.id} 
-                                onClick={() => handlePaymentSelection(method.id)}
-                                className={cn("group relative flex h-full min-h-[80px] cursor-pointer items-start gap-2 rounded-md bg-gray-100 p-2.5 transition-all max-md:flex-col max-md:justify-between md:items-center md:gap-3 md:p-3 border",
-                                  isSelected ? "border-destructive ring-2 ring-destructive" : "border-gray-200 hover:border-destructive"
-                                )}
-                              >
-                                <div className="shrink-0">
-                                  <Image className="pointer-events-none h-[60px] w-[60px] object-contain object-left md:h-14 md:w-14" src={method.image} width={75} height={75} alt={method.name} data-ai-hint="payment logo"/>
-                                </div>
-                                
-                                {showPriceAndBonus && selectedProduct && (
-                                   <div className="flex w-full flex-col flex-wrap gap-y-1 font-medium text-sm/none md:text-base/none md:gap-y-2">
-                                      <div className="flex flex-wrap gap-x-0.5 gap-y-1 whitespace-nowrap md:flex-col">
-                                          <span className="items-center inline-flex font-bold text-gray-800">{selectedProduct.formattedPrice}</span>
-                                      </div>
+                            <div
+                              key={itemId}
+                              role="radio"
+                              aria-checked={isSelected}
+                              tabIndex={0}
+                              onKeyDown={(e) => onSelectionKeyDown(e, () => onPaymentSelect(itemId))}
+                              onClick={() => onPaymentSelect(itemId)}
+                              className={cn(
+                                "group relative flex h-full min-h-[80px] cursor-pointer items-start gap-2 rounded-md border border-gray-200 bg-white p-2.5 transition-all focus-visible:ring-2 focus-visible:ring-ring max-md:flex-col max-md:justify-between md:items-center md:gap-3 md:p-3",
+                                isSelected && "border-destructive bg-destructive/5"
+                              )}
+                            >
+                              <div className="shrink-0">
+                                <Image className="pointer-events-none h-[60px] w-[60px] object-contain object-left md:h-14 md:w-14" src={method.image} width={75} height={75} alt={method.name} data-ai-hint="payment logo" />
+                              </div>
+                              
+                              {showPriceAndBonus && selectedProduct && (
+                                 <div className="flex w-full flex-col flex-wrap gap-y-1 font-medium md:gap-y-2 text-sm/none md:text-base/none">
+                                    <div className="flex flex-wrap gap-x-0.5 gap-y-1 whitespace-nowrap md:flex-col">
+                                        <span className="items-center inline-flex font-bold text-gray-800">{selectedProduct.formattedPrice}</span>
+                                    </div>
+                                    {selectedProduct.bonusAmount && (
                                       <div className="flex flex-wrap gap-y-1 empty:hidden md:gap-y-2">
-                                          <span className="inline-flex items-center text-xs/none text-destructive md:text-sm/none">
+                                          <span className="inline-flex items-center text-xs/none text-primary md:text-sm/none">
                                               + Bônus <Image className="mx-1 h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/point.png" width={12} height={12} alt="Delta Coin" data-ai-hint="coin" />
                                               {selectedProduct.bonusAmount}
                                           </span>
                                       </div>
-                                  </div>
-                                )}
+                                    )}
+                                </div>
+                              )}
 
                                 <div className="absolute end-[3px] top-[3px] overflow-hidden rounded-[3px]">
                                   <div className="flex text-[10px] font-bold uppercase leading-none">
@@ -248,6 +269,7 @@ export function DeltaForceContent() {
                                         width={12}
                                         height={12}
                                         alt="Promo"
+                                        data-ai-hint="coin"
                                       />
                                       <span>Promo</span>
                                     </div>
