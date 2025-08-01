@@ -47,6 +47,13 @@ function HomePageContent() {
   const showFreeFireContent = searchParams.get('app') === '100067';
 
   useEffect(() => {
+    // On initial load, if no game is selected in the URL, default to Free Fire.
+    if (!searchParams.has('app')) {
+      router.replace('/?app=100067');
+    }
+  }, [searchParams, router]);
+
+  useEffect(() => {
     try {
       const storedHistory = localStorage.getItem('playerHistory');
       if (storedHistory) {
