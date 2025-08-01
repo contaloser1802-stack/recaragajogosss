@@ -48,6 +48,10 @@ function CheckoutPageContent() {
   const [playerName, setPlayerName] = useState("Carregando...");
   const [paymentMethodName, setPaymentMethodName] = useState("PIX");
   const [selectedOffers, setSelectedOffers] = useState<string[]>([]);
+  
+  const selectedAppId = typeof window !== 'undefined' ? localStorage.getItem('selectedAppId') : '100067';
+  const isDeltaForce = selectedAppId === '100151';
+
   const [gameInfo, setGameInfo] = useState({
       name: 'Free Fire',
       banner: 'https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg',
@@ -155,14 +159,20 @@ function CheckoutPageContent() {
 
   const proceedToPayment = async () => {
     const isValid = await form.trigger(['name', 'email', 'phone']);
-    if (isValid) {
-      setIsModalOpen(true);
-    } else {
+    if (!isValid) {
       toast({
         variant: "destructive",
         title: "Erro de Validação",
         description: "Por favor, preencha todos os campos obrigatórios corretamente.",
       });
+      return;
+    }
+    
+    // Se for Delta Force, vai direto pro pagamento. Senão, abre o modal de order bump.
+    if (isDeltaForce) {
+      handleFinalSubmit();
+    } else {
+      setIsModalOpen(true);
     }
   };
   
@@ -176,19 +186,23 @@ function CheckoutPageContent() {
       tangible: false,
       id: product.id,
     }];
+    
+    // Adiciona itens do order bump apenas se não for Delta Force
+    if (!isDeltaForce) {
+      selectedOffers.forEach(offerId => {
+        const offer = specialOfferItems.find(o => o.id === offerId);
+        if (offer) {
+          payloadItems.push({
+            unitPrice: offer.price,
+            title: offer.name,
+            quantity: 1,
+            tangible: false,
+            id: offer.id,
+          });
+        }
+      });
+    }
 
-    selectedOffers.forEach(offerId => {
-      const offer = specialOfferItems.find(o => o.id === offerId);
-      if (offer) {
-        payloadItems.push({
-          unitPrice: offer.price,
-          title: offer.name,
-          quantity: 1,
-          tangible: false,
-          id: offer.id,
-        });
-      }
-    });
     return payloadItems;
   }
 
@@ -497,9 +511,9 @@ function CheckoutPageContent() {
 
 export default function CheckoutPage() {
     const searchParams = useSearchParams();
-    const isDeltaForce = searchParams.get('app') === '100151';
+    const isDeltaForceParam = searchParams.get('app') === '100151';
 
-    const bgImage = isDeltaForce 
+    const bgImage = isDeltaForceParam 
         ? "https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/DF-1ac98424.png"
         : "https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png";
     

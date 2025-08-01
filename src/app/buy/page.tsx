@@ -49,6 +49,12 @@ const BuyPage = () => {
 
 
   const getSuccessRedirectPath = (productId?: string) => {
+    const selectedAppId = typeof window !== 'undefined' ? localStorage.getItem('selectedAppId') : '100067';
+    if (selectedAppId === '100151') {
+      return '/success'; // Jogo Delta Force vai direto para o sucesso
+    }
+  
+    // Lógica de upsell apenas para Free Fire
     if (!productId) return '/upsell'; // Default da compra principal
   
     const isUpsell1 = skinOffers.some(o => o.id === productId);
