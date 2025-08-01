@@ -24,12 +24,12 @@ export const banners = [
 
 export const diamondPacks = [
     { id: 'pack-100', name: '100 Diamantes', originalAmount: '100', bonusAmount: '20', totalAmount: '120', price: 5.49, formattedPrice: 'R$ 5,49' },
-    { id: 'pack-300', name: '300 Diamantes', originalAmount: '300', bonusAmount: '0', totalAmount: '300', price: 7.50, formattedPrice: 'R$ 7,50' },
+    { id: 'pack-310', name: '310 Diamantes', originalAmount: '310', bonusAmount: '62', totalAmount: '372', price: 7.50, formattedPrice: 'R$ 7,50' },
     { id: 'pack-520', name: '520 Diamantes', originalAmount: '520', bonusAmount: '104', totalAmount: '624', price: 9.90, formattedPrice: 'R$ 9,90' },
     { id: 'pack-1060', name: '1.060 Diamantes', originalAmount: '1.060', bonusAmount: '212', totalAmount: '1.272', price: 14.90, formattedPrice: 'R$ 14,90' },
     { id: 'pack-2180', name: '2.180 Diamantes', originalAmount: '2.180', bonusAmount: '2.180', totalAmount: '4.360', price: 19.90, formattedPrice: 'R$ 19,90', promo: 'DOBRO DE DIAMANTES' },
     { id: 'pack-5600', name: '5.600 Diamantes', originalAmount: '5.600', bonusAmount: '5.600', totalAmount: '11.200', price: 37.80, formattedPrice: 'R$ 37,80', promo: 'DOBRO DE DIAMANTES' },
-    { id: 'pack-25600', name: '25.600 Diamantes', originalAmount: '25.600', bonusAmount: '0', totalAmount: '25.600', price: 174.99, formattedPrice: 'R$ 174,99' },
+    { id: 'pack-15600', name: '15.600 Diamantes', originalAmount: '15.600', bonusAmount: '1120', totalAmount: '16.720', price: 87.80, formattedPrice: 'R$ 87,80' },
 ];
 
 export const specialOffers = [
