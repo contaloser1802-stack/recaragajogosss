@@ -42,22 +42,18 @@ export function ImageCarousel() {
     }, [currentIndex, handleNext, resetTimeout]);
 
     useEffect(() => {
-        const handleTransitionEnd = () => {
+        if (!isTransitioning) {
             if (currentIndex === 0) {
-                setIsTransitioning(false);
                 setCurrentIndex(banners.length);
             } else if (currentIndex === banners.length + 1) {
-                setIsTransitioning(false);
                 setCurrentIndex(1);
             }
-        };
-
-        if(isTransitioning) {
-           const timer = setTimeout(handleTransitionEnd, 500); // This should match the transition duration
-           return () => clearTimeout(timer);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentIndex, isTransitioning]);
+    }, [currentIndex, isTransitioning, banners.length]);
+
+    const handleTransitionEnd = () => {
+        setIsTransitioning(false);
+    };
 
     const getRealIndex = (index: number) => {
         if (index === 0) return banners.length - 1;
@@ -73,15 +69,16 @@ export function ImageCarousel() {
                         <div
                             className="absolute inset-0 flex"
                             style={{
-                                transform: `translateX(calc(-${currentIndex * 100}% - (100% * ${currentIndex} * -0.49423) + 50% - (100% * 0.50577 / 2)))`,
+                                transform: `translateX(calc(-${currentIndex * 100}%))`,
                                 transition: isTransitioning ? 'transform 500ms ease-in-out' : 'none',
                             }}
+                            onTransitionEnd={handleTransitionEnd}
                         >
                             {loopedBanners.map((banner, index) => {
                                 const realIndex = getRealIndex(index);
                                 const isActive = getRealIndex(currentIndex) === realIndex;
                                 return (
-                                    <div key={index} className="w-full flex-shrink-0 md:w-[50.577%] md:px-[3.2%]">
+                                    <div key={index} className="w-full flex-shrink-0">
                                         <Link
                                             href={banner.href || '#'}
                                             className="block h-full w-full relative"
