@@ -279,6 +279,7 @@ function HomePageContent() {
                                 <Image className="block h-full w-full object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png" width={36} height={36} alt="Free Fire Icon" data-ai-hint="game icon" />
                               </div>
                               <div className="flex-1">
+                                <div className="mb-1 text-base/none font-medium">{playerName}</div>
                                 <div className="mt-2 text-xs/none text-gray-500">ID do jogador: {playerId}</div>
                               </div>
                             </div>
