@@ -500,7 +500,7 @@ export default function CheckoutPage() {
     const isDeltaForce = searchParams.get('app') === '100151';
 
     const bgImage = isDeltaForce 
-        ? "https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/DF-4dc01e48.jpg" 
+        ? "https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/DF-1ac98424.png"
         : "https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png";
 
     return (
