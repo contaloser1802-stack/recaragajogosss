@@ -502,10 +502,21 @@ export default function CheckoutPage() {
     const bgImage = isDeltaForce 
         ? "https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/DF-1ac98424.png"
         : "https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png";
+    
+    const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
+
+    useEffect(() => {
+        const storedAppId = localStorage.getItem('selectedAppId');
+        if (storedAppId === '100151') {
+            setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
+        } else {
+            setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
+        }
+    }, []);
 
     return (
         <div className="flex flex-col min-h-screen">
-            <Header />
+            <Header avatarIcon={avatarIcon} />
             <main className="flex-1 relative">
                 <Image
                     src={bgImage}

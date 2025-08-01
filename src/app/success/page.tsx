@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,18 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function SuccessPage() {
   const { toast } = useToast();
+  const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
 
   useEffect(() => {
+    try {
+      const storedAppId = localStorage.getItem('selectedAppId');
+      if (storedAppId === '100151') {
+          setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
+      }
+    } catch (e) {
+      console.error("Could not access localStorage", e);
+    }
+
     // Limpa todos os dados de transação e cliente do localStorage
     localStorage.removeItem('paymentData');
     localStorage.removeItem('customerData');
@@ -27,7 +37,7 @@ export default function SuccessPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header avatarIcon={avatarIcon} />
       <main className="flex-1 flex items-center justify-center bg-cover bg-center p-4" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
         <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12 text-center max-w-md w-full">
           <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
@@ -47,5 +57,3 @@ export default function SuccessPage() {
     </div>
   );
 }
-
-    

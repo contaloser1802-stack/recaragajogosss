@@ -45,6 +45,8 @@ const BuyPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | 'EXPIRED' | 'CANCELLED' | 'UNKNOWN'>('PENDING');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [avatarIcon, setAvatarIcon] = useState<string>('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
+
 
   const getSuccessRedirectPath = (productId?: string) => {
     if (!productId) return '/upsell'; // Default da compra principal
@@ -68,6 +70,11 @@ const BuyPage = () => {
 
     const loadAndMonitorPaymentData = () => {
       try {
+        const storedAppId = localStorage.getItem('selectedAppId');
+        if (storedAppId === '100151') {
+            setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
+        }
+
         const storedPaymentData = localStorage.getItem("paymentData");
 
         if (storedPaymentData) {
@@ -232,7 +239,7 @@ const BuyPage = () => {
   if (isLoading || !paymentData) {
     return (
       <div className="flex flex-col min-h-screen bg-white">
-        <Header />
+        <Header avatarIcon={avatarIcon} />
         <main className="flex-1 bg-white flex items-center justify-center">
           <p>Carregando dados do pagamento...</p>
         </main>
@@ -246,7 +253,7 @@ const BuyPage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <BackRedirect redirectTo="/downsell" />
-      <Header />
+      <Header avatarIcon={avatarIcon} />
       <main className="flex-1 bg-white">
         <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-gray-50 overflow-hidden">
           <div className="mb-3 bg-gray-50 md:mb-4 md:rounded-t-2xl md:p-2 md:pb-0">
@@ -413,5 +420,3 @@ const BuyPage = () => {
 };
 
 export default BuyPage;
-
-    

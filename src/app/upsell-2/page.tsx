@@ -26,9 +26,18 @@ const Upsell2Page = () => {
     const [timeLeft, setTimeLeft] = useState(300); // 5 minutos em segundos
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showUrgencyMessage, setShowUrgencyMessage] = useState(false);
-
+    const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
 
     useEffect(() => {
+        try {
+            const storedAppId = localStorage.getItem('selectedAppId');
+            if (storedAppId === '100151') {
+                setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
+            }
+        } catch (e) {
+            console.error("Could not access localStorage", e);
+        }
+
         const timer = setInterval(() => {
             setTimeLeft(prevTime => {
                 if (prevTime <= 1) {
@@ -151,7 +160,7 @@ const Upsell2Page = () => {
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
             <BackRedirect redirectTo="/upsell-3" />
-            <Header />
+            <Header avatarIcon={avatarIcon} />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border relative overflow-hidden">
 

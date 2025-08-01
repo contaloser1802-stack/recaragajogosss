@@ -24,9 +24,18 @@ const DownsellPage = () => {
     const { toast } = useToast();
     const [selectedOfferId, setSelectedOfferId] = useState<string | null>(downsellOffers[0]?.id || null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
 
     // Este useEffect é novo, para limpar o sinalizador do back redirect ao entrar na página
     useEffect(() => {
+        try {
+            const storedAppId = localStorage.getItem('selectedAppId');
+            if (storedAppId === '100151') {
+                setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
+            }
+        } catch(e) {
+            console.error("Could not read from localstorage", e);
+        }
         // Marca que o usuário veio do back redirect para lógica especial na página /buy
         sessionStorage.setItem('cameFromBackRedirect', 'true');
     }, []);
@@ -133,7 +142,7 @@ const DownsellPage = () => {
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
             <BackRedirect redirectTo="/upsell" />
-            <Header />
+            <Header avatarIcon={avatarIcon} />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider">

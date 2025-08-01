@@ -71,8 +71,15 @@ function CheckoutCreditCardPageContent() {
     const [isPromoApplied, setIsPromoApplied] = useState(false);
     const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
+
 
     useEffect(() => {
+        const storedAppId = localStorage.getItem('selectedAppId');
+        if (storedAppId === '100151') {
+            setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
+        }
+
         const storedPlayerName = localStorage.getItem('playerName') || "Não encontrado";
         const selectedPackJSON = localStorage.getItem('selectedProduct');
         const storedPaymentMethod = localStorage.getItem('paymentMethodName') || 'Cartão de Crédito via PagSeguro (Aprovação, em média, imediata)';
@@ -447,9 +454,20 @@ function CheckoutCreditCardPageContent() {
 }
 
 export default function CheckoutCreditCardPage() {
+    const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
+
+    useEffect(() => {
+        const storedAppId = localStorage.getItem('selectedAppId');
+        if (storedAppId === '100151') {
+            setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
+        } else {
+            setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
+        }
+    }, []);
+
     return (
         <div className="flex flex-col min-h-screen">
-          <Header />
+          <Header avatarIcon={avatarIcon} />
           <main className="flex-1 relative">
              <Image
                 src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png"
@@ -466,7 +484,3 @@ export default function CheckoutCreditCardPage() {
         </div>
     );
 }
-
-    
-
-    

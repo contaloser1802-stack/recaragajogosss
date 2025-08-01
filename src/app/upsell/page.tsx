@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,18 @@ const UpsellPage = () => {
     const { toast } = useToast();
     const [selectedSkins, setSelectedSkins] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
+
+    useEffect(() => {
+        try {
+            const storedAppId = localStorage.getItem('selectedAppId');
+            if (storedAppId === '100151') {
+                setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
+            }
+        } catch (e) {
+            console.error("Could not access localStorage", e);
+        }
+    }, []);
 
     const handleDecline = () => {
         router.push('/downsell');
@@ -147,7 +159,7 @@ const UpsellPage = () => {
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
             <BackRedirect redirectTo="/downsell" />
-            <Header />
+            <Header avatarIcon={avatarIcon} />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider">
