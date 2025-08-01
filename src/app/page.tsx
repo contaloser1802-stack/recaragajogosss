@@ -75,7 +75,7 @@ function HomePageContent() {
         handleLogout(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedApp, historyKey]);
+  }, [selectedApp]);
 
   const updateHistory = useCallback((newItem: LoginHistoryItem) => {
     setHistory(prevHistory => {
@@ -128,7 +128,7 @@ function HomePageContent() {
 
     if (showDeltaForceContent) {
       // Delta Force login logic (always succeeds)
-        const fakeNickname = `User${id.slice(-4)}`;
+        const fakeNickname = '';
         setPlayerName(fakeNickname);
         setIsLoggedIn(true);
         localStorage.setItem('playerName', fakeNickname);
@@ -172,7 +172,7 @@ function HomePageContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [updateHistory, selectedApp, showDeltaForceContent]);
+  }, [updateHistory, selectedApp, showDeltaForceContent, historyKey]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();

@@ -95,12 +95,7 @@ export function DeltaForceContent({
                                 <Image className="block h-full w-full object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png" width={36} height={36} alt="Delta Force Icon" data-ai-hint="game icon" />
                               </div>
                                <div className="flex-1 text-sm/none text-gray-800">
-                                <div className="text-gray-600">
-                                  <span className="font-bold">Usuário:</span> Não foi possível coletar nome do usuário
-                                </div>
-                                <div className="text-gray-600">
-                                  ID do jogador: {playerId}
-                                </div>
+                                <div>ID do jogador: {playerId}</div>
                               </div>
                             </div>
                           </div>
@@ -215,7 +210,7 @@ export function DeltaForceContent({
                                         )}
                                     >
                                         {pack.promo && (
-                                            <div className="absolute top-0 right-0 left-0 bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 text-center">
+                                            <div className="absolute top-0 right-0 left-0 bg-destructive text-white text-[10px] font-bold px-1.5 py-0.5 text-center">
                                                 {pack.promo}
                                             </div>
                                         )}
