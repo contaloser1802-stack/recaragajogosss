@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -137,7 +138,7 @@ export function GameSelection() {
     const router = useRouter();
     const searchParams = useSearchParams();
     
-    const selectedApp = searchParams.get('app'); 
+    const selectedApp = searchParams.get('app') || '100067'; // Default to Free Fire
 
     const handleGameClick = (appId: string) => {
         router.push(`/?app=${appId}`);
@@ -177,8 +178,8 @@ export function GameSelection() {
                                         <div className="mb-1 px-[3px] md:mb-2 md:px-2">
                                             <div className="relative">
                                                 <div className={cn(
-                                                    "relative overflow-hidden rounded-[25%] border-[3px] border-transparent transition-colors md:border-4",
-                                                    isSelected && "border-destructive"
+                                                    "relative overflow-hidden rounded-[25%] border-[3px] md:border-4 transition-colors",
+                                                    isSelected ? "border-destructive" : "border-transparent"
                                                 )}>
                                                     <div className="relative pt-[100%]">
                                                         <Image
@@ -190,17 +191,12 @@ export function GameSelection() {
                                                             data-ai-hint="game icon"
                                                         />
                                                     </div>
-                                                    <div className={cn(
-                                                        "absolute w-[200%] h-6 bg-destructive top-0 -left-4 -rotate-45 origin-bottom-left transition-opacity",
-                                                        isSelected ? "opacity-100" : "opacity-0"
-                                                    )}>
-                                                    </div>
-                                                    <div className={cn(
-                                                        "absolute top-0 left-0 transition-opacity",
-                                                         isSelected ? "opacity-100" : "opacity-0"
-                                                    )}>
-                                                      <CheckmarkIcon/>
-                                                    </div>
+                                                </div>
+                                                <div className={cn(
+                                                    "absolute inset-0 origin-top-left scale-50 rounded-ss-[50%] p-[18.75%] transition-opacity ltr:bg-[linear-gradient(-45deg,transparent_50%,#D81A0D_50%)] rtl:origin-top-right rtl:bg-[linear-gradient(45deg,transparent_50%,#D81A0D_50%)]",
+                                                    isSelected ? "opacity-100" : "opacity-0"
+                                                )}>
+                                                    <CheckmarkIcon />
                                                 </div>
                                             </div>
                                         </div>

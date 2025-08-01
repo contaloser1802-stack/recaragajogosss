@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
@@ -44,14 +45,7 @@ function HomePageContent() {
   const isMobile = useIsMobile();
   const [isSocialLoginAlertOpen, setIsSocialLoginAlertOpen] = useState(false);
 
-  const showFreeFireContent = searchParams.get('app') === '100067';
-
-  useEffect(() => {
-    // On initial load, if no game is selected in the URL, default to Free Fire.
-    if (!searchParams.has('app')) {
-      router.replace('/?app=100067');
-    }
-  }, [searchParams, router]);
+  const showFreeFireContent = searchParams.get('app') === '100067' || !searchParams.has('app');
 
   useEffect(() => {
     try {
