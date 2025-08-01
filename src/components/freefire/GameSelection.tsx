@@ -1,33 +1,28 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { useRouter, useSearchParams } from 'next/navigation';
 
 
 const games = [
     {
         id: 'ff',
+        appId: '100067',
         name: 'Free Fire',
         icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png',
     },
     {
         id: 'df',
+        appId: '100151',
         name: 'Delta Force',
         icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png'
     },
     {
         id: 'hq',
+        appId: '100153',
         name: 'HAIKYU!! FLY HIGH',
         icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/153/icon.png',
     }
@@ -139,15 +134,13 @@ const DecorativeBanner = () => (
 );
 
 export function GameSelection() {
-    const [selectedGame, setSelectedGame] = useState('ff');
-    const [isAlertOpen, setIsAlertOpen] = useState(false);
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    
+    const selectedApp = searchParams.get('app') || '100067'; // Default to Free Fire
 
-    const handleGameClick = (gameId: string) => {
-        if (gameId === 'df' || gameId === 'hq') {
-            setIsAlertOpen(true);
-        } else {
-            setSelectedGame(gameId);
-        }
+    const handleGameClick = (appId: string) => {
+        router.push(`/?app=${appId}`);
     };
 
     return (
@@ -163,44 +156,57 @@ export function GameSelection() {
                     </h2>
                     <div className="grid grid-cols-4 gap-x-[22px] gap-y-4 sm:grid-cols-6 lg:grid-cols-8">
                         {games.map(game => {
-                            const isSelected = game.id === selectedGame;
+                            const isSelected = game.appId === selectedApp;
                             return (
                                 <div
                                     key={game.id}
                                     className="cursor-pointer outline-none"
                                     role="radio"
                                     aria-checked={isSelected}
-                                    tabIndex={0}
-                                    onClick={() => handleGameClick(game.id)}
+                                    data-state={isSelected ? 'checked' : 'unchecked'}
+                                    tabIndex={isSelected ? 0 : -1}
+                                    onClick={() => handleGameClick(game.appId)}
                                     onKeyDown={(e) => {
                                         if (e.key === ' ' || e.key === 'Enter') {
                                             e.preventDefault();
-                                            handleGameClick(game.id);
+                                            handleGameClick(game.appId);
                                         }
                                     }}
                                 >
                                     <div className="mx-auto max-w-[70px] md:max-w-[105px]">
                                         <div className="mb-1 px-[3px] md:mb-2 md:px-2">
                                             <div className="relative">
-                                                <div className={cn("relative overflow-hidden rounded-[25%] border-[3px] border-transparent transition-colors md:border-4", isSelected && "border-destructive")}>
+                                                <div className={cn(
+                                                    "relative overflow-hidden rounded-[25%] border-[3px] border-transparent transition-colors md:border-4",
+                                                    "data-[state=checked]:border-destructive"
+                                                )}>
                                                     <div className="relative pt-[100%]">
-                                                        <Image sizes="(max-width: 768px) 70px, 105px" className="pointer-events-none absolute inset-0 h-full w-full bg-white object-cover" src={game.icon} alt={game.name} fill data-ai-hint="game icon" />
+                                                        <Image
+                                                            sizes="(max-width: 768px) 70px, 105px"
+                                                            className="pointer-events-none absolute inset-0 h-full w-full bg-white object-cover"
+                                                            src={game.icon}
+                                                            alt={game.name}
+                                                            fill
+                                                            data-ai-hint="game icon"
+                                                        />
                                                     </div>
                                                 </div>
                                                 <div
                                                     className={cn(
-                                                        "absolute left-[-1px] top-[-1px] w-8 h-8 opacity-0 transition-opacity",
-                                                        "dark:ltr:bg-[linear-gradient(-45deg,transparent_50%,#E4372E_50%)] dark:rtl:bg-[linear-gradient(45deg,transparent_50%,#E4372E_50%)]",
-                                                        isSelected && "opacity-100",
+                                                        "absolute inset-0 origin-top-left scale-50 rounded-ss-[50%] p-[18.75%] opacity-0 transition-opacity",
+                                                        "data-[state=checked]:opacity-100",
+                                                        "ltr:bg-[linear-gradient(-45deg,transparent_50%,#D81A0D_50%)] rtl:origin-top-right rtl:bg-[linear-gradient(45deg,transparent_50%,#D81A0D_50%)]",
+                                                        "dark:ltr:bg-[linear-gradient(-45deg,transparent_50%,#E4372E_50%)] dark:rtl:bg-[linear-gradient(45deg,transparent_50%,#E4372E_50%)]"
                                                     )}
                                                 >
-                                                    <div className="absolute inset-0 origin-top-left scale-50 rounded-ss-[50%] p-[18.75%] ltr:bg-[linear-gradient(-45deg,transparent_50%,#D81A0D_50%)] rtl:origin-top-right rtl:bg-[linear-gradient(45deg,transparent_50%,#D81A0D_50%)]">
-                                                      <CheckmarkIcon />
-                                                    </div>
+                                                    <CheckmarkIcon />
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className={cn("line-clamp-2 text-center text-xs text-gray-700 md:text-sm/[22px]", isSelected && "font-bold text-destructive")}>
+                                        <div className={cn(
+                                            "line-clamp-2 text-center text-xs text-gray-700 md:text-sm/[22px]",
+                                            "data-[state=checked]:font-bold data-[state=checked]:text-destructive"
+                                        )}>
                                             {game.name}
                                         </div>
                                     </div>
@@ -210,19 +216,6 @@ export function GameSelection() {
                     </div>
                 </div>
             </div>
-            <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen} >
-                 <AlertDialogContent className="max-w-[320px] rounded-lg p-6">
-                    <AlertDialogHeader className="text-center space-y-3">
-                        <AlertDialogTitle>Serviço indisponível</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Este jogo ainda não está disponível para recarga.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogAction onClick={() => setIsAlertOpen(false)}>OK</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </>
     );
 }
