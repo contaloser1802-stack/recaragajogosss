@@ -8,11 +8,10 @@ import { cn } from '@/lib/utils';
 import { banners } from '@/lib/data';
 
 export function ImageCarousel() {
-    const [currentIndex, setCurrentIndex] = useState(1); // Start at the first real slide (index 1)
+    const [currentIndex, setCurrentIndex] = useState(1);
     const [isTransitioning, setIsTransitioning] = useState(true);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Create a new array with cloned first and last items for the infinite loop effect
     const loopedBanners = [banners[banners.length - 1], ...banners, banners[0]];
 
     const resetTimeout = useCallback(() => {
@@ -33,33 +32,31 @@ export function ImageCarousel() {
 
     const handleDotClick = (index: number) => {
         setIsTransitioning(true);
-        setCurrentIndex(index + 1); // Adjust for the cloned first slide
+        setCurrentIndex(index + 1); 
     };
 
-    // Set up the auto-play timer
     useEffect(() => {
         resetTimeout();
         timeoutRef.current = setTimeout(handleNext, 3000);
         return () => resetTimeout();
     }, [currentIndex, handleNext, resetTimeout]);
 
-    // Handle the infinite loop logic
     useEffect(() => {
-        if (currentIndex === 0) { // If we've scrolled to the cloned last slide (at the beginning)
-            const timer = setTimeout(() => {
+        const handleTransitionEnd = () => {
+            if (currentIndex === 0) {
                 setIsTransitioning(false);
                 setCurrentIndex(banners.length);
-            }, 500); // Transition duration
-            return () => clearTimeout(timer);
-        }
-        if (currentIndex === banners.length + 1) { // If we've scrolled to the cloned first slide (at the end)
-            const timer = setTimeout(() => {
+            } else if (currentIndex === banners.length + 1) {
                 setIsTransitioning(false);
                 setCurrentIndex(1);
-            }, 500); // Transition duration
-            return () => clearTimeout(timer);
+            }
+        };
+
+        if(isTransitioning) {
+           const timer = setTimeout(handleTransitionEnd, 500);
+           return () => clearTimeout(timer);
         }
-    }, [currentIndex, banners.length]);
+    }, [currentIndex, banners.length, isTransitioning]);
 
     const getRealIndex = (index: number) => {
         if (index === 0) return banners.length - 1;
@@ -71,13 +68,11 @@ export function ImageCarousel() {
         <div className="bg-[#151515]">
             <div className="group mx-auto w-full max-w-[1366px] md:py-2.5 lg:py-5">
                 <div className="relative overflow-hidden">
-                    {/* Main container for slides */}
                     <div className="relative h-0 pt-[43.478%] md:pt-[19.106%]">
-                         {/* Slides Wrapper */}
                         <div
                             className="absolute inset-0 flex"
                             style={{
-                                transform: `translateX(-${currentIndex * 100}%)`,
+                                transform: `translateX(calc(-${currentIndex * 100}% - (100% * ${currentIndex} * -0.49423) + 50% - (100% * 0.50577 / 2)))`,
                                 transition: isTransitioning ? 'transform 500ms ease-in-out' : 'none',
                             }}
                         >
@@ -85,26 +80,26 @@ export function ImageCarousel() {
                                 const realIndex = getRealIndex(index);
                                 const isActive = getRealIndex(currentIndex) === realIndex;
                                 return (
-                                <div key={index} className="w-full flex-shrink-0 md:w-[50.577%] md:px-[3.2%]">
-                                    <Link
-                                        href={banner.href || '#'}
-                                        className="block h-full w-full relative"
-                                        target="_blank"
-                                        data-index={realIndex}
-                                    >
-                                        <Image
-                                            className={cn(
-                                                "pointer-events-none h-full w-full object-contain transition-all duration-500 md:rounded-xl",
-                                                isActive ? "md:scale-100 md:opacity-100" : "md:scale-[94.211%] md:opacity-50"
-                                            )}
-                                            src={banner.src}
-                                            alt={banner.alt}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, 50.577vw"
-                                            priority={realIndex === 0}
-                                        />
-                                    </Link>
-                                </div>
+                                    <div key={index} className="w-full flex-shrink-0 md:w-[50.577%] md:px-[3.2%]">
+                                        <Link
+                                            href={banner.href || '#'}
+                                            className="block h-full w-full relative"
+                                            target="_blank"
+                                            data-index={realIndex}
+                                        >
+                                            <Image
+                                                className={cn(
+                                                    "pointer-events-none h-full w-full object-contain transition-all duration-500 md:rounded-xl",
+                                                    isActive ? "md:scale-100 md:opacity-100" : "md:scale-[94.211%] md:opacity-50"
+                                                )}
+                                                src={banner.src}
+                                                alt={banner.alt}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 50.577vw"
+                                                priority={realIndex === 0}
+                                            />
+                                        </Link>
+                                    </div>
                                 );
                             })}
                         </div>
@@ -122,7 +117,6 @@ export function ImageCarousel() {
                         </button>
                     </div>
 
-                    {/* Dots for navigation */}
                     <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-2 md:gap-3">
                         {banners.map((_, index) => (
                             <button
@@ -130,7 +124,7 @@ export function ImageCarousel() {
                                 onClick={() => handleDotClick(index)}
                                 aria-label={`Go to slide ${index + 1}`}
                                 className={cn(
-                                    "h-1.5 w-1.5 cursor-pointer rounded-full bg-white/80",
+                                    "h-1.5 w-1.5 cursor-pointer rounded-full",
                                     getRealIndex(currentIndex) === index ? "bg-destructive" : "bg-white/40",
                                     "md:h-2.5 md:w-2.5",
                                      getRealIndex(currentIndex) === index ? "md:bg-[linear-gradient(209deg,#DA1C1C_-7.14%,#8C1515_102.95%)]" : "md:bg-white/40"
