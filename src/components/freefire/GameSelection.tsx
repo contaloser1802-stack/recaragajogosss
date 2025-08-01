@@ -160,7 +160,7 @@ export function GameSelection() {
                             return (
                                 <div
                                     key={game.id}
-                                    className="cursor-pointer outline-none"
+                                    className="cursor-pointer outline-none group"
                                     role="radio"
                                     aria-checked={isSelected}
                                     data-state={isSelected ? 'checked' : 'unchecked'}
@@ -178,7 +178,7 @@ export function GameSelection() {
                                             <div className="relative">
                                                 <div className={cn(
                                                     "relative overflow-hidden rounded-[25%] border-[3px] border-transparent transition-colors md:border-4",
-                                                    "data-[state=checked]:border-destructive"
+                                                    isSelected && "border-destructive"
                                                 )}>
                                                     <div className="relative pt-[100%]">
                                                         <Image
@@ -194,7 +194,7 @@ export function GameSelection() {
                                                 <div
                                                     className={cn(
                                                         "absolute inset-0 origin-top-left scale-50 rounded-ss-[50%] p-[18.75%] opacity-0 transition-opacity",
-                                                        "data-[state=checked]:opacity-100",
+                                                        "group-data-[state=checked]:opacity-100",
                                                         "ltr:bg-[linear-gradient(-45deg,transparent_50%,#D81A0D_50%)] rtl:origin-top-right rtl:bg-[linear-gradient(45deg,transparent_50%,#D81A0D_50%)]",
                                                         "dark:ltr:bg-[linear-gradient(-45deg,transparent_50%,#E4372E_50%)] dark:rtl:bg-[linear-gradient(45deg,transparent_50%,#E4372E_50%)]"
                                                     )}
@@ -205,7 +205,7 @@ export function GameSelection() {
                                         </div>
                                         <div className={cn(
                                             "line-clamp-2 text-center text-xs text-gray-700 md:text-sm/[22px]",
-                                            "data-[state=checked]:font-bold data-[state=checked]:text-destructive"
+                                            "group-data-[state=checked]:font-bold group-data-[state=checked]:text-destructive"
                                         )}>
                                             {game.name}
                                         </div>
