@@ -45,7 +45,14 @@ const BuyPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | 'EXPIRED' | 'CANCELLED' | 'UNKNOWN'>('PENDING');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
-  const [avatarIcon, setAvatarIcon] = useState<string>('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
+  
+  const [gameInfo, setGameInfo] = useState({
+      name: 'Free Fire',
+      banner: 'https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg',
+      icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png',
+      pointIcon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png',
+      currencyName: 'diamantes'
+  });
 
 
   const getSuccessRedirectPath = (productId?: string) => {
@@ -78,7 +85,13 @@ const BuyPage = () => {
       try {
         const storedAppId = localStorage.getItem('selectedAppId');
         if (storedAppId === '100151') {
-            setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
+          setGameInfo({
+              name: 'Delta Force',
+              banner: 'https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/DF-4dc01e48.jpg',
+              icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png',
+              pointIcon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/point.png',
+              currencyName: 'Delta Coins'
+          });
         }
 
         const storedPaymentData = localStorage.getItem("paymentData");
@@ -245,7 +258,7 @@ const BuyPage = () => {
   if (isLoading || !paymentData) {
     return (
       <div className="flex flex-col min-h-screen bg-white">
-        <Header avatarIcon={avatarIcon} />
+        <Header avatarIcon={gameInfo.icon} />
         <main className="flex-1 bg-white flex items-center justify-center">
           <p>Carregando dados do pagamento...</p>
         </main>
@@ -259,15 +272,15 @@ const BuyPage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <BackRedirect redirectTo="/downsell" />
-      <Header avatarIcon={avatarIcon} />
+      <Header avatarIcon={gameInfo.icon} />
       <main className="flex-1 bg-white">
         <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-gray-50 overflow-hidden">
           <div className="mb-3 bg-gray-50 md:mb-4 md:rounded-t-2xl md:p-2 md:pb-0">
             <div className="relative h-20 overflow-hidden md:h-[120px] md:rounded-t-lg">
               <Image
                 className="h-full w-full object-cover"
-                src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg"
-                alt="Free Fire Banner"
+                src={gameInfo.banner}
+                alt={`${gameInfo.name} Banner`}
                 fill
                 priority
                 data-ai-hint="gameplay screenshot"
@@ -284,20 +297,20 @@ const BuyPage = () => {
             <div className="relative mx-5 -mt-9 flex flex-col items-center gap-4 md:-mt-10">
               <Image
                 className="block h-[72px] w-[72px] overflow-hidden rounded-lg bg-white object-contain ring-4 ring-gray-50 md:h-20 md:w-20"
-                src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png"
-                alt="Free Fire"
+                src={gameInfo.icon}
+                alt={gameInfo.name}
                 width={80}
                 height={80}
                 data-ai-hint="game icon"
               />
-              <div className="text-center text-xl/none font-bold text-gray-800 md:text-2xl/none">Free Fire</div>
+              <div className="text-center text-xl/none font-bold text-gray-800 md:text-2xl/none">{gameInfo.name}</div>
             </div>
           </div>
 
           <dl className="mb-3 grid grid-cols-2 justify-between gap-x-3.5 px-4 md:mb-4 md:px-10">
             <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Total</dt>
             <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">
-              <Image className="h-3.5 w-3.5" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={14} height={14} alt="Diamante" data-ai-hint="diamond gem" />
+              <Image className="h-3.5 w-3.5" src={gameInfo.pointIcon} width={14} height={14} alt="Moeda do Jogo" data-ai-hint="diamond gem" />
               {paymentData.totalAmount || 'N/A'}
             </dd>
 
@@ -306,14 +319,14 @@ const BuyPage = () => {
                 <li className="flex items-center justify-between gap-12">
                   <div className="text-gray-600">Preço Original</div>
                   <div className="flex shrink-0 items-center gap-1">
-                    <Image className="h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={12} height={12} alt="Diamante" data-ai-hint="diamond gem" />
+                    <Image className="h-3 w-3 object-contain" src={gameInfo.pointIcon} width={12} height={12} alt="Moeda do Jogo" data-ai-hint="diamond gem" />
                     <div className="font-medium text-gray-800">{paymentData.originalAmount || 'N/A'}</div>
                   </div>
                 </li>
                 <li className="flex items-center justify-between gap-12">
                   <div className="text-gray-600">+ Bônus Geral</div>
                   <div className="flex shrink-0 items-center gap-1">
-                    <Image className="h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={12} height={12} alt="Diamante" data-ai-hint="diamond gem" />
+                    <Image className="h-3 w-3 object-contain" src={gameInfo.pointIcon} width={12} height={12} alt="Moeda do Jogo" data-ai-hint="diamond gem" />
                     <div className="font-medium text-gray-800">{paymentData.bonusAmount || 'N/A'}</div>
                   </div>
                 </li>
@@ -321,7 +334,7 @@ const BuyPage = () => {
             </div>
 
             <div className="col-span-2 mb-1 text-xs/normal text-gray-500 md:text-sm/normal">
-              Os diamantes, são válidos apenas para a região do Brasil e serão creditados diretamente na conta de jogo.
+              Os {gameInfo.currencyName}, são válidos apenas para a região do Brasil e serão creditados diretamente na conta de jogo.
             </div>
 
             <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Preço</dt>
@@ -354,10 +367,10 @@ const BuyPage = () => {
                 {paymentStatus === 'PENDING' && (
                   <>
                     Você tem {showTimeLeft ? <span className="font-bold">{formatTime(timeLeft)}</span> : 'alguns minutos'} para pagar.
-                    Após o pagamento, os diamantes podem levar alguns minutos para serem creditados.
+                    Após o pagamento, os {gameInfo.currencyName} podem levar alguns minutos para serem creditados.
                   </>
                 )}
-                {paymentStatus === 'APPROVED' && 'Seus diamantes serão creditados na conta do jogo em instantes. Estamos te redirecionando...'}
+                {paymentStatus === 'APPROVED' && `Seus ${gameInfo.currencyName} serão creditados na conta do jogo em instantes. Estamos te redirecionando...`}
                 {(paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') && 'O tempo para pagamento se esgotou ou foi cancelado. Por favor, inicie uma nova compra.'}
                 {paymentStatus === 'UNKNOWN' && 'Não foi possível verificar o status do pagamento. Por favor, aguarde ou recarregue a página.'}
               </AlertDescription>
@@ -397,7 +410,7 @@ const BuyPage = () => {
                   <li>Revise as informações e pronto!</li>
                 </ol>
                 <p>Seu pedido está sendo processado pelo nosso parceiro PagSeguro.</p>
-                <p>Você receberá seus diamantes após recebermos a confirmação do pagamento. Isso ocorre geralmente em alguns minutos após a realização do pagamento na sua instituição financeira.</p>
+                <p>Você receberá seus {gameInfo.currencyName} após recebermos a confirmação do pagamento. Isso ocorre geralmente em alguns minutos após a realização do pagamento na sua instituição financeira.</p>
                 <p>
                   Em caso de dúvidas entre em contato com o PagSeguro através do link{' '}
                   <a href="https://customer.international.pagseguro.com/pt-br" className="underline" target="_blank" rel="noopener noreferrer">
