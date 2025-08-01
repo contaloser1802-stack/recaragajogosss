@@ -94,9 +94,13 @@ export function DeltaForceContent({
                               <div className="me-3 h-9 w-9 shrink-0 overflow-hidden rounded-full">
                                 <Image className="block h-full w-full object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png" width={36} height={36} alt="Delta Force Icon" data-ai-hint="game icon" />
                               </div>
-                              <div className="flex-1">
-                                <div className="text-sm text-gray-600">Usuário:</div>
-                                <div className="text-sm/none font-bold text-gray-800">ID do jogador: {playerId}</div>
+                               <div className="flex-1 text-sm/none text-gray-800">
+                                <div className="text-gray-600">
+                                  <span className="font-bold">Usuário:</span> Não foi possível coletar nome do usuário
+                                </div>
+                                <div className="text-gray-600">
+                                  ID do jogador: {playerId}
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -205,20 +209,20 @@ export function DeltaForceContent({
                                         onKeyDown={(e) => onSelectionKeyDown(e, () => onRechargeSelect(itemId))}
                                         onClick={() => onRechargeSelect(itemId)}
                                         className={cn(
-                                            "group relative flex min-h-[50px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-md bg-white p-1 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
+                                            "group relative flex min-h-[64px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-md bg-white p-1 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
                                             "focus-visible:ring-2 focus-visible:ring-ring",
                                             isSelected && "ring-2 ring-destructive"
                                         )}
                                     >
-                                        <div className="flex flex-1 items-center">
-                                            <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/point.png" width={16} height={16} alt="Delta Coin" data-ai-hint="coin"/>
-                                            <span className="text-sm/none font-medium md:text-lg/none max-[350px]:text-xs/none">{pack.originalAmount}</span>
-                                        </div>
                                         {pack.promo && (
-                                            <div className="absolute top-0 right-0 bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-bl-md rounded-tr-md">
+                                            <div className="absolute top-0 right-0 left-0 bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 text-center">
                                                 {pack.promo}
                                             </div>
                                         )}
+                                        <div className={cn("flex flex-1 items-center", pack.promo && "pt-4")}>
+                                            <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/point.png" width={16} height={16} alt="Delta Coin" data-ai-hint="coin"/>
+                                            <span className="text-sm/none font-medium md:text-lg/none max-[350px]:text-xs/none">{pack.originalAmount}</span>
+                                        </div>
                                     </div>
                                 );
                             })}
