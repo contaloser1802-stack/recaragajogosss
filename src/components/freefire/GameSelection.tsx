@@ -82,10 +82,9 @@ export function GameSelection() {
     return (
         <>
             <div className="relative bg-[#EFEFEF]">
-                <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat md:bg-contain"
-                    style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/pattern-game-selection-59889447.png')" }}
-                ></div>
+                <div className="absolute inset-0 bg-[#EFEFEF] rtl:-scale-x-100 dark:bg-[linear-gradient(180deg,#16162B_0%,#242443_76.1%,#333356_100%)]" role="none">
+                    <div className="absolute inset-0 bg-cover bg-center bg-no-repeat dark:opacity-[0.06] md:bg-contain" role="none" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/pattern-game-selection-59889447.png')" }}></div>
+                </div>
                 <DecorativeBanner />
                 <div className="relative mx-auto flex max-w-5xl flex-col px-[22px] pb-[14px] pt-5 md:px-8 md:pb-4 md:pt-[27px]">
                     <h2 className="relative -ms-1.5 mb-4 text-lg/none font-bold text-gray-800 md:mb-5 md:ms-0 md:text-xl/none">
@@ -100,8 +99,14 @@ export function GameSelection() {
                                     className="cursor-pointer outline-none"
                                     role="radio"
                                     aria-checked={isSelected}
-                                    tabIndex={isSelected ? 0 : -1}
+                                    tabIndex={0}
                                     onClick={() => handleGameClick(game.id)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === ' ' || e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleGameClick(game.id);
+                                        }
+                                    }}
                                 >
                                     <div className="mx-auto max-w-[70px] md:max-w-[105px]">
                                         <div className="mb-1 px-[3px] md:mb-2 md:px-2">
@@ -150,3 +155,5 @@ export function GameSelection() {
         </>
     );
 }
+
+    
