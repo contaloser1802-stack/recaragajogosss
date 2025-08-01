@@ -38,7 +38,7 @@ const CheckmarkIcon = () => (
 const DecorativeBanner = () => (
     <div className="pointer-events-none absolute inset-0 flex rtl:-scale-x-100 rtl:flex-row-reverse" role="none">
         <div className="h-[7px] flex-1 bg-[#F2B13E] dark:bg-[#2D337D]/50" role="none"></div>
-        <svg width="390" height="27" viewBox="0 0 390 27" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[27px] dark:hidden md:hidden" preserveAspectRatio="xMidYMin" meet role="none">
+        <svg width="390" height="27" viewBox="0 0 390 27" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-[27px] dark:hidden md:hidden" preserveAspectRatio="xMidYMin" role="none">
             <path d="M390 0H0V7H285L301 27H390V0Z" fill="url(#paint0_linear_2330_34259)" role="none"></path>
             <mask id="mask0_2330_34259" maskUnits="userSpaceOnUse" x="0" y="0" width="390" height="27" role="none" style={{ maskType: 'alpha' }}>
                 <path d="M390 0H0V7H285L301 27H390V0Z" fill="url(#paint1_linear_2330_34259)" role="none"></path>
@@ -60,7 +60,7 @@ const DecorativeBanner = () => (
                 <linearGradient id="paint6_linear_2330_34259" x1="17.9709" y1="127.419" x2="83.65" y2="126.721" gradientUnits="userSpaceOnUse" role="none"><stop stopColor="#F79F00" role="none"></stop><stop offset="1" stopColor="#DE9611" stopOpacity="0" role="none"></stop></linearGradient>
             </defs>
         </svg>
-        <svg width="390" height="27" viewBox="0 0 390 27" fill="none" xmlns="http://www.w3.org/2000/svg" className="hidden h-[27px] dark:block dark:md:hidden" preserveAspectRatio="xMidYMin" meet role="none">
+        <svg width="390" height="27" viewBox="0 0 390 27" fill="none" xmlns="http://www.w3.org/2000/svg" className="hidden h-[27px] dark:block dark:md:hidden" preserveAspectRatio="xMidYMin" role="none">
             <g opacity="0.5" role="none">
                 <path d="M390 0H0V7H285L301 27H390V0Z" fill="url(#paint0_linear_5721_45163)" role="none"></path>
                 <mask id="mask0_5721_45163" maskUnits="userSpaceOnUse" x="0" y="0" width="390" height="27" role="none" style={{ maskType: 'alpha' }}>
@@ -84,7 +84,7 @@ const DecorativeBanner = () => (
                 <linearGradient id="paint6_linear_5721_45163" x1="17.9709" y1="127.419" x2="83.65" y2="126.721" gradientUnits="userSpaceOnUse" role="none"><stop stopColor="#F79F00" role="none"></stop><stop offset="1" stopColor="#DE9611" stopOpacity="0" role="none"></stop></linearGradient>
             </defs>
         </svg>
-        <svg width="1024" height="27" viewBox="0 0 1024 27" fill="none" xmlns="http://www.w3.org/2000/svg" className="hidden h-[27px] md:block dark:md:hidden" preserveAspectRatio="xMidYMin" meet role="none">
+        <svg width="1024" height="27" viewBox="0 0 1024 27" fill="none" xmlns="http://www.w3.org/2000/svg" className="hidden h-[27px] md:block dark:md:hidden" preserveAspectRatio="xMidYMin" role="none">
             <path d="M1024 0H0V7H516L532 27H1024V0Z" fill="url(#paint0_linear_2339_34301)" role="none"></path>
             <mask id="mask0_2339_34301" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="27" role="none" style={{ maskType: 'alpha' }}>
                 <path d="M1024 0H0V7H516L532 27H1024V0Z" fill="url(#paint1_linear_2339_34301)" role="none"></path>
@@ -106,7 +106,7 @@ const DecorativeBanner = () => (
                 <linearGradient id="paint6_linear_2339_34301" x1="248.971" y1="127.417" x2="314.65" y2="126.719" gradientUnits="userSpaceOnUse" role="none"><stop stopColor="#F79F00" role="none"></stop><stop offset="1" stopColor="#DE9611" stopOpacity="0" role="none"></stop></linearGradient>
             </defs>
         </svg>
-        <svg width="1024" height="27" viewBox="0 0 1024 27" fill="none" xmlns="http://www.w3.org/2000/svg" className="hidden h-[27px] dark:md:block" preserveAspectRatio="xMidYMin" meet role="none">
+        <svg width="1024" height="27" viewBox="0 0 1024 27" fill="none" xmlns="http://www.w3.org/2000/svg" className="hidden h-[27px] dark:md:block" preserveAspectRatio="xMidYMin" role="none">
             <g opacity="0.5" role="none">
                 <path d="M1024 0H0V7H516L532 27H1024V0Z" fill="url(#paint0_linear_5721_48876)" role="none"></path>
                 <mask id="mask0_5721_48876" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="27" role="none" style={{ maskType: 'alpha' }}>
