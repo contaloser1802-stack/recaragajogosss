@@ -17,8 +17,7 @@ export const banners = [
     },
     { 
         src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/77EA32E48F86033D.jpg?v=1753856459', 
-        alt: 'Banner 5',
-        href: 'freefire://process?action=squad_treasure_main_page&version=OB50'
+        alt: 'Banner 5'
     },
 ];
 

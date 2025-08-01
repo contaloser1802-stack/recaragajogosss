@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { banners } from '@/lib/data';
@@ -14,7 +13,10 @@ export function ImageCarousel() {
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isMobile = useIsMobile();
 
-    const loopedBanners = useMemo(() => [banners[banners.length - 1], ...banners, banners[0]], []);
+    const loopedBanners = useMemo(() => {
+      if (banners.length === 0) return [];
+      return [banners[banners.length - 1], ...banners, banners[0]]
+    }, []);
 
     const resetTimeout = useCallback(() => {
         if (timeoutRef.current) {
@@ -50,7 +52,7 @@ export function ImageCarousel() {
         setIsTransitioning(false);
         if (currentIndex === 0) {
             setCurrentIndex(banners.length);
-        } else if (currentIndex === banners.length + 1) {
+        } else if (currentIndex > banners.length) {
             setCurrentIndex(1);
         }
     };
@@ -59,9 +61,6 @@ export function ImageCarousel() {
         if (isMobile) {
             return `-${currentIndex * 100}%`;
         }
-        // Desktop: center the active slide, show parts of siblings
-        // Each slide is ~50% width, so we move by 50% * index.
-        // To center it, we offset by an additional 25% (half of one slide width)
         return `calc(-${currentIndex * 50}% + 25%)`;
     };
 
@@ -82,15 +81,12 @@ export function ImageCarousel() {
                                 const isActive = currentIndex === index;
                                 return (
                                     <div key={index} className="w-full flex-shrink-0 md:w-[50.577%]">
-                                        <Link
-                                            href={banner.href || '#'}
+                                        <div
                                             className="block h-full w-full relative"
-                                            target="_blank"
                                         >
                                             <Image
                                                 className={cn(
                                                     "pointer-events-none h-full w-full object-contain transition-all duration-500",
-                                                    // Desktop styles for active/inactive slides
                                                     "md:rounded-xl",
                                                     isActive 
                                                         ? "md:scale-100 md:opacity-100" 
@@ -102,7 +98,7 @@ export function ImageCarousel() {
                                                 sizes="(max-width: 768px) 100vw, 50.577vw"
                                                 priority={index >= 0 && index <= 2}
                                             />
-                                        </Link>
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -122,23 +118,27 @@ export function ImageCarousel() {
                     </div>
 
                     <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-2 md:gap-3">
-                        {banners.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => handleDotClick(index)}
-                                aria-label={`Go to slide ${index + 1}`}
-                                className={cn(
-                                    "h-1.5 w-1.5 cursor-pointer rounded-full",
-                                    (currentIndex - 1) === index || (currentIndex === 0 && index === banners.length - 1) || (currentIndex === banners.length + 1 && index === 0)
-                                      ? "bg-destructive" 
-                                      : "bg-white/40",
-                                    "md:h-2.5 md:w-2.5",
-                                     (currentIndex - 1) === index || (currentIndex === 0 && index === banners.length - 1) || (currentIndex === banners.length + 1 && index === 0) 
-                                      ? "md:bg-[linear-gradient(209deg,#DA1C1C_-7.14%,#8C1515_102.95%)]" 
-                                      : "md:bg-white/40"
-                                )}
-                            />
-                        ))}
+                        {banners.map((_, index) => {
+                            const normalizedCurrentIndex = (currentIndex -1 + banners.length) % banners.length;
+                            const isActive = normalizedCurrentIndex === index;
+                            return(
+                                <button
+                                    key={index}
+                                    onClick={() => handleDotClick(index)}
+                                    aria-label={`Go to slide ${index + 1}`}
+                                    className={cn(
+                                        "h-1.5 w-1.5 cursor-pointer rounded-full",
+                                        isActive
+                                          ? "bg-destructive" 
+                                          : "bg-white/40",
+                                        "md:h-2.5 md:w-2.5",
+                                        isActive 
+                                          ? "md:bg-[linear-gradient(209deg,#DA1C1C_-7.14%,#8C1515_102.95%)]" 
+                                          : "md:bg-white/40"
+                                    )}
+                                />
+                            )
+                        })}
                     </div>
                 </div>
             </div>
