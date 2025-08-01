@@ -311,7 +311,7 @@ function HomePageContent() {
                               </div>
                               <div className="flex-1">
                                 <div className="mb-1 text-base/none font-medium">
-                                  <span className="font-medium">Usuário:</span> Não foi possível coletar nome do usuário
+                                  <span className="font-medium">Usuário:</span> {playerName}
                                 </div>
                                 <div className="mt-2 text-xs/none text-gray-500">ID do jogador: {playerId}</div>
                               </div>
