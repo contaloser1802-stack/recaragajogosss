@@ -85,9 +85,8 @@ export const deltaForcePacks = [
 ];
 
 export const deltaForceSpecialOffers = [
-  { id: 'df-offer-genesis', name: 'Black Hawk Down - Gênesis', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/007/logo.png', price: 29.99, formattedPrice: 'R$ 29,99', originalAmount: 'Gênesis', bonusAmount: '', totalAmount: 'Gênesis' },
-  { id: 'df-offer-reinvention', name: 'Black Hawk Down - Reinvenção', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/008/logo.png', price: 29.99, formattedPrice: 'R$ 29,99', originalAmount: 'Reinvenção', bonusAmount: '', totalAmount: 'Reinvenção' },
-  { id: 'df-offer-tide', name: 'Suprimentos de Maré', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/011/logo.png', price: 34.90, formattedPrice: 'R$ 34,90', originalAmount: 'Maré', bonusAmount: '', totalAmount: 'Maré' },
-  { id: 'df-offer-tide-advanced', name: 'Suprimentos de Maré - Avançado', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/012/logo.png', price: 74.80, formattedPrice: 'R$ 74,80', originalAmount: 'Avançado', bonusAmount: '', totalAmount: 'Avançado' }
+  { id: 'df-offer-genesis', name: 'Black Hawk Down - Gênesis', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/007/logo.png', price: 29.90, formattedPrice: 'R$ 29,90', originalAmount: 'Gênesis', bonusAmount: '', totalAmount: 'Gênesis' },
+  { id: 'df-offer-reinvention', name: 'Black Hawk Down - Reinvenção', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/008/logo.png', price: 14.90, formattedPrice: 'R$ 14,90', originalAmount: 'Reinvenção', bonusAmount: '', totalAmount: 'Reinvenção' },
+  { id: 'df-offer-tide', name: 'Suprimentos de Maré', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/011/logo.png', price: 5.99, formattedPrice: 'R$ 5,99', originalAmount: 'Maré', bonusAmount: '', totalAmount: 'Maré' },
+  { id: 'df-offer-tide-advanced', name: 'Suprimentos de Maré - Avançado', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/012/logo.png', price: 7.50, formattedPrice: 'R$ 7,50', originalAmount: 'Avançado', bonusAmount: '', totalAmount: 'Avançado' }
 ];
-
