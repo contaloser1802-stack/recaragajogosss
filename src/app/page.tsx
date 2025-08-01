@@ -48,47 +48,49 @@ function HomePageContent() {
   const showFreeFireContent = selectedApp === '100067';
   const showDeltaForceContent = selectedApp === '100151';
 
+  const historyKey = `playerHistory_${selectedApp}`;
+
   useEffect(() => {
     try {
-      const storedHistory = localStorage.getItem('playerHistory');
+      const storedHistory = localStorage.getItem(historyKey);
       if (storedHistory) {
         setHistory(JSON.parse(storedHistory));
+      } else {
+        setHistory([]);
       }
       const storedPlayerName = localStorage.getItem('playerName');
       const storedPlayerId = localStorage.getItem('playerId');
       const storedAppId = localStorage.getItem('selectedAppId');
       
-      if (storedPlayerName && storedPlayerId && storedAppId === selectedApp) {
-        setPlayerName(storedPlayerName);
+      if (storedPlayerId && storedAppId === selectedApp) {
+        setPlayerName(storedPlayerName || '');
         setPlayerId(storedPlayerId);
         setIsLoggedIn(true);
       } else {
         // Clear old login data if the app has changed
         handleLogout(false);
       }
-    } catch (e) {
-      console.error("Failed to access localStorage", e);
-    }
-  }, [selectedApp]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedApp, historyKey]);
 
   const updateHistory = useCallback((newItem: LoginHistoryItem) => {
     setHistory(prevHistory => {
       const otherAccounts = prevHistory.filter(item => item.id !== newItem.id);
       const newHistory = [newItem, ...otherAccounts].slice(0, 5);
       try {
-        localStorage.setItem('playerHistory', JSON.stringify(newHistory));
+        localStorage.setItem(historyKey, JSON.stringify(newHistory));
       } catch (e) {
         console.error("Failed to access localStorage", e);
       }
       return newHistory;
     });
-  }, []);
+  }, [historyKey]);
 
   const removeFromHistory = (idToRemove: string) => {
     setHistory(prevHistory => {
       const newHistory = prevHistory.filter(item => item.id !== idToRemove);
       try {
-        localStorage.setItem('playerHistory', JSON.stringify(newHistory));
+        localStorage.setItem(historyKey, JSON.stringify(newHistory));
       } catch (e) {
         console.error("Failed to access localStorage", e);
       }
@@ -120,6 +122,21 @@ function HomePageContent() {
     setError('');
     setPlayerId(id);
 
+    if (showDeltaForceContent) {
+      // Delta Force login logic (always succeeds)
+        const fakeNickname = `User${id.slice(-4)}`;
+        setPlayerName(fakeNickname);
+        setIsLoggedIn(true);
+        localStorage.setItem('playerName', fakeNickname);
+        localStorage.setItem('playerId', id);
+        localStorage.setItem('selectedAppId', selectedApp);
+        updateHistory({ id: id, name: fakeNickname });
+        setIsHistoryPopoverOpen(false);
+        setIsLoading(false);
+        return;
+    }
+
+    // Free Fire login logic
     try {
       const response = await fetch(`/api/player-lookup?uid=${id}`);
       const data = await response.json();
@@ -151,7 +168,7 @@ function HomePageContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [updateHistory, selectedApp]);
+  }, [updateHistory, selectedApp, showDeltaForceContent]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -243,10 +260,12 @@ function HomePageContent() {
     setIsSocialLoginAlertOpen(true);
   };
 
+  const avatarIcon = showDeltaForceContent ? 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png' : 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png';
+
 
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header avatarIcon={avatarIcon}/>
       <main className="flex flex-1 flex-col">
         <div className="mb-5 flex h-full flex-col md:mb-12">
           <ImageCarousel />
@@ -533,6 +552,11 @@ function HomePageContent() {
               onRechargeSelect={handleRechargeSelection}
               onPaymentSelect={handlePaymentSelection}
               onSelectionKeyDown={handleSelectionKeyDown}
+              history={history}
+              isHistoryPopoverOpen={isHistoryPopoverOpen}
+              setIsHistoryPopoverOpen={setIsHistoryPopoverOpen}
+              performLogin={performLogin}
+              removeFromHistory={removeFromHistory}
             />
           )}
         </div>
