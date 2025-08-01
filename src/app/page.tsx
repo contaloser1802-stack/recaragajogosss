@@ -434,11 +434,11 @@ function HomePageContent() {
                               )}
                             >
                                {pack.promo && (
-                                    <div className="absolute top-0 right-0 left-0 bg-destructive text-white text-[10px] font-bold px-1.5 py-0.5 text-center">
+                                    <div className="absolute top-0 right-0 left-0 bg-destructive text-white text-[9px] font-bold px-1 text-center">
                                         {pack.promo}
                                     </div>
                                 )}
-                              <div className={cn("flex flex-1 items-center", pack.promo && "pt-4")}>
+                              <div className={cn("flex flex-1 items-center", pack.promo && "pt-3")}>
                                 <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
                                 <span className="text-sm/none font-medium md:text-lg/none max-[350px]:text-xs/none">{pack.originalAmount}</span>
                               </div>
