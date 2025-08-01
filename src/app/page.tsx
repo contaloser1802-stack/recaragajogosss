@@ -74,8 +74,7 @@ function HomePageContent() {
         console.error("Failed to access localStorage", e);
         handleLogout(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedApp]);
+  }, [selectedApp, historyKey]);
 
   const updateHistory = useCallback((newItem: LoginHistoryItem) => {
     setHistory(prevHistory => {
@@ -127,7 +126,6 @@ function HomePageContent() {
     setPlayerId(id);
 
     if (showDeltaForceContent) {
-      // Delta Force login logic (always succeeds)
         const fakeNickname = '';
         setPlayerName(fakeNickname);
         setIsLoggedIn(true);
@@ -172,7 +170,7 @@ function HomePageContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [updateHistory, selectedApp, showDeltaForceContent, historyKey]);
+  }, [updateHistory, selectedApp, showDeltaForceContent]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -312,7 +310,9 @@ function HomePageContent() {
                                 <Image className="block h-full w-full object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png" width={36} height={36} alt="Free Fire Icon" data-ai-hint="game icon" />
                               </div>
                               <div className="flex-1">
-                                <div className="mb-1 text-base/none font-medium">{playerName}</div>
+                                <div className="mb-1 text-base/none font-medium">
+                                  <span className="font-medium">Usuário:</span> Não foi possível coletar nome do usuário
+                                </div>
                                 <div className="mt-2 text-xs/none text-gray-500">ID do jogador: {playerId}</div>
                               </div>
                             </div>
@@ -551,6 +551,7 @@ function HomePageContent() {
               setPlayerId={setPlayerId}
               handleLogin={handleLogin}
               handleLogout={() => setIsLogoutAlertOpen(true)}
+              onSocialLoginClick={handleSocialLoginClick}
               selectedRechargeId={selectedRechargeId}
               selectedPaymentId={selectedPaymentId}
               onRechargeSelect={handleRechargeSelection}

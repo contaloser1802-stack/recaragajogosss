@@ -22,6 +22,7 @@ interface DeltaForceContentProps {
   setPlayerId: (id: string) => void;
   handleLogin: (e: React.FormEvent) => Promise<void>;
   handleLogout: () => void;
+  onSocialLoginClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   selectedRechargeId: string | null;
   selectedPaymentId: string | null;
   onRechargeSelect: (id: string) => void;
@@ -43,6 +44,7 @@ export function DeltaForceContent({
   setPlayerId,
   handleLogin,
   handleLogout,
+  onSocialLoginClick,
   selectedRechargeId,
   selectedPaymentId,
   onRechargeSelect,
@@ -170,15 +172,15 @@ export function DeltaForceContent({
                             </form>
                             <div className="flex items-center gap-4 text-xs/normal text-gray-500 md:text-sm/[22px]">
                               <span className="me-auto">Ou entre com sua conta de jogo</span>
-                               <a className="shrink-0 rounded-full p-1.5 transition-opacity hover:opacity-70 outline outline-1 -outline-offset-1 outline-gray-200 bg-white" href="#">
+                               <button type="button" onClick={onSocialLoginClick} className="shrink-0 rounded-full p-1.5 transition-opacity hover:opacity-70 outline outline-1 -outline-offset-1 outline-gray-200 bg-white">
                                 <Image width={20} height={20} className="h-5 w-5" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-garena-2fce3e76.svg" alt="Garena logo" data-ai-hint="social media logo" />
-                               </a>
-                              <a className="shrink-0 rounded-full p-1.5 transition-opacity hover:opacity-70 bg-[#006AFC]" href="#">
+                               </button>
+                              <button type="button" onClick={onSocialLoginClick} className="shrink-0 rounded-full p-1.5 transition-opacity hover:opacity-70 bg-[#006AFC]">
                                 <Image width={20} height={20} className="h-5 w-5 brightness-0 invert" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-fb-485c92b0.svg" alt="Facebook logo" data-ai-hint="social media logo" />
-                              </a>
-                              <a className="shrink-0 rounded-full p-1.5 transition-opacity hover:opacity-70 outline outline-1 -outline-offset-1 outline-gray-200 bg-white" href="#">
+                              </button>
+                              <button type="button" onClick={onSocialLoginClick} className="shrink-0 rounded-full p-1.5 transition-opacity hover:opacity-70 outline outline-1 -outline-offset-1 outline-gray-200 bg-white">
                                 <Image width={20} height={20} className="h-5 w-5" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-google-d2ceaa95.svg" alt="Google logo" data-ai-hint="social media logo" />
-                              </a>
+                              </button>
                             </div>
                           </div>
                         </>
