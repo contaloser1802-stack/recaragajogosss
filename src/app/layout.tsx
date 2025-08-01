@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -13,6 +14,21 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  useEffect(() => {
+    console.log(
+      '%cSegura aí, campeão!',
+      'color: #ff5733; font-size: 40px; font-weight: bold; text-shadow: 2px 2px 4px #000000;'
+    );
+    console.log(
+      '%cSe alguém te disse para colar algo aqui, há uma chance de 11 em 10 de você estar sendo enganado.',
+      'font-size: 16px;'
+    );
+     console.log(
+      '%cColar qualquer coisa aqui pode dar a invasores acesso à sua conta e roubar seus dados.',
+      'font-size: 16px; font-weight: bold; color: red;'
+    );
+  }, []);
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
