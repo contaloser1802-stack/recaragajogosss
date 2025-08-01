@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
@@ -23,6 +22,7 @@ import { ImageCarousel } from '@/components/freefire/ImageCarousel';
 import { PurchaseFooter } from '@/components/freefire/PurchaseFooter';
 import { ShieldCheckIcon, StepMarker, InfoIcon, SwitchAccountIcon } from '@/components/freefire/Icons';
 import { HistoryPopover } from '@/components/freefire/HistoryPopover';
+import { DeltaForceContent } from '@/components/deltaforce/DeltaForceContent';
 
 
 function HomePageContent() {
@@ -46,6 +46,7 @@ function HomePageContent() {
   const [isSocialLoginAlertOpen, setIsSocialLoginAlertOpen] = useState(false);
 
   const showFreeFireContent = searchParams.get('app') === '100067' || !searchParams.has('app');
+  const showDeltaForceContent = searchParams.get('app') === '100151';
 
   useEffect(() => {
     try {
@@ -505,6 +506,7 @@ function HomePageContent() {
               </div>
             </div>
           )}
+          {showDeltaForceContent && <DeltaForceContent />}
         </div>
         <div className="z-[9] pointer-events-none sticky bottom-0"></div>
       </main>

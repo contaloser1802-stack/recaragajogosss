@@ -74,3 +74,31 @@ export const specialOfferItems = [
     { id: 'calca-angelical', name: 'Calça Angelical Azul', price: 14.99, originalPrice: 149.90, image: 'https://i.ibb.co/qMX69Lt6/Screenshot-31.png' },
     { id: 'dunk-master', name: 'Dunk Master', price: 7.50, originalPrice: 75.90, image: 'https://i.ibb.co/RTBdyFsP/Screenshot-34.png' },
 ];
+
+export const deltaForcePacks = [
+  { id: 'df-pack-30', name: '30 Delta Coins', originalAmount: '30', bonusAmount: '0', totalAmount: '30', price: 2.99, formattedPrice: 'R$ 2,99' },
+  { id: 'df-pack-60', name: '60 Delta Coins', originalAmount: '60', bonusAmount: '0', totalAmount: '60', price: 5.99, formattedPrice: 'R$ 5,99' },
+  { id: 'df-pack-300', name: '300 Delta Coins', originalAmount: '300', bonusAmount: '0', totalAmount: '300', price: 29.99, formattedPrice: 'R$ 29,99' },
+  { id: 'df-pack-680', name: '680 Delta Coins', originalAmount: '680', bonusAmount: '0', totalAmount: '680', price: 64.99, formattedPrice: 'R$ 64,99' },
+  { id: 'df-pack-1280', name: '1.280 Delta Coins', originalAmount: '1.280', bonusAmount: '0', totalAmount: '1.280', price: 129.99, formattedPrice: 'R$ 129,99' },
+  { id: 'df-pack-3280', name: '3.280 Delta Coins', originalAmount: '3.280', bonusAmount: '0', totalAmount: '3.280', price: 329.99, formattedPrice: 'R$ 329,99' },
+  { id: 'df-pack-6480', name: '6.480 Delta Coins', originalAmount: '6.480', bonusAmount: '0', totalAmount: '6.480', price: 649.99, formattedPrice: 'R$ 649,99' },
+];
+
+export const deltaForceSpecialOffers = [
+  { id: 'df-offer-genesis', name: 'Black Hawk Down - Gênesis', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/007/logo.png', price: 29.99, formattedPrice: 'R$ 29,99', originalAmount: 'Gênesis', bonusAmount: '', totalAmount: 'Gênesis' },
+  { id: 'df-offer-reinvention', name: 'Black Hawk Down - Reinvenção', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/008/logo.png', price: 29.99, formattedPrice: 'R$ 29,99', originalAmount: 'Reinvenção', bonusAmount: '', totalAmount: 'Reinvenção' },
+  { id: 'df-offer-tide', name: 'Suprimentos de Maré', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/011/logo.png', price: 34.90, formattedPrice: 'R$ 34,90', originalAmount: 'Maré', bonusAmount: '', totalAmount: 'Maré' },
+  { id: 'df-offer-tide-advanced', name: 'Suprimentos de Maré - Avançado', image: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/item/0030/200/012/logo.png', price: 74.80, formattedPrice: 'R$ 74,80', originalAmount: 'Avançado', bonusAmount: '', totalAmount: 'Avançado' }
+];
+
+export const deltaForcePaymentMethods = [
+  { id: 'df-payment-pix', name: 'PIX', displayName: 'Pix via PagSeguro', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/pix_boa_mb.png' },
+  { id: 'df-payment-nupay', name: 'Nupay', displayName: 'NuPay via Loja dos Gamers', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/br_nupay_mb.png' },
+  { id: 'df-payment-picpay', name: 'PicPay', displayName: 'PicPay via Loja dos Gamers', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/picpay_mb.png' },
+  { id: 'df-payment-cc', name: 'Credit Card', displayName: 'Cartão de Crédito via PagSeguro', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/creditcard_mb.png' },
+  { id: 'df-payment-mercadopago', name: 'Mercado Pago', displayName: 'Mercado Pago', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/mx/menu/mx_mercado_mb.png' },
+  { id: 'df-payment-ewallet', name: 'E-Wallet', displayName: 'Carteira Online', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/br_direct_ewallet_mb_NEW.png' },
+  { id: 'df-payment-banktransfer', name: 'Bank Transfer', displayName: 'Transferência Bancária', image: 'https://cdn-gop.garenanow.com/gop/static/channel/0000/211/137/icon.png' },
+  { id: 'df-payment-boleto', name: 'Boleto', displayName: 'Boleto', image: 'https://cdn-gop.garenanow.com/webmain/static/payment_center/br/menu/boleto_mb.png' },
+];
