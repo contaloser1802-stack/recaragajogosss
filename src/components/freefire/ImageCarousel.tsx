@@ -22,14 +22,17 @@ export function ImageCarousel() {
     }, []);
 
     const handleNext = useCallback(() => {
+        setIsTransitioning(true);
         setCurrentIndex(prevIndex => prevIndex + 1);
     }, []);
     
     const handlePrev = () => {
+        setIsTransitioning(true);
         setCurrentIndex(prevIndex => prevIndex - 1);
     };
 
     const handleDotClick = (index: number) => {
+        setIsTransitioning(true);
         setCurrentIndex(index + 1); // Adjust for the cloned first slide
     };
 
@@ -58,16 +61,6 @@ export function ImageCarousel() {
         }
     }, [currentIndex, banners.length]);
 
-    // Re-enable transitions after the loop jump
-    useEffect(() => {
-        if (!isTransitioning) {
-            // A tiny delay is needed to allow the CSS to update before re-enabling transitions
-            requestAnimationFrame(() => {
-                setIsTransitioning(true);
-            });
-        }
-    }, [isTransitioning]);
-
     const getRealIndex = (index: number) => {
         if (index === 0) return banners.length - 1;
         if (index === banners.length + 1) return 0;
@@ -79,7 +72,7 @@ export function ImageCarousel() {
             <div className="group mx-auto w-full max-w-[1366px] md:py-2.5 lg:py-5">
                 <div className="relative overflow-hidden">
                     {/* Main container for slides */}
-                    <div className="relative flex justify-center pt-[43.478%] md:pt-[19.106%]">
+                    <div className="relative h-0 pt-[43.478%] md:pt-[19.106%]">
                          {/* Slides Wrapper */}
                         <div
                             className="absolute inset-0 flex"
@@ -92,25 +85,26 @@ export function ImageCarousel() {
                                 const realIndex = getRealIndex(index);
                                 const isActive = getRealIndex(currentIndex) === realIndex;
                                 return (
-                                <Link
-                                    key={index}
-                                    href={banner.href || '#'}
-                                    className="block h-full w-full shrink-0 md:w-[50.577%] md:px-[3.2%]"
-                                    target="_blank"
-                                    data-index={realIndex}
-                                >
-                                    <Image
-                                        className={cn(
-                                            "pointer-events-none h-full w-full object-contain transition-all duration-500 md:rounded-xl",
-                                            isActive ? "md:scale-100 md:opacity-100" : "md:scale-[94.211%] md:opacity-50"
-                                        )}
-                                        src={banner.src}
-                                        alt={banner.alt}
-                                        fill
-                                        sizes="(max-width: 768px) 100vw, 50.577vw"
-                                        priority={realIndex === 0}
-                                    />
-                                </Link>
+                                <div key={index} className="w-full flex-shrink-0 md:w-[50.577%] md:px-[3.2%]">
+                                    <Link
+                                        href={banner.href || '#'}
+                                        className="block h-full w-full relative"
+                                        target="_blank"
+                                        data-index={realIndex}
+                                    >
+                                        <Image
+                                            className={cn(
+                                                "pointer-events-none h-full w-full object-contain transition-all duration-500 md:rounded-xl",
+                                                isActive ? "md:scale-100 md:opacity-100" : "md:scale-[94.211%] md:opacity-50"
+                                            )}
+                                            src={banner.src}
+                                            alt={banner.alt}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 50.577vw"
+                                            priority={realIndex === 0}
+                                        />
+                                    </Link>
+                                </div>
                                 );
                             })}
                         </div>
