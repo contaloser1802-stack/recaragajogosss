@@ -1,3 +1,4 @@
+
 export const banners = [
     { 
         src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/26B06340B596B357.png?v=1729016596', 
@@ -22,13 +23,13 @@ export const banners = [
 ];
 
 export const diamondPacks = [
-    { id: 'pack-1060', name: '1.060 Diamantes', originalAmount: '1.060', bonusAmount: '1.060', totalAmount: '2.120', price: 19.99, formattedPrice: 'R$ 19,99' },
-    { id: 'pack-2180', name: '2.180 Diamantes', originalAmount: '2.180', bonusAmount: '2.180', totalAmount: '4.360', price: 27.99, formattedPrice: 'R$ 27,99', promo: 'DOBRO DE DIAMANTES' },
-    { id: 'pack-5600', name: '5.600 Diamantes', originalAmount: '5.600', bonusAmount: '5.600', totalAmount: '11.200', price: 62.99, formattedPrice: 'R$ 62,99', promo: 'DOBRO DE DIAMANTES' },
+    { id: 'pack-520', name: '520 Diamantes', originalAmount: '520', bonusAmount: '104', totalAmount: '624', price: 9.90, formattedPrice: 'R$ 9,90' },
+    { id: 'pack-1060', name: '1.060 Diamantes', originalAmount: '1.060', bonusAmount: '212', totalAmount: '1.272', price: 14.90, formattedPrice: 'R$ 14,90' },
+    { id: 'pack-2180', name: '2.180 Diamantes', originalAmount: '2.180', bonusAmount: '2.180', totalAmount: '4.360', price: 19.90, formattedPrice: 'R$ 19,90', promo: 'DOBRO DE DIAMANTES' },
+    { id: 'pack-5600', name: '5.600 Diamantes', originalAmount: '5.600', bonusAmount: '5.600', totalAmount: '11.200', price: 37.80, formattedPrice: 'R$ 37,80', promo: 'DOBRO DE DIAMANTES' },
     { id: 'pack-12800', name: '12.800 Diamantes', originalAmount: '12.800', bonusAmount: '0', totalAmount: '12.800', price: 109.99, formattedPrice: 'R$ 109,99' },
     { id: 'pack-25600', name: '25.600 Diamantes', originalAmount: '25.600', bonusAmount: '0', totalAmount: '25.600', price: 174.99, formattedPrice: 'R$ 174,99' },
     { id: 'pack-29900', name: '29.900 Diamantes', originalAmount: '29.900', bonusAmount: '0', totalAmount: '29.900', price: 209.99, formattedPrice: 'R$ 209,99' },
-    { id: 'pack-44900', name: '44.900 Diamantes', originalAmount: '44.900', bonusAmount: '0', totalAmount: '44.900', price: 329.99, formattedPrice: 'R$ 329,99' },
 ];
 
 export const specialOffers = [
