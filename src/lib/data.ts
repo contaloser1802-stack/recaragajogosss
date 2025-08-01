@@ -79,8 +79,8 @@ export const deltaForcePacks = [
     { id: 'df-pack-60', name: '60 Delta Coins', originalAmount: '60', bonusAmount: '39', totalAmount: '99', price: 5.89, formattedPrice: 'R$ 5,89' },
     { id: 'df-pack-300', name: '300 Delta Coins', originalAmount: '300', bonusAmount: '181', totalAmount: '481', price: 9.49, formattedPrice: 'R$ 9,49' },
     { id: 'df-pack-680', name: '680 Delta Coins', originalAmount: '680', bonusAmount: '307', totalAmount: '987', price: 19.90, formattedPrice: 'R$ 19,90' },
-    { id: 'df-pack-1280', name: '1.280 Delta Coins', originalAmount: '1.280', bonusAmount: '1.280', totalAmount: '2.560', price: 37.99, formattedPrice: 'R$ 37,99' },
-    { id: 'df-pack-3280', name: '3.280 Delta Coins', originalAmount: '3.280', bonusAmount: '3.280', totalAmount: '6.560', price: 97.99, formattedPrice: 'R$ 97,99' },
+    { id: 'df-pack-1280', name: '1.280 Delta Coins', originalAmount: '1.280', bonusAmount: '1.280', totalAmount: '2.560', price: 37.99, formattedPrice: 'R$ 37,99', promo: 'COINS EM DOBRO' },
+    { id: 'df-pack-3280', name: '3.280 Delta Coins', originalAmount: '3.280', bonusAmount: '3.280', totalAmount: '6.560', price: 97.99, formattedPrice: 'R$ 97,99', promo: 'COINS EM DOBRO' },
     { id: 'df-pack-6480', name: '6.480 Delta Coins', originalAmount: '6.480', bonusAmount: '2.916', totalAmount: '9.396', price: 149.90, formattedPrice: 'R$ 149,90' },
 ];
 

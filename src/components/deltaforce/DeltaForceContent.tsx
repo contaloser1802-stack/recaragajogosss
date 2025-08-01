@@ -7,6 +7,11 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { deltaForcePacks, deltaForceSpecialOffers, paymentMethods } from '@/lib/data';
 import { ShieldCheckIcon, StepMarker, InfoIcon, SwitchAccountIcon } from '@/components/freefire/Icons';
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { HistoryPopover } from '@/components/freefire/HistoryPopover';
+import { Sheet, SheetTrigger } from '@/components/ui/sheet';
+import { ChevronLeft } from 'lucide-react';
 
 
 interface DeltaForceContentProps {
@@ -15,13 +20,18 @@ interface DeltaForceContentProps {
   error: string;
   playerId: string;
   setPlayerId: (id: string) => void;
-  handleLogin: (e: React.FormEvent) => void;
+  handleLogin: (e: React.FormEvent) => Promise<void>;
   handleLogout: () => void;
   selectedRechargeId: string | null;
   selectedPaymentId: string | null;
   onRechargeSelect: (id: string) => void;
   onPaymentSelect: (id: string) => void;
   onSelectionKeyDown: (e: React.KeyboardEvent<HTMLDivElement>, callback: () => void) => void;
+  history: { id: string, name: string }[];
+  isHistoryPopoverOpen: boolean;
+  setIsHistoryPopoverOpen: (open: boolean) => void;
+  performLogin: (id: string) => Promise<void>;
+  removeFromHistory: (id: string) => void;
 }
 
 
@@ -38,8 +48,15 @@ export function DeltaForceContent({
   onRechargeSelect,
   onPaymentSelect,
   onSelectionKeyDown,
+  history,
+  isHistoryPopoverOpen,
+  setIsHistoryPopoverOpen,
+  performLogin,
+  removeFromHistory,
 }: DeltaForceContentProps) {
     const allRechargeOptions = [...deltaForcePacks, ...deltaForceSpecialOffers];
+    const isMobile = useIsMobile();
+
 
     return (
         <div className="bg-white">
@@ -99,16 +116,53 @@ export function DeltaForceContent({
                                 </button>
                               </label>
                               <div className="flex">
-                                <div className="relative grow">
-                                  <Input
-                                    id="df-player-id"
-                                    className="w-full bg-white pr-10 rounded-r-none"
-                                    type="text"
-                                    placeholder="Insira o ID de jogador aqui"
-                                    value={playerId}
-                                    onChange={(e) => setPlayerId(e.target.value)}
-                                  />
-                                </div>
+                                <Popover open={!isMobile && isHistoryPopoverOpen} onOpenChange={setIsHistoryPopoverOpen}>
+                                   <PopoverAnchor asChild>
+                                    <div className="relative grow">
+                                      <Input
+                                        id="df-player-id"
+                                        className="w-full bg-white pr-10 rounded-r-none"
+                                        type="text"
+                                        placeholder="Insira o ID de jogador aqui"
+                                        value={playerId}
+                                        onChange={(e) => setPlayerId(e.target.value)}
+                                      />
+                                      {history.length > 0 && (
+                                        <>
+                                          {isMobile ? (
+                                            <Sheet open={isHistoryPopoverOpen} onOpenChange={setIsHistoryPopoverOpen}>
+                                              <SheetTrigger asChild>
+                                                <button type="button" className="absolute end-2 top-1/2 block -translate-y-1/2 text-lg transition-all hover:opacity-70" aria-label="Histórico de Contas">
+                                                  <ChevronLeft className="h-5 w-5 rotate-[-90deg]" />
+                                                </button>
+                                              </SheetTrigger>
+                                              <HistoryPopover
+                                                  history={history}
+                                                  onClose={() => setIsHistoryPopoverOpen(false)}
+                                                  onSelect={(id) => performLogin(id)}
+                                                  onRemove={(id) => removeFromHistory(id)}
+                                              />
+                                            </Sheet>
+                                          ) : (
+                                            <PopoverTrigger asChild>
+                                              <button type="button" className="absolute end-2 top-1/2 block -translate-y-1/2 text-lg transition-all hover:opacity-70" aria-label="Histórico de Contas">
+                                                <ChevronLeft className={cn("h-5 w-5 transition-transform", isHistoryPopoverOpen ? "rotate-[-90deg]" : "rotate-0")} />
+                                              </button>
+                                            </PopoverTrigger>
+                                          )}
+                                        </>
+                                      )}
+                                    </div>
+                                  </PopoverAnchor>
+                                  {!isMobile && history.length > 0 && (
+                                      <HistoryPopover
+                                          history={history}
+                                          onClose={() => setIsHistoryPopoverOpen(false)}
+                                          onSelect={(id) => performLogin(id)}
+                                          onRemove={(id) => removeFromHistory(id)}
+                                      />
+                                  )}
+                                </Popover>
                                 <Button type="submit" variant="destructive" className="rounded-l-none" disabled={isLoading}>
                                   {isLoading ? 'Aguarde...' : 'Login'}
                                 </Button>
@@ -140,28 +194,33 @@ export function DeltaForceContent({
                         </div>
                         <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6 md:gap-4">
                             {deltaForcePacks.map((pack) => {
-                            const itemId = pack.id;
-                            const isSelected = selectedRechargeId === itemId;
-                            return (
-                                <div
-                                key={itemId}
-                                role="radio"
-                                aria-checked={isSelected}
-                                tabIndex={0}
-                                onKeyDown={(e) => onSelectionKeyDown(e, () => onRechargeSelect(itemId))}
-                                onClick={() => onRechargeSelect(itemId)}
-                                className={cn(
-                                    "group relative flex min-h-[50px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-md bg-white p-1 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
-                                    "focus-visible:ring-2 focus-visible:ring-ring",
-                                    isSelected && "ring-2 ring-destructive"
-                                )}
-                                >
-                                <div className="flex flex-1 items-center">
-                                    <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/point.png" width={16} height={16} alt="Delta Coin" data-ai-hint="coin"/>
-                                    <span className="text-sm/none font-medium md:text-lg/none max-[350px]:text-xs/none">{pack.originalAmount}</span>
-                                </div>
-                                </div>
-                            );
+                                const itemId = pack.id;
+                                const isSelected = selectedRechargeId === itemId;
+                                return (
+                                    <div
+                                        key={itemId}
+                                        role="radio"
+                                        aria-checked={isSelected}
+                                        tabIndex={0}
+                                        onKeyDown={(e) => onSelectionKeyDown(e, () => onRechargeSelect(itemId))}
+                                        onClick={() => onRechargeSelect(itemId)}
+                                        className={cn(
+                                            "group relative flex min-h-[50px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-md bg-white p-1 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
+                                            "focus-visible:ring-2 focus-visible:ring-ring",
+                                            isSelected && "ring-2 ring-destructive"
+                                        )}
+                                    >
+                                        <div className="flex flex-1 items-center">
+                                            <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/point.png" width={16} height={16} alt="Delta Coin" data-ai-hint="coin"/>
+                                            <span className="text-sm/none font-medium md:text-lg/none max-[350px]:text-xs/none">{pack.originalAmount}</span>
+                                        </div>
+                                        {pack.promo && (
+                                            <div className="absolute top-0 right-0 bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-bl-md rounded-tr-md">
+                                                {pack.promo}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
                             })}
                         </div>
                         <div className="my-4 flex items-center" role="none">
