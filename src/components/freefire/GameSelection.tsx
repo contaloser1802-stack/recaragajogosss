@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,12 +18,6 @@ const games = [
         appId: '100151',
         name: 'Delta Force',
         icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png'
-    },
-    {
-        id: 'hq',
-        appId: '100153',
-        name: 'HAIKYU!! FLY HIGH',
-        icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/153/icon.png',
     }
 ];
 
