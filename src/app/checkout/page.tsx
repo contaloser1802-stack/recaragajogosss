@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -14,7 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { specialOfferItems } from '@/lib/data';
@@ -38,6 +37,7 @@ const formSchema = z.object({
 
 function CheckoutPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isPromoApplied, setIsPromoApplied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,15 +48,28 @@ function CheckoutPageContent() {
   const [playerName, setPlayerName] = useState("Carregando...");
   const [paymentMethodName, setPaymentMethodName] = useState("PIX");
   const [selectedOffers, setSelectedOffers] = useState<string[]>([]);
+  const [gameInfo, setGameInfo] = useState({
+      name: 'Free Fire',
+      banner: 'https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg',
+      icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png',
+      pointIcon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png'
+  });
 
   useEffect(() => {
     setIsClient(true);
-    // Remove as chamadas de script da Utmify e FB Pixel daqui
-    // pois a coleta será feita no backend
-  
     try {
       const storedProduct = localStorage.getItem('selectedProduct');
       const storedPlayerName = localStorage.getItem('playerName');
+      const appId = localStorage.getItem('selectedAppId') || '100067';
+
+      if (appId === '100151') {
+          setGameInfo({
+              name: 'Delta Force',
+              banner: 'https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/DF-4dc01e48.jpg',
+              icon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png',
+              pointIcon: 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/point.png'
+          });
+      }
 
       if (storedProduct) {
         setProduct(JSON.parse(storedProduct));
@@ -276,8 +289,8 @@ function CheckoutPageContent() {
         <div className="relative h-20 overflow-hidden md:h-[120px] md:rounded-t-lg">
           <Image
             className="h-full w-full object-cover"
-            src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg"
-            alt="Free Fire Banner"
+            src={gameInfo.banner}
+            alt={`${gameInfo.name} Banner`}
             fill
             priority
             data-ai-hint="gameplay screenshot"
@@ -294,20 +307,20 @@ function CheckoutPageContent() {
         <div className="relative mx-5 -mt-9 flex flex-col items-center gap-4 md:-mt-10">
           <Image
             className="block h-[72px] w-[72px] overflow-hidden rounded-lg bg-white object-contain ring-4 ring-gray-50 md:h-20 md:w-20"
-            src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png"
-            alt="Free Fire"
+            src={gameInfo.icon}
+            alt={gameInfo.name}
             width={80}
             height={80}
             data-ai-hint="game icon"
           />
-          <div className="text-center text-xl/none font-bold text-gray-800 md:text-2xl/none">Free Fire</div>
+          <div className="text-center text-xl/none font-bold text-gray-800 md:text-2xl/none">{gameInfo.name}</div>
         </div>
       </div>
 
       <dl className="mb-3 grid grid-cols-2 justify-between gap-x-3.5 px-4 md:mb-4 md:px-10">
         <dt className="py-3 text-sm/none text-gray-600 md:text-base/none">Total</dt>
         <dd className="flex items-center justify-end gap-1 py-3 text-end text-sm/none font-medium text-gray-800 md:text-base/none">
-          <Image className="h-3.5 w-3.5" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={14} height={14} alt="Diamante" data-ai-hint="diamond gem" />
+          <Image className="h-3.5 w-3.5" src={gameInfo.pointIcon} width={14} height={14} alt="Moeda do jogo" data-ai-hint="diamond gem" />
           {product?.totalAmount}
         </dd>
 
@@ -316,14 +329,14 @@ function CheckoutPageContent() {
             <li className="flex items-center justify-between gap-12">
               <div className="text-gray-600">Preço Original</div>
               <div className="flex shrink-0 items-center gap-1">
-                <Image className="h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={12} height={12} alt="Diamante" data-ai-hint="diamond gem" />
+                <Image className="h-3 w-3 object-contain" src={gameInfo.pointIcon} width={12} height={12} alt="Moeda do jogo" data-ai-hint="diamond gem" />
                 <div className="font-medium text-gray-800">{product?.originalAmount}</div>
               </div>
             </li>
             <li className="flex items-center justify-between gap-12">
               <div className="text-gray-600">+ Bônus Geral</div>
               <div className="flex shrink-0 items-center gap-1">
-                <Image className="h-3 w-3 object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={12} height={12} alt="Diamante" data-ai-hint="diamond gem" />
+                <Image className="h-3 w-3 object-contain" src={gameInfo.pointIcon} width={12} height={12} alt="Moeda do jogo" data-ai-hint="diamond gem" />
                 <div className="font-medium text-gray-800">{product?.bonusAmount}</div>
               </div>
             </li>
@@ -481,13 +494,20 @@ function CheckoutPageContent() {
 }
 
 export default function CheckoutPage() {
+    const searchParams = useSearchParams();
+    const isDeltaForce = searchParams.get('app') === '100151';
+
+    const bgImage = isDeltaForce 
+        ? "https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/DF-4dc01e48.jpg" 
+        : "https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png";
+
     return (
         <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-1 relative">
                 <Image
-                    src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png"
-                    alt="Free Fire background"
+                    src={bgImage}
+                    alt="background"
                     fill
                     className="-z-10 object-cover"
                     priority

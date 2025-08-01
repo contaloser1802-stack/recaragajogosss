@@ -10,6 +10,13 @@ import { ShieldCheckIcon, StepMarker, InfoIcon, SwitchAccountIcon } from '@/comp
 
 
 interface DeltaForceContentProps {
+  isLoggedIn: boolean;
+  isLoading: boolean;
+  error: string;
+  playerId: string;
+  setPlayerId: (id: string) => void;
+  handleLogin: (e: React.FormEvent) => void;
+  handleLogout: () => void;
   selectedRechargeId: string | null;
   selectedPaymentId: string | null;
   onRechargeSelect: (id: string) => void;
@@ -19,42 +26,19 @@ interface DeltaForceContentProps {
 
 
 export function DeltaForceContent({
+  isLoggedIn,
+  isLoading,
+  error,
+  playerId,
+  setPlayerId,
+  handleLogin,
+  handleLogout,
   selectedRechargeId,
   selectedPaymentId,
   onRechargeSelect,
   onPaymentSelect,
   onSelectionKeyDown,
 }: DeltaForceContentProps) {
-    const [playerId, setPlayerId] = useState('');
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [playerName, setPlayerName] = useState('JogadorDelta'); // Placeholder
-
-
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!playerId) {
-            setError('Por favor, insira um ID de jogador.');
-            return;
-        }
-        setIsLoading(true);
-        setError('');
-        // Simula uma chamada de API
-        setTimeout(() => {
-            setPlayerName(`Jogador${playerId.slice(0, 5)}`);
-            setIsLoggedIn(true);
-            setIsLoading(false);
-        }, 500);
-    };
-
-    const handleLogout = () => {
-        setIsLoggedIn(false);
-        setPlayerId('');
-        setPlayerName('');
-        setError('');
-    };
-
     const allRechargeOptions = [...deltaForcePacks, ...deltaForceSpecialOffers];
 
     return (
@@ -94,7 +78,8 @@ export function DeltaForceContent({
                                 <Image className="block h-full w-full object-contain" src="https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png" width={36} height={36} alt="Delta Force Icon" data-ai-hint="game icon" />
                               </div>
                               <div className="flex-1">
-                                <div className="mt-2 text-xs/none text-gray-500">ID do jogador: {playerId}</div>
+                                <div className="text-sm text-gray-600">Usuário:</div>
+                                <div className="text-sm/none font-bold text-gray-800">ID do jogador: {playerId}</div>
                               </div>
                             </div>
                           </div>

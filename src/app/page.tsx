@@ -56,15 +56,20 @@ function HomePageContent() {
       }
       const storedPlayerName = localStorage.getItem('playerName');
       const storedPlayerId = localStorage.getItem('playerId');
-      if (storedPlayerName && storedPlayerId) {
+      const storedAppId = localStorage.getItem('selectedAppId');
+      
+      if (storedPlayerName && storedPlayerId && storedAppId === selectedApp) {
         setPlayerName(storedPlayerName);
         setPlayerId(storedPlayerId);
         setIsLoggedIn(true);
+      } else {
+        // Clear old login data if the app has changed
+        handleLogout(false);
       }
     } catch (e) {
       console.error("Failed to access localStorage", e);
     }
-  }, []);
+  }, [selectedApp]);
 
   const updateHistory = useCallback((newItem: LoginHistoryItem) => {
     setHistory(prevHistory => {
@@ -125,12 +130,14 @@ function HomePageContent() {
         setIsLoggedIn(true);
         localStorage.setItem('playerName', nickname);
         localStorage.setItem('playerId', id);
+        localStorage.setItem('selectedAppId', selectedApp);
         updateHistory({ id: id, name: nickname });
         setIsHistoryPopoverOpen(false);
       } else {
         setError(data.error || 'ID de jogador não encontrado.');
         localStorage.removeItem('playerName');
         localStorage.removeItem('playerId');
+        localStorage.removeItem('selectedAppId');
         setIsLoggedIn(false);
         setPlayerName('');
       }
@@ -138,19 +145,20 @@ function HomePageContent() {
       setError('Erro ao buscar jogador. Tente novamente.');
       localStorage.removeItem('playerName');
       localStorage.removeItem('playerId');
+      localStorage.removeItem('selectedAppId');
       setIsLoggedIn(false);
       setPlayerName('');
     } finally {
       setIsLoading(false);
     }
-  }, [updateHistory]);
+  }, [updateHistory, selectedApp]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     await performLogin(playerId);
   };
 
-  const handleLogout = () => {
+  const handleLogout = (showAlert = true) => {
     setIsLoggedIn(false);
     setPlayerName('');
     setPlayerId('');
@@ -159,14 +167,16 @@ function HomePageContent() {
     setSelectedPaymentId(null);
     localStorage.removeItem('playerName');
     localStorage.removeItem('playerId');
-    setIsLogoutAlertOpen(false);
+    localStorage.removeItem('selectedAppId');
+    if (showAlert) {
+      setIsLogoutAlertOpen(false);
+    }
   };
 
   const getAllRechargeOptions = () => {
     if (showDeltaForceContent) {
       return [...deltaForcePacks, ...deltaForceSpecialOffers];
     }
-    // Padrão é Free Fire
     return [...diamondPacks, ...specialOffers];
   };
 
@@ -212,11 +222,11 @@ function HomePageContent() {
     try {
         localStorage.setItem('selectedProduct', JSON.stringify(selectedProduct));
         localStorage.setItem('paymentMethodName', selectedPayment.displayName);
-        if (selectedPayment.type === 'cc') {
-          router.push('/checkout-credit-card');
-        } else {
-          router.push('/checkout');
-        }
+        localStorage.setItem('selectedAppId', selectedApp); // Save the current game
+        
+        const checkoutUrl = selectedPayment.type === 'cc' ? '/checkout-credit-card' : '/checkout';
+        router.push(`${checkoutUrl}?app=${selectedApp}`);
+
     } catch (e) {
         console.error("Failed to access localStorage", e);
         toast({
@@ -511,6 +521,13 @@ function HomePageContent() {
           )}
           {showDeltaForceContent && (
             <DeltaForceContent
+              isLoggedIn={isLoggedIn}
+              isLoading={isLoading}
+              error={error}
+              playerId={playerId}
+              setPlayerId={setPlayerId}
+              handleLogin={handleLogin}
+              handleLogout={() => setIsLogoutAlertOpen(true)}
               selectedRechargeId={selectedRechargeId}
               selectedPaymentId={selectedPaymentId}
               onRechargeSelect={handleRechargeSelection}
@@ -532,7 +549,7 @@ function HomePageContent() {
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-4 pt-2">
             <AlertDialogCancel className="w-full mt-0 border-[#d81a0d] text-[#d81a0d] hover:text-[#d8716b]/10">Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout} className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={() => handleLogout(true)} className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Sair
             </AlertDialogAction>
           </AlertDialogFooter>
