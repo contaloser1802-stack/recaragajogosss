@@ -87,11 +87,7 @@ const HistoryPopoverContent: React.FC<HistoryPopoverContentProps> = ({ history, 
 
 
 export function HistoryPopover(props: HistoryPopoverContentProps) {
-    const isMobile = useIsMobile();
     // Since Sheet and Popover control their own visibility via open/onOpenChange props
     // passed to them in the parent (page.tsx), we just need to render the correct wrapper.
-    if (isMobile) {
-        return <HistoryPopoverContent {...props} />;
-    }
     return <HistoryPopoverContent {...props} />;
 }

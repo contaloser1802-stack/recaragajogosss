@@ -70,8 +70,12 @@ function HomePageContent() {
         // Clear old login data if the app has changed
         handleLogout(false);
       }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedApp, historyKey]);
+    } catch (e) {
+        console.error("Failed to access localStorage", e);
+        handleLogout(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedApp, historyKey]);
 
   const updateHistory = useCallback((newItem: LoginHistoryItem) => {
     setHistory(prevHistory => {
@@ -563,7 +567,7 @@ function HomePageContent() {
         <div className="z-[9] pointer-events-none sticky bottom-0"></div>
       </main>
       {(showFreeFireContent || showDeltaForceContent) && <PurchaseFooter selectedRechargeId={selectedRechargeId} selectedPaymentId={selectedPaymentId} onPurchase={handlePurchase} gameId={selectedApp} />}
-      <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen} oncloseautofocus={(e) => e.preventDefault()}>
+      <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
         <AlertDialogContent className="max-w-[320px] rounded-lg p-6">
           <AlertDialogHeader className="text-justfy center space-y-3">
             <AlertDialogTitle>Não é sua conta?</AlertDialogTitle>
@@ -579,7 +583,7 @@ function HomePageContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <AlertDialog open={isSocialLoginAlertOpen} onOpenChange={setIsSocialLoginAlertOpen} oncloseautofocus={(e) => e.preventDefault()}>
+      <AlertDialog open={isSocialLoginAlertOpen} onOpenChange={setIsSocialLoginAlertOpen}>
         <AlertDialogContent className="max-w-[320px] rounded-lg p-6">
           <AlertDialogHeader className="text-center space-y-3">
             <AlertDialogTitle>Serviço indisponível</AlertDialogTitle>

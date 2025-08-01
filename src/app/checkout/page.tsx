@@ -279,7 +279,9 @@ function CheckoutPageContent() {
   
   if (!isClient || !product) {
     return (
-      <div className="flex items-center justify-center h-full">Carregando...</div>
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+          <p>Carregando...</p>
+      </div>
     );
   }
 
@@ -512,7 +514,7 @@ export default function CheckoutPage() {
                     className="-z-10 object-cover"
                     priority
                 />
-                <Suspense fallback={<div className="flex items-center justify-center h-full">Carregando...</div>}>
+                <Suspense fallback={<div className="flex items-center justify-center h-screen bg-gray-100"><p>Carregando...</p></div>}>
                     <CheckoutPageContent />
                 </Suspense>
             </main>
