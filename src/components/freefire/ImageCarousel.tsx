@@ -53,10 +53,11 @@ export function ImageCarousel() {
         };
 
         if(isTransitioning) {
-           const timer = setTimeout(handleTransitionEnd, 500);
+           const timer = setTimeout(handleTransitionEnd, 500); // This should match the transition duration
            return () => clearTimeout(timer);
         }
-    }, [currentIndex, banners.length, isTransitioning]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentIndex, isTransitioning]);
 
     const getRealIndex = (index: number) => {
         if (index === 0) return banners.length - 1;
@@ -90,7 +91,7 @@ export function ImageCarousel() {
                                             <Image
                                                 className={cn(
                                                     "pointer-events-none h-full w-full object-contain transition-all duration-500 md:rounded-xl",
-                                                    isActive ? "md:scale-100 md:opacity-100" : "md:scale-[94.211%] md:opacity-50"
+                                                    isActive ? "md:scale-100 md:opacity-100" : "md:scale-[0.94] md:opacity-50"
                                                 )}
                                                 src={banner.src}
                                                 alt={banner.alt}
