@@ -1,7 +1,25 @@
 export const banners = [
-    { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/100067br-JAN22-pc.png?v=1750094508', alt: 'Banner 1' },
-    { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/26B06340B596B357.png?v=1729016596', alt: 'Banner 2' },
-    { src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/47BED91C7ABCF1EA.png?v=1750167188', alt: 'Banner 3' },
+    { 
+        src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/26B06340B596B357.png?v=1729016596', 
+        alt: 'Banner 1' 
+    },
+    { 
+        src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/47BED91C7ABCF1EA.png?v=1752155361', 
+        alt: 'Banner 2' 
+    },
+    { 
+        src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/47C95AECB3BF44D6.jpg?v=1753969332', 
+        alt: 'Banner 3' 
+    },
+    { 
+        src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/6FAE33F6E97F3F4C.png?v=1752169162', 
+        alt: 'Banner 4' 
+    },
+    { 
+        src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/77EA32E48F86033D.jpg?v=1753856459', 
+        alt: 'Banner 5',
+        href: 'freefire://process?action=squad_treasure_main_page&version=OB50'
+    },
 ];
 
 export const diamondPacks = [

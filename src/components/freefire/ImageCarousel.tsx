@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { banners } from '@/lib/data';
@@ -87,48 +88,48 @@ export function ImageCarousel() {
 
   return (
     <div className="bg-[#151515]">
-      <div className="mx-auto w-full max-w-[900px] py-2.5 lg:py-5">
-        <div className="relative overflow-hidden">
-          <div
-            className="flex"
-            onTransitionEnd={handleTransitionEnd}
-            style={{
-              transform: `translateX(-${currentIndex * 100}%)`,
-              transition: isTransitioning ? 'none' : 'transform 500ms ease-in-out',
-            }}
-          >
-            {loopedBanners.map((banner, index) => (
-              <div key={index} className="relative w-full flex-shrink-0 pt-[37.77%]">
-                <Image
-                  className="absolute inset-0 h-full w-full object-cover md:rounded-xl"
-                  src={banner.src}
-                  alt={banner.alt}
-                  fill
-                  priority={index === 1}
-                  data-ai-hint="game banner"
-                />
-              </div>
-            ))}
-          </div>
-
-          <NavButton direction="prev" onClick={() => { resetTimeout(); handlePrev(); }} />
-          <NavButton direction="next" onClick={() => { resetTimeout(); handleNext(); }} />
-
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {banners.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => handleDotClick(index)}
-                className={cn(
-                  "h-2 w-2 cursor-pointer rounded-full transition-colors",
-                  (currentIndex === index + 1 || (currentIndex === 0 && index === banners.length - 1) || (currentIndex === banners.length + 1 && index === 0)) ? 'bg-destructive' : 'bg-white/50'
-                )}
-                aria-label={`Go to slide ${index + 1}`}
-              ></button>
-            ))}
-          </div>
+        <div className="group mx-auto w-full max-w-[1366px] md:py-2.5 lg:py-5">
+            <div className="relative flex justify-center pt-[43.478%] md:pt-[19.106%]">
+                <div className="scrollbar-none absolute inset-0 flex overflow-auto">
+                    {loopedBanners.map((banner, index) => (
+                        <Link key={index} className="block h-full w-full shrink-0 snap-center md:w-[50.577%] md:rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2" target="_blank" data-index={index} href={banner.href || '#'}>
+                            <Image
+                                className="pointer-events-none h-full w-full object-contain transition-all md:rounded-xl md:scale-[94.211%] md:opacity-50"
+                                src={banner.src}
+                                alt={banner.alt}
+                                width={700}
+                                height={300}
+                                priority={index === 1}
+                            />
+                        </Link>
+                    ))}
+                </div>
+                <div className="pointer-events-none absolute inset-y-0 hidden w-[21.783%] items-center from-[#151515] md:flex start-0 justify-end bg-gradient-to-r rtl:bg-gradient-to-l">
+                    <button type="button" className="pointer-events-auto hidden rounded-full bg-black/70 p-4 text-sm text-white transition-colors hover:bg-black md:group-hover:block">
+                        <svg width="1em" height="1em" viewBox="0 0 7 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="-scale-x-100 rtl:scale-x-100">
+                            <path d="M6.81438 5.99466L1.68092 0.209207C1.43343 -0.0697356 1.03194 -0.0697356 0.784449 0.209207L0.185654 0.884087C-0.0615759 1.16273 -0.0618396 1.61404 0.184598 1.89328L4.25306 6.49985L0.184862 11.1067C-0.0618401 11.386 -0.0613112 11.8373 0.185919 12.1159L0.784713 12.7908C1.03221 13.0697 1.43369 13.0697 1.68119 12.7908L6.81438 7.00504C7.06187 6.7261 7.06187 6.2736 6.81438 5.99466Z" fill="currentColor"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div className="pointer-events-none absolute inset-y-0 hidden w-[21.783%] items-center from-[#151515] md:flex end-0 justify-start bg-gradient-to-l rtl:bg-gradient-to-r">
+                    <button type="button" className="pointer-events-auto hidden rounded-full bg-black/70 p-4 text-sm text-white transition-colors hover:bg-black md:group-hover:block">
+                        <svg width="1em" height="1em" viewBox="0 0 7 13" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-x-100 rtl:-scale-x-100">
+                            <path d="M6.81438 5.99466L1.68092 0.209207C1.43343 -0.0697356 1.03194 -0.0697356 0.784449 0.209207L0.185654 0.884087C-0.0615759 1.16273 -0.0618396 1.61404 0.184598 1.89328L4.25306 6.49985L0.184862 11.1067C-0.0618401 11.386 -0.0613112 11.8373 0.185919 12.1159L0.784713 12.7908C1.03221 13.0697 1.43369 13.0697 1.68119 12.7908L6.81438 7.00504C7.06187 6.7261 7.06187 6.2736 6.81438 5.99466Z" fill="currentColor"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div className="absolute bottom-2.5 flex gap-2 md:gap-3">
+                    {banners.map((_, index) => (
+                        <div
+                            key={index}
+                            aria-checked={currentIndex === index + 1 || (currentIndex === 0 && index === banners.length - 1) || (currentIndex === banners.length + 1 && index === 0)}
+                            className="h-1.5 w-1.5 cursor-pointer rounded-full bg-white/80 aria-checked:bg-destructive md:h-2.5 md:w-2.5 md:bg-white/40 md:aria-checked:bg-[linear-gradient(209deg,#DA1C1C_-7.14%,#8C1515_102.95%)]"
+                            onClick={() => handleDotClick(index)}
+                        ></div>
+                    ))}
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  );
+);
 };
