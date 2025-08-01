@@ -20,12 +20,12 @@ export default function RootLayout({
       'color: #ff5733; font-size: 40px; font-weight: bold; text-shadow: 2px 2px 4px #000000;'
     );
     console.log(
-      '%c@magicuzin',
-      'font-size: 16px;'
+      '%cNão adianta tentar me clonar, eu sou o 00 e você nunca será o 01',
+      'font-size: 16px; font-weight: bold; color: red;'
     );
      console.log(
       '%chttps://instagram.com/magicuzin',
-      'font-size: 16px; font-weight: bold; color: red;'
+      'font-size: 16px;'
     );
   }, []);
 
