@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import { supabase } from '@/lib/supabaseClient';
+import axios from 'axios';
 
 export async function POST(request: NextRequest) {
     const webhookToken = request.headers.get('authorization');
@@ -31,7 +32,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
-            console.log(`[buckpay-webhook] Iniciando processo para transação APROVADA ID: ${transactionId}`);
+            console.log(`[buckpay-webhook] ✅ Iniciando processo para transação APROVADA ID: ${transactionId}`);
 
             // 1. Buscar os dados do pedido pendente no Supabase usando o transaction_id
             console.log(`[buckpay-webhook] 🔍 Buscando no Supabase por transaction_id: ${transactionId}`);
@@ -88,7 +89,6 @@ export async function POST(request: NextRequest) {
         const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
         if (discordWebhookUrl) {
             try {
-                const axios = (await import('axios')).default;
                 await axios.post(discordWebhookUrl, {
                     content: `🚨 **Erro no Webhook BuckPay** 🚨\n**Erro:** ${error.message}\n**Payload Recebido:**\n\`\`\`json\n${JSON.stringify(requestBody || 'Falha ao ler o corpo da requisição', null, 2)}\n\`\`\``
                 });
