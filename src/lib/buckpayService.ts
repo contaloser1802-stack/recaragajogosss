@@ -1,10 +1,8 @@
 /**
  * @fileOverview Módulo de serviço para interagir com a API da Buckpay.
  */
-import axios from 'axios';
 
 const BUCKPAY_API_URL = 'https://api.realtechdev.com.br/v1';
-const BUCKPAY_API_TOKEN = process.env.BUCKPAY_API_TOKEN;
 
 /**
  * Busca os detalhes completos de uma transação pelo seu ID.
@@ -12,6 +10,7 @@ const BUCKPAY_API_TOKEN = process.env.BUCKPAY_API_TOKEN;
  * @returns Os dados da transação ou null em caso de erro.
  */
 export async function getTransactionById(transactionId: string): Promise<any | null> {
+    const BUCKPAY_API_TOKEN = process.env.BUCKPAY_API_TOKEN;
     if (!BUCKPAY_API_TOKEN) {
          const errorMsg = `[BuckpayService] Não é possível buscar a transação ${transactionId} pois o token da API (BUCKPAY_API_TOKEN) não está configurado.`;
          console.error(errorMsg);
@@ -19,24 +18,29 @@ export async function getTransactionById(transactionId: string): Promise<any | n
     }
     try {
         console.log(`[BuckpayService] Buscando detalhes da transação ID: ${transactionId}`);
-        const response = await axios.get(`${BUCKPAY_API_URL}/transactions/${transactionId}`, {
+        const response = await fetch(`${BUCKPAY_API_URL}/transactions/${transactionId}`, {
              headers: {
                 'Authorization': `Bearer ${BUCKPAY_API_TOKEN}`,
                 'Content-Type': 'application/json',
                 'User-Agent': 'RecargaJogo-Integration/1.0'
             }
         });
-        console.log(`[BuckpayService] Detalhes da transação ${transactionId} obtidos com sucesso.`);
-        return response.data;
-    } catch (error) {
-        if (axios.isAxiosError(error)) {
+        
+        if (!response.ok) {
+            const errorData = await response.text();
             console.error(`[BuckpayService] Erro ao buscar transação ${transactionId}:`, {
-                status: error.response?.status,
-                data: error.response?.data,
-                message: error.message,
+                status: response.status,
+                data: errorData,
             });
-        } else {
-            console.error(`[BuckpayService] Erro inesperado ao buscar transação ${transactionId}:`, error);
+            return null;
         }
+
+        const responseData = await response.json();
+        console.log(`[BuckpayService] Detalhes da transação ${transactionId} obtidos com sucesso.`);
+        return responseData;
+
+    } catch (error: any) {
+        console.error(`[BuckpayService] Erro inesperado ao buscar transação ${transactionId}:`, error.message);
         return null;
     }
+}

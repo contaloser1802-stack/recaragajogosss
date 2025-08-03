@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { gerarCPFValido } from '@/lib/utils';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
-import axios from 'axios';
 
 // Função para enviar logs para o Discord
 async function notifyDiscord(message: string, payload?: any) {
@@ -24,7 +23,11 @@ async function notifyDiscord(message: string, payload?: any) {
     }
 
     try {
-        await axios.post(discordWebhookUrl, { content });
+        await fetch(discordWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content }),
+        });
     } catch (discordError) {
         console.error("Falha ao enviar log para o Discord:", discordError);
     }
@@ -37,9 +40,10 @@ async function getGeoData(ip: string) {
     return { countryCode: 'BR' }; 
   }
   try {
-    const response = await axios.get(`http://ip-api.com/json/${ip}?fields=countryCode`);
+    const response = await fetch(`http://ip-api.com/json/${ip}?fields=countryCode`);
+    const data = await response.json();
     return {
-      countryCode: response.data.countryCode || 'BR',
+      countryCode: data.countryCode || 'BR',
     };
   } catch (error) {
     console.error(`[GeoData] Falha ao obter dados de geolocalização para o IP ${ip}:`, error);

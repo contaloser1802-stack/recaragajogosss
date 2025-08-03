@@ -1,7 +1,8 @@
+'use server';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload, UtmifyProduct, UtmifyTrackingParameters, UtmifyCustomer } from '@/interfaces/utmify';
-import axios from 'axios';
 import { getTransactionById } from '@/lib/buckpayService';
 
 // Função para enviar logs para o Discord
@@ -21,7 +22,11 @@ async function notifyDiscord(message: string, payload?: any) {
     }
 
     try {
-        await axios.post(discordWebhookUrl, { content });
+        await fetch(discordWebhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content }),
+        });
     } catch (discordError) {
         console.error("Falha ao enviar log para o Discord:", discordError);
     }
@@ -48,15 +53,15 @@ export async function POST(request: NextRequest) {
 
             // Busca os detalhes completos da transação na API da Buckpay
             await notifyDiscord(`🔎 [Webhook BuckPay] Buscando detalhes completos da transação ${transactionId} na API...`);
-            const transactionDetails = await getTransactionById(transactionId);
+            const transactionDetailsResponse = await getTransactionById(transactionId);
             
-            if (!transactionDetails || !transactionDetails.data) {
+            if (!transactionDetailsResponse || !transactionDetailsResponse.data) {
                 const errorMsg = `❌ [Webhook BuckPay] Não foi possível obter os detalhes da transação ${transactionId} da API da Buckpay.`;
                 await notifyDiscord(errorMsg, { transactionId });
                 return NextResponse.json({ error: errorMsg }, { status: 500 });
             }
 
-            const details = transactionDetails.data;
+            const details = transactionDetailsResponse.data;
             await notifyDiscord(`📄 [Webhook BuckPay] Detalhes da transação ${transactionId} obtidos:`, details);
 
             const tracking: UtmifyTrackingParameters = {
