@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload, UtmifyProduct, UtmifyTrackingParameters, UtmifyCustomer } from '@/interfaces/utmify';
 import axios from 'axios';
+import { getTransactionById } from '@/lib/buckpayService';
 
 // Função para enviar logs para o Discord
 async function notifyDiscord(message: string, payload?: any) {
@@ -13,7 +14,6 @@ async function notifyDiscord(message: string, payload?: any) {
 
     let content = message;
     if (payload) {
-        // Limita o tamanho do payload no log para evitar exceder o limite do Discord
         const payloadString = JSON.stringify(payload, null, 2);
         const truncatedPayload = payloadString.length > 1800 ? payloadString.substring(0, 1800) + '...' : payloadString;
         content += `\n**Payload:**\n\`\`\`json\n${truncatedPayload}\n\`\`\``;
@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
 
         const { event, data } = requestBody;
 
-        // Validação básica do payload
         if (!event || !data || !data.id || !data.status) {
             const errorMsg = '❌ [Webhook BuckPay] Payload inválido. Campos essenciais (event, data, data.id, data.status) não encontrados.';
             await notifyDiscord(errorMsg, requestBody);
@@ -43,33 +42,42 @@ export async function POST(request: NextRequest) {
         
         const transactionId = data.id;
 
-        // Processa apenas transações pagas/aprovadas
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
             await notifyDiscord(`✅ [Webhook BuckPay] Iniciando processo para transação APROVADA ID: ${transactionId}`);
 
-            // Monta o payload para a Utmify diretamente com os dados do webhook
-            // Nota: Alguns campos podem não vir no webhook de confirmação, então usamos valores padrão ou "N/A"
+            // Busca os detalhes completos da transação na API da Buckpay
+            await notifyDiscord(`🔎 [Webhook BuckPay] Buscando detalhes completos da transação ${transactionId} na API...`);
+            const transactionDetails = await getTransactionById(transactionId);
             
+            if (!transactionDetails || !transactionDetails.data) {
+                const errorMsg = `❌ [Webhook BuckPay] Não foi possível obter os detalhes da transação ${transactionId} da API da Buckpay.`;
+                await notifyDiscord(errorMsg, { transactionId });
+                return NextResponse.json({ error: errorMsg }, { status: 500 });
+            }
+
+            const details = transactionDetails.data;
+            await notifyDiscord(`📄 [Webhook BuckPay] Detalhes da transação ${transactionId} obtidos:`, details);
+
             const tracking: UtmifyTrackingParameters = {
-                src: data.tracking?.src || null,
-                sck: data.tracking?.sck || null,
-                utm_source: data.tracking?.utm_source || null,
-                utm_campaign: data.tracking?.utm_campaign || null,
-                utm_medium: data.tracking?.utm_medium || null,
-                utm_content: data.tracking?.utm_content || null,
-                utm_term: data.tracking?.utm_term || null,
+                src: details.tracking?.src || null,
+                sck: details.tracking?.sck || null,
+                utm_source: details.tracking?.utm_source || null,
+                utm_campaign: details.tracking?.utm_campaign || null,
+                utm_medium: details.tracking?.utm_medium || null,
+                utm_content: details.tracking?.utm_content || null,
+                utm_term: details.tracking?.utm_term || null,
             };
 
             const customer: UtmifyCustomer = {
-                name: data.buyer?.name || 'N/A',
-                email: data.buyer?.email || 'N/A',
-                phone: data.buyer?.phone?.replace(/\D/g, '') || null,
-                document: data.buyer?.document?.replace(/\D/g, '') || null,
-                country: 'BR', // Assumindo Brasil
-                ip: data.buyer?.ip || null,
+                name: details.buyer?.name || 'N/A',
+                email: details.buyer?.email || 'N/A',
+                phone: details.buyer?.phone?.replace(/\D/g, '') || null,
+                document: details.buyer?.document?.replace(/\D/g, '') || null,
+                country: 'BR',
+                ip: details.buyer?.ip || null,
             };
 
-            const products: UtmifyProduct[] = (data.items || []).map((item: any) => ({
+            const products: UtmifyProduct[] = (details.items || []).map((item: any) => ({
                 id: item.id || `prod_${Date.now()}`,
                 name: item.name || 'Produto',
                 planId: null,
@@ -78,7 +86,6 @@ export async function POST(request: NextRequest) {
                 priceInCents: item.amount || 0,
             }));
 
-            // Se não houver produtos no webhook, cria um genérico com o valor total
             if (products.length === 0) {
                 products.push({
                     id: `prod_${transactionId}`,
@@ -86,7 +93,7 @@ export async function POST(request: NextRequest) {
                     planId: null,
                     planName: null,
                     quantity: 1,
-                    priceInCents: data.total_amount || 0,
+                    priceInCents: details.total_amount || 0,
                 });
             }
 
@@ -94,17 +101,17 @@ export async function POST(request: NextRequest) {
                 orderId: transactionId,
                 platform: 'RecargaJogo',
                 paymentMethod: 'pix',
-                status: 'paid', // Status final é 'paid'
-                createdAt: formatToUtmifyDate(new Date(data.created_at || Date.now())),
-                approvedDate: formatToUtmifyDate(new Date(data.paid_at || Date.now())),
+                status: 'paid',
+                createdAt: formatToUtmifyDate(new Date(details.created_at || Date.now())),
+                approvedDate: formatToUtmifyDate(new Date(details.paid_at || Date.now())),
                 refundedAt: null,
                 customer,
                 products,
                 trackingParameters: tracking,
                 commission: {
-                    totalPriceInCents: data.total_amount || 0,
-                    gatewayFeeInCents: (data.total_amount || 0) - (data.net_amount || 0), // Taxa do gateway
-                    userCommissionInCents: data.net_amount || 0, // Comissão do usuário
+                    totalPriceInCents: details.total_amount || 0,
+                    gatewayFeeInCents: (details.total_amount || 0) - (details.net_amount || 0),
+                    userCommissionInCents: details.net_amount || 0,
                     currency: 'BRL',
                 },
                 isTest: false,
@@ -123,14 +130,11 @@ export async function POST(request: NextRequest) {
             await notifyDiscord(`ℹ️ [Webhook BuckPay] Evento '${event}' com status '${data.status}' recebido para ID ${transactionId}, nenhuma ação de aprovação configurada.`);
         }
 
-        // Retorna sucesso para a BuckPay para que não tentem reenviar o webhook.
         return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso', transactionId: transactionId }, { status: 200 });
 
     } catch (error: any) {
         const errorMsg = `❌ [Webhook BuckPay] Erro fatal ao processar webhook: ${error.message}`;
         await notifyDiscord(errorMsg, requestBody);
-        
-        // Retornamos 200 para a Buckpay para evitar retries desnecessários, pois já logamos o erro.
-        return NextResponse.json({ success: true, message: 'Erro interno ao processar, notificação registrada.' }, { status: 200 });
+        return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
     }
 }
