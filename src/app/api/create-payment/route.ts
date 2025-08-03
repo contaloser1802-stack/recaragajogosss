@@ -2,6 +2,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { gerarCPFValido } from '@/lib/utils';
+import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
+import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import axios from 'axios';
 
 // Função para obter dados de geolocalização do IP
@@ -178,13 +180,61 @@ export async function POST(request: NextRequest) {
 
     console.log(`[create-payment POST] ✅ Resposta da BuckPay (HTTP ${buckpayResponse.status}, JSON):`, JSON.stringify(responseData, null, 2));
     
-    // A documentação retorna `data`, então acessamos a resposta dentro de `data`
     const paymentData = responseData.data;
 
     if (paymentData && paymentData.id) {
-        // O envio para Utmify é feito pelo webhook de "transaction.created" da BuckPay.
-        // Apenas logamos que o fluxo está correto.
-        console.log(`[create-payment POST] Pagamento criado (ID: ${paymentData.id}). O webhook da BuckPay cuidará do envio para Utmify.`);
+        const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+        const geoData = await getGeoData(ip);
+
+        const utmifyPayload: UtmifyOrderPayload = {
+            orderId: paymentData.id,
+            platform: 'RecargaJogo',
+            paymentMethod: 'pix',
+            status: 'waiting_payment',
+            createdAt: formatToUtmifyDate(new Date(paymentData.created_at || Date.now())),
+            approvedDate: null,
+            refundedAt: null,
+            customer: {
+                name: payloadForBuckPay.buyer.name,
+                email: payloadForBuckPay.buyer.email,
+                phone: payloadForBuckPay.buyer.phone.replace(/^55/, ''),
+                document: payloadForBuckPay.buyer.document,
+                country: geoData.countryCode,
+                ip: ip,
+            },
+            products: items.map(item => ({
+                id: item.id || `prod_${Date.now()}`,
+                name: item.title,
+                planId: null,
+                planName: null,
+                quantity: item.quantity,
+                priceInCents: Math.round(item.unitPrice * 100)
+            })),
+            trackingParameters: {
+                src: payloadForBuckPay.tracking.src,
+                sck: payloadForBuckPay.tracking.sck,
+                utm_source: payloadForBuckPay.tracking.utm_source,
+                utm_campaign: payloadForBuckPay.tracking.utm_campaign,
+                utm_medium: payloadForBuckPay.tracking.utm_medium,
+                utm_content: payloadForBuckPay.tracking.utm_content,
+                utm_term: payloadForBuckPay.tracking.utm_term,
+            },
+            commission: {
+                totalPriceInCents: paymentData.total_amount || 0,
+                gatewayFeeInCents: (paymentData.total_amount || 0) - (paymentData.net_amount || 0), 
+                userCommissionInCents: paymentData.net_amount || 0,
+                currency: 'BRL',
+            },
+            isTest: false,
+        };
+
+        console.log(`[create-payment POST] 📦 Enviando para Utmify (pagamento pendente)...`);
+        try {
+            await sendOrderToUtmify(utmifyPayload);
+            console.log(`[create-payment POST] ✅ Dados de pagamento pendente (ID: ${paymentData.id}) enviados para Utmify.`);
+        } catch (utmifyError: any) {
+            console.error(`[create-payment POST] ❌ Erro ao enviar dados pendentes para Utmify (ID: ${paymentData.id}):`, utmifyError.message);
+        }
     }
 
     return new NextResponse(JSON.stringify(paymentData), {
