@@ -1,4 +1,3 @@
-
 export const banners = [
     { 
         src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/26B06340B596B357.png?v=1729016596', 
@@ -77,7 +76,7 @@ export const specialOfferItems = [
 ];
 
 export const deltaForcePacks = [
-    { id: 'df-pack-60', name: '60 Delta Coins', originalAmount: '60', bonusAmount: '39', totalAmount: '99', price: 5.89, formattedPrice: 'R$ 5,89' },
+    { id: 'df-pack-60', name: '60 Delta Coins', originalAmount: '60', bonusAmount: '39', totalAmount: '99', price: 4.89, formattedPrice: 'R$ 4,89' },
     { id: 'df-pack-300', name: '300 Delta Coins', originalAmount: '300', bonusAmount: '181', totalAmount: '481', price: 9.49, formattedPrice: 'R$ 9,49' },
     { id: 'df-pack-680', name: '680 Delta Coins', originalAmount: '680', bonusAmount: '307', totalAmount: '987', price: 19.90, formattedPrice: 'R$ 19,90' },
     { id: 'df-pack-1280', name: '1.280 Delta Coins', originalAmount: '1.280', bonusAmount: '1.280', totalAmount: '2.560', price: 37.99, formattedPrice: 'R$ 37,99', promo: 'COINS EM DOBRO' },
