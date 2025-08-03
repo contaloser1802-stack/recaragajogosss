@@ -53,23 +53,23 @@ export async function POST(request: NextRequest) {
       const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
       const geoData = await getGeoData(ip);
       
-      let products: UtmifyProduct[] = [];
-      // Corrigido: O webhook da BuckPay usa `items` e não `product` ou `offer`.
-      if (Array.isArray(data.items) && data.items.length > 0) {
-          products = data.items.map((item: any) => ({
-              id: item.id || `prod_${Date.now()}`,
-              name: item.title,
-              planId: null,
-              planName: null,
-              quantity: item.quantity,
-              priceInCents: Math.round(item.unit_price * 100) // Buckpay webhook `items` tem `unit_price` em BRL.
-          }));
-      }
+       // O webhook da Buckpay não detalha o preço dos itens, apenas o valor total.
+      // Para garantir que a venda seja registrada na Utmify, criamos um produto "genérico"
+      // com o valor total da transação.
+      const products: UtmifyProduct[] = [
+        {
+          id: data.id, // Usamos o ID da transação como ID do produto
+          name: 'Recarga Jogo', // Nome genérico
+          planId: null,
+          planName: null,
+          quantity: 1,
+          priceInCents: data.total_amount || 0,
+        },
+      ];
 
-      if (products.length === 0) {
-        console.error('[buckpay-webhook] ❌ Nenhum produto encontrado no payload do webhook (`data.items`). Não é possível enviar para Utmify.');
-        // Ainda retornamos 200 para não causar re-tentativas do webhook.
-         return NextResponse.json({ success: true, message: 'Webhook recebido, mas sem itens para processar.' }, { status: 200 });
+      if (!data.total_amount || data.total_amount === 0) {
+        console.error('[buckpay-webhook] ❌ Valor total da transação (total_amount) não encontrado ou zerado. Não é possível enviar para Utmify.');
+        return NextResponse.json({ success: true, message: 'Webhook recebido, mas sem valor para processar.' }, { status: 200 });
       }
 
       const utmifyPayload: UtmifyOrderPayload = {
