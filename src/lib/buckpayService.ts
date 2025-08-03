@@ -1,7 +1,9 @@
 /**
  * @fileOverview Módulo de serviço para interagir com a API da Buckpay.
  */
+import getConfig from 'next/config';
 
+const { serverRuntimeConfig } = getConfig();
 const BUCKPAY_API_URL = 'https://api.realtechdev.com.br/v1';
 
 /**
@@ -10,7 +12,7 @@ const BUCKPAY_API_URL = 'https://api.realtechdev.com.br/v1';
  * @returns Os dados da transação ou null em caso de erro.
  */
 export async function getTransactionById(transactionId: string): Promise<any | null> {
-    const BUCKPAY_API_TOKEN = process.env.BUCKPAY_API_TOKEN;
+    const BUCKPAY_API_TOKEN = serverRuntimeConfig.BUCKPAY_API_TOKEN;
     if (!BUCKPAY_API_TOKEN) {
          const errorMsg = `[BuckpayService] Não é possível buscar a transação ${transactionId} pois o token da API (BUCKPAY_API_TOKEN) não está configurado.`;
          console.error(errorMsg);

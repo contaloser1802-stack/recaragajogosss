@@ -79,6 +79,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  serverRuntimeConfig: {
+    BUCKPAY_API_TOKEN: process.env.BUCKPAY_API_TOKEN,
+    DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL,
+    GHOSTPAY_SECRET_KEY: process.env.GHOSTPAY_SECRET_KEY,
+    UTMIFY_API_URL: process.env.UTMIFY_API_URL,
+    UTMIFY_API_TOKEN: process.env.UTMIFY_API_TOKEN,
+  },
 };
 
 export default nextConfig;

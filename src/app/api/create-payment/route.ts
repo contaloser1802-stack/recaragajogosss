@@ -2,13 +2,16 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
+import getConfig from 'next/config';
 import { gerarCPFValido } from '@/lib/utils';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload, UtmifyProduct, UtmifyTrackingParameters } from '@/interfaces/utmify';
 
+const { serverRuntimeConfig } = getConfig();
+
 // Função para enviar logs para o Discord
 async function notifyDiscord(message: string, payload?: any) {
-    const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    const discordWebhookUrl = serverRuntimeConfig.DISCORD_WEBHOOK_URL;
     if (!discordWebhookUrl) {
         console.error("DISCORD_WEBHOOK_URL não está configurada.");
         return;
@@ -88,7 +91,7 @@ export async function POST(request: NextRequest) {
       utmQuery 
     } = body;
 
-    const apiToken = process.env.BUCKPAY_API_TOKEN;
+    const apiToken = serverRuntimeConfig.BUCKPAY_API_TOKEN;
     if (!apiToken) {
       const errorMsg = "❌ [Criação de Pagamento] ERRO: BUCKPAY_API_TOKEN não definida.";
       await notifyDiscord(errorMsg);
@@ -261,7 +264,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const apiToken = process.env.BUCKPAY_API_TOKEN;
+    const apiToken = serverRuntimeConfig.BUCKPAY_API_TOKEN;
     if (!apiToken) {
       console.error("[create-payment GET] ERRO: BUCKPAY_API_TOKEN não definida.");
       return new NextResponse(JSON.stringify({ error: 'Configuração do servidor incompleta.' }), { status: 500, headers });

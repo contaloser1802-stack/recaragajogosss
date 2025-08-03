@@ -1,4 +1,5 @@
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
+import getConfig from 'next/config';
 
 /**
  * Formata um objeto Date para o formato 'YYYY-MM-DD HH:MM:SS' em UTC.
@@ -17,8 +18,9 @@ export function formatToUtmifyDate(date: Date | null): string | null {
  * @param payload O corpo do pedido a ser enviado.
  */
 export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<void> {
-    const apiUrl = process.env.UTMIFY_API_URL;
-    const apiKey = process.env.UTMIFY_API_TOKEN;
+    const { serverRuntimeConfig } = getConfig();
+    const apiUrl = serverRuntimeConfig.UTMIFY_API_URL;
+    const apiKey = serverRuntimeConfig.UTMIFY_API_TOKEN;
 
     if (!apiUrl || !apiKey) {
         throw new Error('Credenciais da Utmify (UTMIFY_API_URL ou UTMIFY_API_TOKEN) não estão configuradas no servidor.');
@@ -43,7 +45,7 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<vo
 
         console.log(`[UtmifyService] Pedido ${payload.orderId} com status ${payload.status} enviado com sucesso para Utmify.`);
     } catch (error: any) {
-        console.error('[UtmifyService] Erro desconhecido ao comunicar com a Utmify:', error.message);
+        console.error(`[UtmifyService] Erro desconhecido ao comunicar com a Utmify: ${error.message}`);
         throw new Error(`Erro desconhecido ao comunicar com a Utmify: ${error.message}`);
     }
 }

@@ -1,13 +1,16 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
+import getConfig from 'next/config';
 import { getTransactionById } from '@/lib/buckpayService';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload, UtmifyProduct, UtmifyTrackingParameters } from '@/interfaces/utmify';
 
+const { serverRuntimeConfig } = getConfig();
+
 // Função para enviar logs para o Discord
 async function notifyDiscord(message: string, payload?: any) {
-    const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    const discordWebhookUrl = serverRuntimeConfig.DISCORD_WEBHOOK_URL;
     if (!discordWebhookUrl) {
         console.error("DISCORD_WEBHOOK_URL não está configurada.");
         return;

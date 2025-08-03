@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import getConfig from 'next/config';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload, UtmifyProduct, UtmifyTrackingParameters } from '@/interfaces/utmify';
+
+const { serverRuntimeConfig } = getConfig();
 
 export async function POST(request: NextRequest) {
   try {
     const ghostpayToken = request.headers.get('authorization');
-    const secretKey = process.env.GHOSTPAY_SECRET_KEY;
+    const secretKey = serverRuntimeConfig.GHOSTPAY_SECRET_KEY;
 
     if (!secretKey) {
       console.error('[ghostpay-webhook] ❌ GHOSTPAY_SECRET_KEY não está configurado no servidor.');
