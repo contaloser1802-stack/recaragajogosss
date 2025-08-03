@@ -20,6 +20,14 @@ import { specialOfferItems } from '@/lib/data';
 import { PaymentPayload, ProductData } from '@/interfaces/types';
 import { formatPhoneNumber } from '@/lib/utils';
 
+const cpfMask = (value: string) => {
+    let v = value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
+    else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
+    return v;
+};
+
 const formSchema = z.object({
   name: z.string()
     .min(1, { message: "Nome é obrigatório." })
@@ -29,6 +37,7 @@ const formSchema = z.object({
   email: z.string()
     .min(1, { message: "E-mail é obrigatório." })
     .email({ message: "Formato de e-mail inválido." }),
+  cpf: z.string().optional(),
   phone: z.string()
     .min(1, { message: "Número de telefone é obrigatório." })
     .regex(/^\(\d{2}\) \d \d{4}-\d{4}$/, { message: "Formato de telefone inválido." }),
@@ -109,6 +118,7 @@ function CheckoutPageContent() {
     defaultValues: {
       name: '',
       email: '',
+      cpf: '',
       phone: '',
       promoCode: '',
     },
@@ -157,6 +167,11 @@ function CheckoutPageContent() {
     fieldChange(formatted);
   };
 
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
+    const formatted = cpfMask(e.target.value);
+    fieldChange(formatted);
+  };
+
   const proceedToPayment = async () => {
     const isValid = await form.trigger(['name', 'email', 'phone']);
     if (!isValid) {
@@ -168,7 +183,6 @@ function CheckoutPageContent() {
       return;
     }
     
-    // Se for Delta Force, vai direto pro pagamento. Senão, abre o modal de order bump.
     if (isDeltaForce) {
       handleFinalSubmit();
     } else {
@@ -187,7 +201,6 @@ function CheckoutPageContent() {
       id: product.id,
     }];
     
-    // Adiciona itens do order bump
     selectedOffers.forEach(offerId => {
       const offer = specialOfferItems.find(o => o.id === offerId);
       if (offer) {
@@ -227,23 +240,25 @@ function CheckoutPageContent() {
     const customerData = { 
       name: values.name, 
       email: values.email, 
-      phone: values.phone.replace(/\D/g, '')
+      phone: values.phone.replace(/\D/g, ''),
+      cpf: values.cpf?.replace(/\D/g, ''),
     };
     
     try {
         localStorage.setItem('customerData', JSON.stringify(customerData));
     } catch (e) {
-        console.warn("Não foi possível salvar os dados do cliente.");
+        console.warn("Não foi possível salvar os dados do cliente no localStorage.");
     }
     
     const utmQuery = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).toString() : '';
     const items = buildPayloadItems();
     const totalAmount = getNumericTotalAmount;
     
-    const payload: Omit<PaymentPayload, 'cpf'> = {
+    const payload: Omit<PaymentPayload, 'cpf'> & { cpf?: string } = {
       name: values.name,
       email: values.email,
       phone: values.phone.replace(/\D/g, ''),
+      cpf: values.cpf?.replace(/\D/g, ''),
       amount: totalAmount,
       externalId: `ff-${Date.now()}`,
       items: items,
@@ -268,7 +283,7 @@ function CheckoutPageContent() {
 
       localStorage.setItem('paymentData', JSON.stringify({
         ...paymentDataFromApi,
-        external_id: payload.externalId, // Garante que o external_id local seja salvo
+        external_id: payload.externalId,
         playerName: playerName,
         amount: calculateTotal, 
         numericAmount: totalAmount,
@@ -418,6 +433,25 @@ function CheckoutPageContent() {
                 <FormLabel className="text-[15px]/4 font-medium text-gray-800">E-mail</FormLabel>
                 <FormControl>
                   <Input {...field} type="email" placeholder="E-mail" maxLength={60} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="cpf"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[15px]/4 font-medium text-gray-800">CPF (Opcional)</FormLabel>
+                <FormControl>
+                  <Input 
+                    {...field} 
+                    placeholder="000.000.000-00" 
+                    inputMode="numeric"
+                    onChange={(e) => handleCpfChange(e, field.onChange)}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
