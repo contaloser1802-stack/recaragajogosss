@@ -3,6 +3,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { gerarCPFValido } from '@/lib/utils';
+import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
+import { UtmifyOrderPayload, UtmifyProduct, UtmifyTrackingParameters } from '@/interfaces/utmify';
 
 // Função para enviar logs para o Discord
 async function notifyDiscord(message: string, payload?: any) {
@@ -15,7 +17,6 @@ async function notifyDiscord(message: string, payload?: any) {
     let content = message;
     if (payload) {
         const payloadString = JSON.stringify(payload, null, 2);
-        // O Discord tem um limite de 2000 caracteres por mensagem. 1800 é um valor seguro.
         const truncatedPayload = payloadString.length > 1800 ? payloadString.substring(0, 1800) + '...' : payloadString;
         content += `\n**Payload:**\n\`\`\`json\n${truncatedPayload}\n\`\`\``;
     }
@@ -29,24 +30,6 @@ async function notifyDiscord(message: string, payload?: any) {
     } catch (discordError) {
         console.error("Falha ao enviar log para o Discord:", discordError);
     }
-}
-
-
-// Função para obter dados de geolocalização do IP
-async function getGeoData(ip: string) {
-  if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
-    return { countryCode: 'BR' }; 
-  }
-  try {
-    const response = await fetch(`http://ip-api.com/json/${ip}?fields=countryCode`);
-    const data = await response.json();
-    return {
-      countryCode: data.countryCode || 'BR',
-    };
-  } catch (error) {
-    console.error(`[GeoData] Falha ao obter dados de geolocalização para o IP ${ip}:`, error);
-    return { countryCode: 'BR' }; 
-  }
 }
 
 const allowedOrigins = [
@@ -107,23 +90,19 @@ export async function POST(request: NextRequest) {
 
     const apiToken = process.env.BUCKPAY_API_TOKEN;
     if (!apiToken) {
-      const errorMsg = "❌ [Criação de Pagamento] ERRO: BUCKPAY_API_TOKEN não definida no ambiente do servidor.";
+      const errorMsg = "❌ [Criação de Pagamento] ERRO: BUCKPAY_API_TOKEN não definida.";
       await notifyDiscord(errorMsg);
-      return new NextResponse(JSON.stringify({ error: 'Chave de API do BuckPay não configurada no servidor.' }), { status: 500, headers });
+      return new NextResponse(JSON.stringify({ error: 'Configuração do servidor incompleta.' }), { status: 500, headers });
     }
 
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-        const errorMsg = `❌ [Criação de Pagamento] Validação de entrada: 'amount' inválido ou ausente - Recebido: ${amount}`;
-        await notifyDiscord(errorMsg, body);
-        return new NextResponse(JSON.stringify({ error: 'Valor total do pagamento (amount) inválido ou ausente.' }), { status: 400, headers });
+        return new NextResponse(JSON.stringify({ error: 'Valor total do pagamento (amount) inválido.' }), { status: 400, headers });
     }
     const amountInCents = Math.round(parsedAmount * 100);
 
     if (!Array.isArray(items) || items.length === 0) {
-        const errorMsg = "[Criação de Pagamento] Validação de entrada: 'items' inválido ou vazio.";
-        await notifyDiscord(errorMsg, body);
-        return new NextResponse(JSON.stringify({ error: 'Itens do pedido inválidos ou ausentes.' }), { status: 400, headers });
+        return new NextResponse(JSON.stringify({ error: 'Itens do pedido inválidos.' }), { status: 400, headers });
     }
     
     const finalCpf = (cpf || gerarCPFValido()).replace(/\D/g, '');
@@ -167,7 +146,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiToken}`,
-        'User-Agent': 'Buckpay API'
+        'User-Agent': 'RecargaJogo/1.0'
       },
       body: JSON.stringify(payloadForBuckPay)
     });
@@ -188,15 +167,69 @@ export async function POST(request: NextRequest) {
     }
     
     if (!buckpayResponse.ok) {
-        const errorMsg = `❌ [Criação de Pagamento] Erro da API BuckPay (HTTP ${buckpayResponse.status}): ${responseData.error?.message || 'Falha ao criar pagamento.'}`;
+        const errorMsg = `❌ [Criação de Pagamento] Erro da API BuckPay (HTTP ${buckpayResponse.status}): ${responseData.error?.message || 'Falha'}`;
         await notifyDiscord(errorMsg, responseData.error);
         return new NextResponse(
-            JSON.stringify({ error: responseData.error?.message || 'Falha ao criar pagamento na BuckPay.', details: responseData.error?.detail }),
+            JSON.stringify({ error: responseData.error?.message || 'Falha na BuckPay.', details: responseData.error?.detail }),
             { status: buckpayResponse.status, headers }
         );
     }
 
     await notifyDiscord(`✅ [Criação de Pagamento] Resposta da BuckPay (HTTP ${buckpayResponse.status}) recebida:`, responseData);
+    
+    // Envio para Utmify com status "waiting_payment"
+    const buckpayData = responseData.data;
+    if (buckpayData && buckpayData.id) {
+        const utmifyPayload: UtmifyOrderPayload = {
+            orderId: buckpayData.id,
+            platform: 'RecargaJogo',
+            paymentMethod: 'pix',
+            status: 'waiting_payment',
+            createdAt: formatToUtmifyDate(new Date()),
+            approvedDate: null,
+            refundedAt: null,
+            customer: {
+                name: name,
+                email: email,
+                phone: phone.replace(/\D/g, ''),
+                document: finalCpf,
+                country: 'BR',
+                ip: ip,
+            },
+            products: items.map((item: any) => ({
+                id: item.id || `prod_${Date.now()}`,
+                name: item.title,
+                planId: null,
+                planName: null,
+                quantity: item.quantity,
+                priceInCents: Math.round(item.unitPrice * 100),
+            })),
+            trackingParameters: {
+                src: utmParams.get('utm_source') || null,
+                sck: utmParams.get('sck') || null,
+                utm_source: utmParams.get('utm_source') || null,
+                utm_campaign: utmParams.get('utm_campaign') || null,
+                utm_medium: utmParams.get('utm_medium') || null,
+                utm_content: utmParams.get('utm_content') || null,
+                utm_term: utmParams.get('utm_term') || null,
+            },
+            commission: {
+                totalPriceInCents: amountInCents,
+                gatewayFeeInCents: 0,
+                userCommissionInCents: amountInCents,
+                currency: 'BRL',
+            },
+            isTest: false,
+        };
+
+        try {
+            await notifyDiscord(`📦 [Criação de Pagamento] Enviando payload PENDENTE para Utmify para o pedido ${buckpayData.id}:`, utmifyPayload);
+            await sendOrderToUtmify(utmifyPayload);
+            await notifyDiscord(`✅ [Criação de Pagamento] Payload PENDENTE enviado para Utmify com sucesso (ID: ${buckpayData.id}).`);
+        } catch (utmifyError: any) {
+             await notifyDiscord(`❌ [Criação de Pagamento] Erro durante o envio PENDENTE para Utmify (ID: ${buckpayData.id}):`, utmifyError.message);
+        }
+    }
     
     return new NextResponse(JSON.stringify(responseData), {
       status: 200,
@@ -206,7 +239,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     const errorMsg = `❌ [Criação de Pagamento] Erro fatal no servidor: ${error.message}`;
     await notifyDiscord(errorMsg, body);
-    return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor ao processar pagamento.' }), {
+    return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor.' }), {
       status: 500,
       headers
     });
@@ -225,14 +258,14 @@ export async function GET(request: NextRequest) {
   headers.set('Access-Control-Allow-Credentials', 'true');
 
   if (!externalId) {
-    return new NextResponse(JSON.stringify({ error: 'externalId é obrigatório para consulta de status.' }), { status: 400, headers });
+    return new NextResponse(JSON.stringify({ error: 'externalId é obrigatório.' }), { status: 400, headers });
   }
 
   try {
     const apiToken = process.env.BUCKPAY_API_TOKEN;
     if (!apiToken) {
-      console.error("[create-payment GET] ERRO: BUCKPAY_API_TOKEN não definida para consulta de status.");
-      return new NextResponse(JSON.stringify({ error: 'Chave de API do BuckPay não configurada no servidor.' }), { status: 500, headers });
+      console.error("[create-payment GET] ERRO: BUCKPAY_API_TOKEN não definida.");
+      return new NextResponse(JSON.stringify({ error: 'Configuração do servidor incompleta.' }), { status: 500, headers });
     }
 
     const buckpayStatusResponse = await fetch(`https://api.realtechdev.com.br/v1/transactions/external_id/${externalId}`, {
@@ -240,7 +273,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Authorization': `Bearer ${apiToken}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'Buckpay API'
+        'User-Agent': 'RecargaJogo/1.0'
       },
     });
 
@@ -266,7 +299,7 @@ export async function GET(request: NextRequest) {
     
     if (!buckpayStatusResponse.ok) {
         return new NextResponse(
-            JSON.stringify({ error: statusData.error?.message || 'Falha ao consultar status do pagamento.', details: statusData.error?.detail }),
+            JSON.stringify({ error: statusData.error?.message || 'Falha ao consultar status.', details: statusData.error?.detail }),
             { status: buckpayStatusResponse.status, headers }
         );
     }
@@ -280,4 +313,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     console.error("[create-payment GET] ERRO INTERNO NO SERVIDOR (GET STATUS):", error);
-    return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor ao consultar status.' }), { status: 500, headers });
+    return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor.' }), { status: 500, headers });
+  }
+}

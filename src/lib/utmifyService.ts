@@ -1,65 +1,50 @@
-'use server';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { getTransactionById } from '@/lib/buckpayService';
+import { UtmifyOrderPayload } from '@/interfaces/utmify';
 
-// Função para enviar logs para o Discord
-async function notifyDiscord(message: string, payload?: any) {
-    const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
-    if (!discordWebhookUrl) {
-        console.error("DISCORD_WEBHOOK_URL não está configurada.");
-        return;
+/**
+ * Formata um objeto Date para o formato 'YYYY-MM-DD HH:MM:SS' em UTC.
+ * @param date O objeto Date a ser formatado.
+ * @returns A string da data formatada ou null se a data for inválida.
+ */
+export function formatToUtmifyDate(date: Date | null): string | null {
+    if (!date || isNaN(date.getTime())) {
+        return null;
     }
-
-    let content = message;
-    if (payload) {
-        const payloadString = JSON.stringify(payload, null, 2);
-        // O Discord tem um limite de 2000 caracteres por mensagem. 1800 é um valor seguro.
-        const truncatedPayload = payloadString.length > 1800 ? payloadString.substring(0, 1800) + '...' : payloadString;
-        content += `\n**Payload:**\n\`\`\`json\n${truncatedPayload}\n\`\`\``;
-    }
-
-    try {
-        await fetch(discordWebhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content }),
-        });
-    } catch (discordError) {
-        console.error("Falha ao enviar log para o Discord:", discordError);
-    }
+    return date.toISOString().slice(0, 19).replace('T', ' ');
 }
 
-export async function POST(request: NextRequest) {
-    let requestBody;
+/**
+ * Envia os dados de um pedido para a API da Utmify.
+ * @param payload O corpo do pedido a ser enviado.
+ */
+export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<void> {
+    const apiUrl = process.env.UTMIFY_API_URL;
+    const apiKey = process.env.UTMIFY_API_TOKEN;
+
+    if (!apiUrl || !apiKey) {
+        throw new Error('Credenciais da Utmify (UTMIFY_API_URL ou UTMIFY_API_TOKEN) não estão configuradas no servidor.');
+    }
+
     try {
-        requestBody = await request.json();
-        await notifyDiscord('🔄 [Webhook BuckPay] Payload recebido:', requestBody);
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+            },
+            body: JSON.stringify(payload),
+        });
 
-        const { event, data } = requestBody;
-
-        if (!event || !data || !data.id || !data.status) {
-            const errorMsg = '❌ [Webhook BuckPay] Payload inválido. Campos essenciais (event, data, data.id, data.status) não encontrados.';
-            await notifyDiscord(errorMsg, requestBody);
-            return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
-        }
-        
-        const transactionId = data.id;
-
-        if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
-            await notifyDiscord(`✅ [Webhook BuckPay] Transação APROVADA ID: ${transactionId}. Nenhuma ação adicional configurada.`);
-            // Lógica para enviar para Utmify foi removida.
-            // Você pode adicionar outras ações aqui se necessário, como liberar o produto para o cliente.
-
-        } else {
-            await notifyDiscord(`ℹ️ [Webhook BuckPay] Evento '${event}' com status '${data.status}' recebido para ID ${transactionId}, nenhuma ação configurada.`);
+        if (!response.ok) {
+            const errorBody = await response.json().catch(() => ({ message: 'Resposta de erro não é JSON' }));
+            const errorMessage = `Erro da API Utmify: ${response.status} - ${JSON.stringify(errorBody)}`;
+            console.error('[UtmifyService] Erro ao enviar pedido:', errorMessage);
+            throw new Error(errorMessage);
         }
 
-        return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso', transactionId: transactionId }, { status: 200 });
-
+        console.log(`[UtmifyService] Pedido ${payload.orderId} com status ${payload.status} enviado com sucesso para Utmify.`);
     } catch (error: any) {
-        const errorMsg = `❌ [Webhook BuckPay] Erro fatal ao processar webhook: ${error.message}`;
-        await notifyDiscord(errorMsg, requestBody);
-        return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
+        console.error('[UtmifyService] Erro desconhecido ao comunicar com a Utmify:', error.message);
+        throw new Error(`Erro desconhecido ao comunicar com a Utmify: ${error.message}`);
     }
 }

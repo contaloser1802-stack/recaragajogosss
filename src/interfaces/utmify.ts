@@ -6,16 +6,16 @@ export interface UtmifyCustomer {
     phone: string | null;
     document: string | null;
     country?: string; // ISO 3166-1 alfa-2
-    ip?: string;
+    ip?: string | null;
 }
 
 export interface UtmifyProduct {
-    id: string; // ID do seu produto (pode ser o ID interno do seu sistema)
+    id: string; // ID do seu produto
     name: string;
     planId: string | null;
     planName: string | null;
     quantity: number;
-    priceInCents: number; // Preço do produto em centavos
+    priceInCents: number;
 }
 
 export interface UtmifyTrackingParameters {
@@ -43,9 +43,9 @@ export interface UtmifyOrderPayload {
     platform: string;
     paymentMethod: UtmifyPaymentMethod;
     status: UtmifyOrderStatus;
-    createdAt: string; // YYYY-MM-DD HH:MM:SS (UTC)
-    approvedDate: string | null; // YYYY-MM-DD HH:MM:SS (UTC)
-    refundedAt: string | null; // YYYY-MM-DD HH:MM:SS (UTC)
+    createdAt: string | null;
+    approvedDate: string | null;
+    refundedAt: string | null;
     customer: UtmifyCustomer;
     products: UtmifyProduct[];
     trackingParameters: UtmifyTrackingParameters;
