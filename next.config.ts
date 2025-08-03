@@ -1,14 +1,8 @@
+
 import type {NextConfig} from 'next';
 require('dotenv').config();
 
 const nextConfig: NextConfig = {
-  env: {
-    BUCKPAY_API_TOKEN: process.env.BUCKPAY_API_TOKEN,
-    DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL,
-    UTMIFY_API_URL: process.env.UTMIFY_API_URL,
-    UTMIFY_API_TOKEN: process.env.UTMIFY_API_TOKEN,
-    GHOSTPAY_SECRET_KEY: process.env.GHOSTPAY_SECRET_KEY,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
