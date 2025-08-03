@@ -94,7 +94,7 @@ const Upsell3Page = () => {
             }
             
             localStorage.setItem('paymentData', JSON.stringify({
-                ...data,
+                ...data.data,
                 external_id: payload.externalId,
                 playerName: playerName,
                 amount: selectedProduct.formattedPrice,

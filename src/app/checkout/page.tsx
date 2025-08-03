@@ -37,7 +37,6 @@ const formSchema = z.object({
   email: z.string()
     .min(1, { message: "E-mail é obrigatório." })
     .email({ message: "Formato de e-mail inválido." }),
-  cpf: z.string().optional(),
   phone: z.string()
     .min(1, { message: "Número de telefone é obrigatório." })
     .regex(/^\(\d{2}\) \d \d{4}-\d{4}$/, { message: "Formato de telefone inválido." }),
@@ -118,7 +117,6 @@ function CheckoutPageContent() {
     defaultValues: {
       name: '',
       email: '',
-      cpf: '',
       phone: '',
       promoCode: '',
     },
@@ -164,11 +162,6 @@ function CheckoutPageContent() {
   
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
     const formatted = formatPhoneNumber(e.target.value);
-    fieldChange(formatted);
-  };
-
-  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>, fieldChange: (value: string) => void) => {
-    const formatted = cpfMask(e.target.value);
     fieldChange(formatted);
   };
 
@@ -241,7 +234,7 @@ function CheckoutPageContent() {
       name: values.name, 
       email: values.email, 
       phone: values.phone.replace(/\D/g, ''),
-      cpf: values.cpf?.replace(/\D/g, ''),
+      cpf: '', // O backend irá gerar se estiver vazio
     };
     
     try {
@@ -258,7 +251,6 @@ function CheckoutPageContent() {
       name: values.name,
       email: values.email,
       phone: values.phone.replace(/\D/g, ''),
-      cpf: values.cpf?.replace(/\D/g, ''),
       amount: totalAmount,
       externalId: `ff-${Date.now()}`,
       items: items,
@@ -433,25 +425,6 @@ function CheckoutPageContent() {
                 <FormLabel className="text-[15px]/4 font-medium text-gray-800">E-mail</FormLabel>
                 <FormControl>
                   <Input {...field} type="email" placeholder="E-mail" maxLength={60} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="cpf"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[15px]/4 font-medium text-gray-800">CPF (Opcional)</FormLabel>
-                <FormControl>
-                  <Input 
-                    {...field} 
-                    placeholder="000.000.000-00" 
-                    inputMode="numeric"
-                    onChange={(e) => handleCpfChange(e, field.onChange)}
-                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

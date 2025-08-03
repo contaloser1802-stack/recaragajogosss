@@ -29,7 +29,6 @@ const formSchema = z.object({
   email: z.string()
     .min(1, { message: "E-mail é obrigatório." })
     .email({ message: "Formato de e-mail inválido." }),
-  cpf: z.string().optional(),
   phone: z.string()
     .min(1, { message: "Número de telefone é obrigatório." })
     .regex(/^\(\d{2}\) \d \d{4}-\d{4}$/, { message: "Formato de telefone inválido." }),
@@ -110,7 +109,6 @@ function CheckoutPageContent() {
     defaultValues: {
       name: '',
       email: '',
-      cpf: '',
       phone: '',
       promoCode: '',
     },
@@ -230,7 +228,7 @@ function CheckoutPageContent() {
       name: values.name, 
       email: values.email, 
       phone: values.phone.replace(/\D/g, ''),
-      cpf: values.cpf?.replace(/\D/g, ''),
+      cpf: '', // O backend irá gerar se estiver vazio
     };
     
     try {
@@ -247,7 +245,7 @@ function CheckoutPageContent() {
       name: values.name,
       email: values.email,
       phone: values.phone.replace(/\D/g, ''),
-      cpf: values.cpf?.replace(/\D/g, ''),
+      cpf: '', // Backend vai gerar
       amount: totalAmount,
       externalId: `ff-${Date.now()}`,
       items: items,
