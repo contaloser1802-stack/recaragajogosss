@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { getTransactionById } from '@/lib/buckpayService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
-import axios from 'axios';
 
 async function handleApprovedTransaction(transactionId: string) {
     console.log(`[buckpay-webhook] Iniciando processo para transação APROVADA ID: ${transactionId}`);
@@ -111,6 +110,7 @@ export async function POST(request: NextRequest) {
         const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
         if (discordWebhookUrl) {
             try {
+                const axios = (await import('axios')).default;
                 await axios.post(discordWebhookUrl, {
                     content: `🚨 **Erro no Webhook BuckPay** 🚨\n**Erro:** ${error.message}\n**Payload Recebido:**\n\`\`\`json\n${JSON.stringify(requestBody || 'Falha ao ler o corpo da requisição', null, 2)}\n\`\`\``
                 });
