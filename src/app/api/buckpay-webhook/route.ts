@@ -14,7 +14,7 @@ async function handleApprovedTransaction(transactionId: string) {
         throw new Error(`[buckpay-webhook] Falha ao obter detalhes da transação ${transactionId} da API da Buckpay.`);
     }
 
-    // A resposta da API pode vir com os dados aninhados em `data.data`
+    // A resposta da API pode vir com os dados aninhados em `data.data` ou `data`
     const data = transactionDetailsResponse.data || transactionDetailsResponse;
     
     console.log(`[buckpay-webhook] Detalhes completos da transação ${transactionId} obtidos da Buckpay.`);
