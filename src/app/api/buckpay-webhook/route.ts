@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
             console.log(`[buckpay-webhook] Iniciando processo para transação APROVADA ID: ${transactionId}`);
 
             // 1. Buscar os dados do pedido pendente no Supabase
+            console.log(`[buckpay-webhook] 🔍 Buscando no Supabase por transaction_id: ${transactionId}`);
             const { data: transactionData, error: supabaseError } = await supabase
                 .from('transactions')
                 .select('utmify_payload')
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
             console.log(`[buckpay-webhook] ℹ️ Evento '${event}' com status '${data.status}' recebido, mas nenhuma ação configurada para ele.`);
         }
 
-        return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso' }, { status: 200 });
+        return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso', transactionId: transactionId }, { status: 200 });
 
     } catch (error: any) {
         console.error('[buckpay-webhook] ❌ Erro fatal ao processar webhook:', error.message);

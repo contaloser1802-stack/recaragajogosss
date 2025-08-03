@@ -125,13 +125,14 @@ const BuyPage = () => {
 
           const startPolling = (externalId: string) => {
             let attempt = 0;
-            const maxAttempts = 12; // 1 minuto de polling intenso
+            const maxAttempts = 20; // 2 minutos de polling intenso
             const initialDelay = 5000; // 5 segundos
-            const maxDelay = 30000; // 30 segundos
+            const maxDelay = 20000; // 20 segundos
             
             const poll = async () => {
+              // Condição de parada principal
               if (paymentStatus === 'PAID' || attempt >= maxAttempts) {
-                  return; // Para de pollar se já estiver aprovado ou exceder tentativas
+                  return;
               }
               try {
                 const res = await fetch(`/api/create-payment?externalId=${externalId}`);
@@ -141,15 +142,19 @@ const BuyPage = () => {
                        setPaymentStatus('UNKNOWN');
                        return;
                     }
+                     // Se for 404, continua tentando como PENDING
                 }
                 const statusData = await res.json();
                 console.log("Resposta do status da API (backend):", statusData);
-                let newStatus: typeof paymentStatus = statusData.status?.toUpperCase() || 'UNKNOWN';
+                const newStatus: typeof paymentStatus = statusData.status?.toUpperCase() || 'PENDING';
 
-                setPaymentStatus(newStatus);
+                // Atualiza o estado APENAS se houver mudança
+                if (newStatus !== paymentStatus) {
+                    setPaymentStatus(newStatus);
+                }
                 
+                // Para de pollar se o status for final
                 if (newStatus === 'PAID' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
-                  // Parar de pollar se o status for final
                   return; 
                 }
 
