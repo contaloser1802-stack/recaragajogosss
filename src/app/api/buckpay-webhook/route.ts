@@ -98,6 +98,4 @@ export async function POST(request: NextRequest) {
         }
         
         // Responda 200 para a Buckpay para evitar retentativas em caso de erro interno.
-        return NextResponse.json({ success: true, message: 'Erro processado internamente, não haverá retentativa.' }, { status: 200 });
-    }
-}
+        return NextResponse.json({ success: true, message: '
