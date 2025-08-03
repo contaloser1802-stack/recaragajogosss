@@ -92,14 +92,14 @@ export async function POST(request: NextRequest) {
                 priceInCents: item.amount || 0,
             }));
 
-            if (products.length === 0) {
+            if (products.length === 0 && details.total_amount) {
                 products.push({
                     id: `prod_${transactionId}`,
                     name: 'Produto Principal',
                     planId: null,
                     planName: null,
                     quantity: 1,
-                    priceInCents: details.total_amount || 0,
+                    priceInCents: details.total_amount,
                 });
             }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
-import { UtmifyOrderPayload } from '@/interfaces/utmify';
+import { UtmifyOrderPayload, UtmifyProduct, UtmifyTrackingParameters } from '@/interfaces/utmify';
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +31,37 @@ export async function POST(request: NextRequest) {
     if (paymentStatus === 'APPROVED' || paymentStatus === 'PAID') {
       console.log(`[ghostpay-webhook] ✅ Pagamento APROVADO (ID: ${event.id}). Iniciando envio para Utmify.`);
 
+      const products: UtmifyProduct[] = (event.items || []).map((item: any) => ({
+        id: item.id || `prod_${Date.now()}`,
+        name: item.title || 'Produto',
+        planId: null,
+        planName: null,
+        quantity: item.quantity || 1,
+        priceInCents: item.unitPrice || 0, // GhostPay já envia em centavos
+      }));
+
+      if (products.length === 0 && totalAmountInCents > 0) {
+        products.push({
+            id: `prod_${event.id}`,
+            name: 'Produto Principal',
+            planId: null,
+            planName: null,
+            quantity: 1,
+            priceInCents: totalAmountInCents,
+        });
+      }
+      
+      const tracking: UtmifyTrackingParameters = {
+        src: event.utmQuery?.utm_source || null,
+        sck: event.utmQuery?.sck || null,
+        utm_source: event.utmQuery?.utm_source || null,
+        utm_campaign: event.utmQuery?.utm_campaign || null,
+        utm_medium: event.utmQuery?.utm_medium || null,
+        utm_content: event.utmQuery?.utm_content || null,
+        utm_term: event.utmQuery?.utm_term || null,
+      };
+
+
       const utmifyPayload: UtmifyOrderPayload = {
         orderId: event.id,
         platform: 'RecargaJogo',
@@ -47,23 +78,8 @@ export async function POST(request: NextRequest) {
           country: 'BR',
           ip: event.customer.ipAddress || null,
         },
-        products: event.items.map((item: any) => ({
-          id: item.id || `prod_${Date.now()}`,
-          name: item.title || 'Produto',
-          planId: null,
-          planName: null,
-          quantity: item.quantity || 1,
-          priceInCents: item.unitPrice || 0, // GhostPay já envia em centavos
-        })),
-        trackingParameters: {
-            src: event.utmQuery?.utm_source || null,
-            sck: event.utmQuery?.sck || null,
-            utm_source: event.utmQuery?.utm_source || null,
-            utm_campaign: event.utmQuery?.utm_campaign || null,
-            utm_medium: event.utmQuery?.utm_medium || null,
-            utm_content: event.utmQuery?.utm_content || null,
-            utm_term: event.utmQuery?.utm_term || null,
-        },
+        products: products,
+        trackingParameters: tracking,
         commission: {
           totalPriceInCents: totalAmountInCents,
           gatewayFeeInCents: 0, 
