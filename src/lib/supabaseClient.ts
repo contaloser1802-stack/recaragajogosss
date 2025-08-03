@@ -1,10 +1,2 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase URL ou Anon Key não estão definidos nas variáveis de ambiente.')
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// This file is no longer needed as the Supabase dependency has been removed.
+// You can safely delete this file from your project.

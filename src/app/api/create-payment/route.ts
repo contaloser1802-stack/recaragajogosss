@@ -1,3 +1,4 @@
+
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -5,7 +6,6 @@ import { gerarCPFValido } from '@/lib/utils';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import axios from 'axios';
-import { supabase } from '@/lib/supabaseClient';
 
 // Função para obter dados de geolocalização do IP
 async function getGeoData(ip: string) {
@@ -217,24 +217,8 @@ export async function POST(request: NextRequest) {
             await sendOrderToUtmify(utmifyPayload);
             console.log(`[create-payment POST] ✅ Dados de pagamento pendente (ID: ${paymentData.id}) enviados para Utmify.`);
 
-            // Salvar no Supabase
-            console.log(`[create-payment POST] 💾 Salvando pedido pendente no Supabase (ID: ${paymentData.id})...`);
-            const { error: supabaseError } = await supabase
-              .from('transactions')
-              .insert({
-                transaction_id: paymentData.id,
-                external_id: externalId,
-                utmify_payload: utmifyPayload
-              });
-
-            if (supabaseError) {
-              console.error(`[create-payment POST] ❌ Erro ao salvar no Supabase:`, supabaseError);
-            } else {
-              console.log(`[create-payment POST] ✅ Pedido pendente (ID: ${paymentData.id}) salvo no Supabase.`);
-            }
-
         } catch (error: any) {
-            console.error(`[create-payment POST] ❌ Erro durante o processo da Utmify/Supabase (ID: ${paymentData.id}):`, error.message);
+            console.error(`[create-payment POST] ❌ Erro durante o processo da Utmify (ID: ${paymentData.id}):`, error.message);
         }
     }
 
