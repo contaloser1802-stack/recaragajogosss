@@ -8,15 +8,16 @@ async function handleApprovedTransaction(transactionId: string) {
     console.log(`[buckpay-webhook] Iniciando processo para transação APROVADA ID: ${transactionId}`);
 
     // 1. Buscar os detalhes completos da transação na API da Buckpay
-    const transactionDetails = await getTransactionById(transactionId);
+    const transactionDetailsResponse = await getTransactionById(transactionId);
     
-    if (!transactionDetails) {
+    if (!transactionDetailsResponse) {
         throw new Error(`[buckpay-webhook] Falha ao obter detalhes da transação ${transactionId} da API da Buckpay.`);
     }
 
+    // A resposta da API pode vir com os dados aninhados em `data.data`
+    const data = transactionDetailsResponse.data || transactionDetailsResponse;
+    
     console.log(`[buckpay-webhook] Detalhes completos da transação ${transactionId} obtidos da Buckpay.`);
-
-    const { data } = transactionDetails;
 
     // 2. Montar o payload para a Utmify com os dados completos
     const utmifyPayload: UtmifyOrderPayload = {

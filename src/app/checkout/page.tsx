@@ -257,16 +257,18 @@ function CheckoutPageContent() {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        const errorMessage = data.error?.message || data.error || "Erro ao processar o pagamento";
+        const errorMessage = responseData.error?.message || responseData.error || "Erro ao processar o pagamento";
         throw new Error(errorMessage);
       }
+      
+      const paymentDataFromApi = responseData.data || responseData;
 
       localStorage.setItem('paymentData', JSON.stringify({
-        ...data,
-        external_id: payload.externalId,
+        ...paymentDataFromApi,
+        external_id: payload.externalId, // Garante que o external_id local seja salvo
         playerName: playerName,
         amount: calculateTotal, 
         numericAmount: totalAmount,
