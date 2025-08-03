@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
             console.log(`[buckpay-webhook] Iniciando processo para transação APROVADA ID: ${transactionId}`);
 
-            // 1. Buscar os dados do pedido pendente no Supabase
+            // 1. Buscar os dados do pedido pendente no Supabase usando o transaction_id
             console.log(`[buckpay-webhook] 🔍 Buscando no Supabase por transaction_id: ${transactionId}`);
             const { data: transactionData, error: supabaseError } = await supabase
                 .from('transactions')
@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
             }
             
             console.log(`[buckpay-webhook] 📦 Payload de APROVAÇÃO montado para enviar à Utmify para o pedido '${transactionId}':`, JSON.stringify(utmifyPayload, null, 2));
+            
             // 4. Enviar para a Utmify
             await sendOrderToUtmify(utmifyPayload);
             console.log(`[buckpay-webhook] ✅ Dados do pedido ${transactionId} (pago) enviados para Utmify com sucesso.`);
