@@ -147,7 +147,7 @@ const DownsellPage = () => {
                         Volta aqui rapidinho...
                     </h1>
                     <p className="mt-3 text-base text-gray-600">
-                        Você ganhou um bônus secreto de 5000 diamantes extras!
+                        Você ganhou um bônus secreto de 5.999 diamantes, aproveite!
                     </p>
                     
                     <div className="flex flex-col gap-4 my-8">

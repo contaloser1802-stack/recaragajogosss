@@ -39,22 +39,22 @@ export const specialOffers = [
 ];
 
 export const upsellOffers = [
-    { id: 'upsell-5600', name: '5.600 Diamantes', originalAmount: '5.600', bonusAmount: '0', totalAmount: '5.600', price: 9.90, formattedPrice: 'R$ 9,90' },
+    { id: 'upsell-5600', name: '5.600 Diamantes', originalAmount: '5.600', bonusAmount: '0', totalAmount: '5.600', price: 14.90, formattedPrice: 'R$ 14,90' },
 ];
 
 export const downsellOffers = [
-    { id: 'downsell-bonus', name: '5.600 Diamantes +399 Bônus', originalAmount: '5.600', bonusAmount: '399', totalAmount: '5.999', price: 9.90, formattedPrice: 'R$ 9,90' },
+    { id: 'downsell-bonus', name: '5.600 Diamantes +399 Bônus', originalAmount: '5.600', bonusAmount: '399', totalAmount: '5.999', price: 17.80, formattedPrice: 'R$ 17,80' },
 ];
 
 export const taxOffer = [
-    { id: 'tax-release', name: 'Taxa de Liberação Imediata', originalAmount: '', bonusAmount: '', totalAmount: 'Liberação', price: 9.99, formattedPrice: 'R$ 9,99' }
+    { id: 'tax-release', name: 'Taxa de Liberação Imediata', originalAmount: '', bonusAmount: '', totalAmount: 'Liberação', price: 19.90, formattedPrice: 'R$ 19,90' }
 ];
 
 export const skinOffers = [
-    { id: 'skin-itachi', name: 'Skin Itachi', price: 9.90, formattedPrice: 'R$ 9,90', image: 'https://i.ibb.co/bjfJKXvw/Screenshot-26.png' },
-    { id: 'skin-madara', name: 'Skin Madara', price: 9.90, formattedPrice: 'R$ 9,90', image: 'https://i.ibb.co/gLxpsRS8/Screenshot-28.png' },
+    { id: 'skin-itachi', name: 'Skin Itachi', price: 14.90, formattedPrice: 'R$ 14,90', image: 'https://i.ibb.co/bjfJKXvw/Screenshot-26.png' },
+    { id: 'skin-madara', name: 'Skin Madara', price: 18.70, formattedPrice: 'R$ 18,70', image: 'https://i.ibb.co/gLxpsRS8/Screenshot-28.png' },
     { id: 'skin-minato', name: 'Skin Minato', price: 9.90, formattedPrice: 'R$ 9,90', image: 'https://i.ibb.co/h1ZHTHsn/Screenshot-29.png' },
-    { id: 'skin-obito', name: 'Skin Obito', price: 9.90, formattedPrice: 'R$ 9,90', image: 'https://i.ibb.co/Qvp7bz7h/Screenshot-30.png' },
+    { id: 'skin-obito', name: 'Skin Obito', price: 14.90, formattedPrice: 'R$ 14,90', image: 'https://i.ibb.co/Qvp7bz7h/Screenshot-30.png' },
     { id: 'skin-orochimaru', name: 'Skin Orochimaru', price: 9.90, formattedPrice: 'R$ 9,90', image: 'https://i.ibb.co/RTnVj2SJ/Screenshot-27.png' },
 ];
 
