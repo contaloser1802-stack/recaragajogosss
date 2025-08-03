@@ -235,7 +235,6 @@ function CheckoutPageContent() {
       name: values.name, 
       email: values.email, 
       phone: values.phone.replace(/\D/g, ''),
-      cpf: '', // O backend irá gerar se estiver vazio
     };
     
     try {
@@ -268,8 +267,10 @@ function CheckoutPageContent() {
       const responseData = await response.json();
 
       if (!response.ok) {
-        const errorMessage = responseData.error?.message || responseData.error || "Erro ao processar o pagamento";
-        throw new Error(errorMessage);
+        const errorMessage = responseData.error || "Erro ao processar o pagamento";
+        toast({ variant: "destructive", title: "Erro no pagamento", description: errorMessage });
+        setIsSubmitting(false);
+        return;
       }
       
       const paymentDataFromApi = responseData.data || responseData;
