@@ -43,4 +43,7 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<vo
 
         console.log(`[UtmifyService] Pedido ${payload.orderId} com status ${payload.status} enviado com sucesso para Utmify.`);
     } catch (error: any) {
-        console.error('[UtmifyService] Erro desconhecido ao comunicar com a Utm
+        console.error('[UtmifyService] Erro desconhecido ao comunicar com a Utmify:', error.message);
+        throw new Error(`Erro desconhecido ao comunicar com a Utmify: ${error.message}`);
+    }
+}
