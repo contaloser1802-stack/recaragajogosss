@@ -93,17 +93,7 @@ export async function POST(request: NextRequest) {
         console.error("[create-payment POST] Validação de entrada: 'items' inválido ou vazio.");
         return new NextResponse(JSON.stringify({ error: 'Itens do pedido inválidos ou ausentes.' }), { status: 400, headers });
     }
-
-    const mainProduct = items[0];
-    const offers = items.slice(1);
     
-    const offerPayload = offers.length > 0 ? {
-        id: offers[0].id || null,
-        name: offers[0].title || null,
-        discount_price: Math.round(parseFloat(offers[0].unitPrice || 0) * 100),
-        quantity: offers[0].quantity || 1,
-    } : null;
-
     const finalCpf = (cpf || gerarCPFValido()).replace(/\D/g, '');
     const utmParams = new URLSearchParams(utmQuery);
     const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
@@ -119,11 +109,12 @@ export async function POST(request: NextRequest) {
         phone: `55${phone.replace(/\D/g, '')}`,
         ip,
       },
-      product: {
-        id: mainProduct.id || null,
-        name: mainProduct.title || null
-      },
-      ...(offerPayload && { offer: offerPayload }),
+      items: items.map((item: any) => ({
+        id: item.id || `prod_${Date.now()}`,
+        name: item.title,
+        amount: Math.round(item.unitPrice * 100),
+        quantity: item.quantity,
+      })),
       tracking: {
         ref: utmParams.get('ref') || null,
         src: utmParams.get('utm_source') || null,
@@ -213,8 +204,8 @@ export async function POST(request: NextRequest) {
             },
             commission: {
                 totalPriceInCents: paymentData.total_amount || 0,
-                gatewayFeeInCents: 0,
-                userCommissionInCents: paymentData.total_amount || 0,
+                gatewayFeeInCents: 0, // A taxa será calculada na Utmify
+                userCommissionInCents: paymentData.total_amount || 0, // Envia o valor total
                 currency: 'BRL',
             },
             isTest: false,
