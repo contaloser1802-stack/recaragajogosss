@@ -33,12 +33,14 @@ export async function getTransactionById(transactionId: string): Promise<any | n
         console.log(`[BuckpayService] Buscando detalhes da transação ID: ${transactionId}`);
         const response = await buckpayApi.get(`/transactions/${transactionId}`);
         console.log(`[BuckpayService] Detalhes da transação ${transactionId} obtidos com sucesso.`);
+        // A API da Buckpay pode aninhar a resposta em 'data'. Normalizamos isso aqui.
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error(`[BuckpayService] Erro ao buscar transação ${transactionId}:`, {
                 status: error.response?.status,
                 data: error.response?.data,
+                message: error.message,
             });
         } else {
             console.error(`[BuckpayService] Erro inesperado ao buscar transação ${transactionId}:`, error);

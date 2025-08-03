@@ -3,6 +3,11 @@ import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { getTransactionById } from '@/lib/buckpayService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 
+/**
+ * Lida com uma transação aprovada, buscando seus detalhes completos
+ * e enviando para a Utmify.
+ * @param transactionId O ID da transação aprovada.
+ */
 async function handleApprovedTransaction(transactionId: string) {
     console.log(`[buckpay-webhook] Iniciando processo para transação APROVADA ID: ${transactionId}`);
 
@@ -16,13 +21,17 @@ async function handleApprovedTransaction(transactionId: string) {
     // A resposta da API pode vir com os dados aninhados em `data.data` ou `data`
     const data = transactionDetailsResponse.data || transactionDetailsResponse;
     
+    if (!data || !data.id) {
+        throw new Error(`[buckpay-webhook] Objeto de dados da transação ${transactionId} é inválido ou não contém ID.`);
+    }
+
     console.log(`[buckpay-webhook] Detalhes completos da transação ${transactionId} obtidos da Buckpay.`);
 
     // 2. Montar o payload para a Utmify com os dados completos
     const utmifyPayload: UtmifyOrderPayload = {
         orderId: data.id,
-        platform: 'RecargaJogo',
-        paymentMethod: 'pix',
+        platform: 'RecargaJogo', // Deve ser o mesmo da criação da venda pendente
+        paymentMethod: 'pix', // Ou mapear de `data.payment_method` se disponível e necessário
         status: 'paid', // Status final de venda paga
         createdAt: formatToUtmifyDate(new Date(data.created_at)),
         approvedDate: formatToUtmifyDate(new Date(data.paid_at || Date.now())),
@@ -30,18 +39,18 @@ async function handleApprovedTransaction(transactionId: string) {
         customer: {
             name: data.buyer.name,
             email: data.buyer.email,
-            phone: data.buyer.phone.replace(/^55/, ''),
+            phone: data.buyer.phone.replace(/^55/, ''), // Remove o DDI 55 se presente
             document: data.buyer.document,
             country: 'BR', 
-            ip: data.buyer.ip,
+            ip: data.buyer.ip, // IP do comprador
         },
         products: data.items.map((item: any) => ({
-            id: item.id || `prod_${Date.now()}`,
+            id: item.id || `prod_${Date.now()}`, // Garante um ID de produto
             name: item.name,
             planId: null,
             planName: null,
             quantity: item.quantity,
-            priceInCents: item.amount,
+            priceInCents: item.amount, // Buckpay já envia em centavos
         })),
         trackingParameters: {
             src: data.tracking?.src || null,
@@ -54,8 +63,8 @@ async function handleApprovedTransaction(transactionId: string) {
         },
         commission: {
             totalPriceInCents: data.total_amount,
-            gatewayFeeInCents: 0,
-            userCommissionInCents: data.total_amount,
+            gatewayFeeInCents: 0, // A taxa é calculada na Utmify
+            userCommissionInCents: data.total_amount, // Enviamos o valor bruto para a Utmify calcular a comissão líquida
             currency: 'BRL',
         },
         isTest: false,
@@ -90,7 +99,7 @@ export async function POST(request: NextRequest) {
         const { event, data } = requestBody;
 
         if (!event || !data || !data.id || !data.status) {
-            console.error('[buckpay-webhook] ❌ Payload inválido. Campos essenciais não encontrados.');
+            console.error('[buckpay-webhook] ❌ Payload inválido. Campos essenciais (event, data, data.id, data.status) não encontrados.');
             return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
         }
 
@@ -101,6 +110,7 @@ export async function POST(request: NextRequest) {
             console.log(`[buckpay-webhook] ℹ️ Evento '${event}' com status '${data.status}' recebido, mas nenhuma ação configurada para ele.`);
         }
 
+        // Responde com sucesso para a BuckPay para confirmar o recebimento do webhook.
         return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso' }, { status: 200 });
 
     } catch (error: any) {
