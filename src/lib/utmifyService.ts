@@ -16,6 +16,10 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
   const UTMIFY_API_URL = serverRuntimeConfig.UTMIFY_API_URL;
   const UTMIFY_API_TOKEN = serverRuntimeConfig.UTMIFY_API_TOKEN; 
 
+  // Adicione um log para verificar o valor do token
+  console.log('[UtmifyService] Verificando token. Valor do UTMIFY_API_TOKEN:', UTMIFY_API_TOKEN ? 'Token carregado' : 'Token não carregado ou vazio');
+
+
   if (!UTMIFY_API_TOKEN || !UTMIFY_API_URL) {
     const errorMessage = "Credenciais da Utmify (UTMIFY_API_URL ou UTMIFY_API_TOKEN) não estão configuradas no servidor.";
     console.error(`[UtmifyService] ${errorMessage}`);
