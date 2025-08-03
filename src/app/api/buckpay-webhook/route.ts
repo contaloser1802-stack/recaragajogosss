@@ -1,81 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
-import { getTransactionById } from '@/lib/buckpayService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
-
-/**
- * Lida com uma transação aprovada, buscando seus detalhes completos
- * e enviando para a Utmify.
- * @param transactionId O ID da transação aprovada.
- */
-async function handleApprovedTransaction(transactionId: string) {
-    console.log(`[buckpay-webhook] Iniciando processo para transação APROVADA ID: ${transactionId}`);
-
-    // 1. Buscar os detalhes completos da transação na API da Buckpay
-    const transactionDetailsResponse = await getTransactionById(transactionId);
-    
-    if (!transactionDetailsResponse) {
-        throw new Error(`[buckpay-webhook] Falha ao obter detalhes da transação ${transactionId} da API da Buckpay.`);
-    }
-
-    // A resposta da API pode vir com os dados aninhados em `data.data` ou `data`
-    const data = transactionDetailsResponse.data || transactionDetailsResponse;
-    
-    if (!data || !data.id) {
-        throw new Error(`[buckpay-webhook] Objeto de dados da transação ${transactionId} é inválido ou não contém ID.`);
-    }
-
-    console.log(`[buckpay-webhook] Detalhes completos da transação ${transactionId} obtidos da Buckpay.`);
-
-    // 2. Montar o payload para a Utmify com os dados completos
-    const utmifyPayload: UtmifyOrderPayload = {
-        orderId: data.id,
-        platform: 'RecargaJogo', // Deve ser o mesmo da criação da venda pendente
-        paymentMethod: 'pix', // Ou mapear de `data.payment_method` se disponível e necessário
-        status: 'paid', // Status final de venda paga
-        createdAt: formatToUtmifyDate(new Date(data.created_at)),
-        approvedDate: formatToUtmifyDate(new Date(data.paid_at || Date.now())),
-        refundedAt: null,
-        customer: {
-            name: data.buyer.name,
-            email: data.buyer.email,
-            phone: data.buyer.phone.replace(/^55/, ''), // Remove o DDI 55 se presente
-            document: data.buyer.document,
-            country: 'BR', 
-            ip: data.buyer.ip, // IP do comprador
-        },
-        products: data.items.map((item: any) => ({
-            id: item.id || `prod_${Date.now()}`, // Garante um ID de produto
-            name: item.name,
-            planId: null,
-            planName: null,
-            quantity: item.quantity,
-            priceInCents: item.amount, // Buckpay já envia em centavos
-        })),
-        trackingParameters: {
-            src: data.tracking?.src || null,
-            sck: data.tracking?.sck || null,
-            utm_source: data.tracking?.utm_source || null,
-            utm_campaign: data.tracking?.utm_campaign || null,
-            utm_medium: data.tracking?.utm_medium || null,
-            utm_content: data.tracking?.utm_content || null,
-            utm_term: data.tracking?.utm_term || null,
-        },
-        commission: {
-            totalPriceInCents: data.total_amount,
-            gatewayFeeInCents: 0, // A taxa é calculada na Utmify
-            userCommissionInCents: data.total_amount, // Enviamos o valor bruto para a Utmify calcular a comissão líquida
-            currency: 'BRL',
-        },
-        isTest: false,
-    };
-
-    console.log(`[buckpay-webhook] 📦 Payload de APROVAÇÃO montado para enviar à Utmify para o pedido '${transactionId}':`, JSON.stringify(utmifyPayload, null, 2));
-
-    // 3. Enviar para a Utmify
-    await sendOrderToUtmify(utmifyPayload);
-    console.log(`[buckpay-webhook] ✅ Dados do pedido ${transactionId} (pago) enviados para Utmify com sucesso.`);
-}
+import { supabase } from '@/lib/supabaseClient';
 
 export async function POST(request: NextRequest) {
     const webhookToken = request.headers.get('authorization');
@@ -97,26 +23,53 @@ export async function POST(request: NextRequest) {
         console.log('[buckpay-webhook] 🔄 Payload do webhook recebido:', JSON.stringify(requestBody, null, 2));
 
         const { event, data } = requestBody;
+        const transactionId = data?.id;
 
-        if (!event || !data || !data.id || !data.status) {
-            console.error('[buckpay-webhook] ❌ Payload inválido. Campos essenciais (event, data, data.id, data.status) não encontrados.');
+        if (!event || !transactionId || !data.status) {
+            console.error('[buckpay-webhook] ❌ Payload inválido. Campos essenciais (event, data.id, data.status) não encontrados.');
             return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
         }
 
-        // Ação principal: Apenas quando a transação for processada (paga)
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
-            await handleApprovedTransaction(data.id);
+            console.log(`[buckpay-webhook] Iniciando processo para transação APROVADA ID: ${transactionId}`);
+
+            // 1. Buscar os dados do pedido pendente no Supabase
+            const { data: transactionData, error: supabaseError } = await supabase
+                .from('transactions')
+                .select('utmify_payload')
+                .eq('transaction_id', transactionId)
+                .single();
+
+            if (supabaseError || !transactionData) {
+                console.error(`[buckpay-webhook] ❌ Erro ao buscar pedido no Supabase para transaction_id ${transactionId}:`, supabaseError?.message);
+                // Não retorna 500 para evitar retentativas infinitas da Buckpay.
+                // O erro é logado para investigação manual.
+                return NextResponse.json({ success: true, message: 'Pedido não encontrado no banco de dados interno.' }, { status: 200 });
+            }
+
+            console.log(`[buckpay-webhook] ✅ Dados do pedido pendente encontrados no Supabase para ID: ${transactionId}`);
+            
+            // 2. Montar o payload para a Utmify com os dados recuperados, atualizando o status
+            let utmifyPayload = transactionData.utmify_payload as UtmifyOrderPayload;
+
+            utmifyPayload.status = 'paid';
+            utmifyPayload.approvedDate = formatToUtmifyDate(new Date(data.paid_at || Date.now()));
+
+            console.log(`[buckpay-webhook] 📦 Payload de APROVAÇÃO montado para enviar à Utmify para o pedido '${transactionId}':`, JSON.stringify(utmifyPayload, null, 2));
+
+            // 3. Enviar para a Utmify
+            await sendOrderToUtmify(utmifyPayload);
+            console.log(`[buckpay-webhook] ✅ Dados do pedido ${transactionId} (pago) enviados para Utmify com sucesso.`);
+
         } else {
             console.log(`[buckpay-webhook] ℹ️ Evento '${event}' com status '${data.status}' recebido, mas nenhuma ação configurada para ele.`);
         }
 
-        // Responde com sucesso para a BuckPay para confirmar o recebimento do webhook.
         return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso' }, { status: 200 });
 
     } catch (error: any) {
         console.error('[buckpay-webhook] ❌ Erro fatal ao processar webhook:', error.message);
-
-        // Tenta logar o erro no Discord
+        
         const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
         if (discordWebhookUrl) {
             try {
@@ -128,8 +81,7 @@ export async function POST(request: NextRequest) {
                 console.error("Falha ao enviar log de erro para o Discord:", discordError);
             }
         }
-
-        // Não retorna um erro 500 para a BuckPay para evitar retentativas infinitas em caso de erro de lógica
+        
         return NextResponse.json({ success: true, message: 'Erro processado internamente, não haverá retentativa.' }, { status: 200 });
     }
 }
