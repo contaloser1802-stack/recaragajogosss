@@ -545,8 +545,8 @@ export default function CheckoutPage() {
       <Suspense fallback={
         <div className="flex flex-col min-h-screen">
           <main className="flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-06d91604.png')" }}>
-            <div className="flex items-center justify-center h-screen">
-              <p>Carregando...</p>
+            <div className="flex items-center justify-center h-screen bg-gray-900 bg-opacity-50">
+              <p className="text-white text-xl">Carregando checkout...</p>
             </div>
           </main>
         </div>
@@ -555,3 +555,5 @@ export default function CheckoutPage() {
       </Suspense>
     )
 }
+
+    
