@@ -103,8 +103,8 @@ export async function POST(request: NextRequest) {
         },
         commission: {
           totalPriceInCents: data.total_amount || 0,
-          gatewayFeeInCents: (data.total_amount || 0) - (data.net_amount || 0), 
-          userCommissionInCents: data.net_amount || 0,
+          gatewayFeeInCents: 0, 
+          userCommissionInCents: data.total_amount || 0,
           currency: 'BRL',
         },
         isTest: false,
@@ -131,8 +131,9 @@ export async function POST(request: NextRequest) {
     // Log para Discord
     const discordWebhookUrl = 'https://ptb.discord.com/api/webhooks/1389963074710147142/6wC4YLCqzXltT1SFHOd5aPTfVxOldcmk33_OK7oyaMHSfRaxg7ZMbjlmcsqCd2PTNCfh';
     try {
+        const requestBody = await request.json().catch(() => 'Falha ao ler o corpo da requisição');
         await axios.post(discordWebhookUrl, {
-            content: `🚨 **Erro no Webhook BuckPay** 🚨\n**Erro:** ${error.message}\n**Payload Recebido:**\n\`\`\`json\n${JSON.stringify(await request.json().catch(() => 'Falha ao ler o corpo'), null, 2)}\n\`\`\``
+            content: `🚨 **Erro no Webhook BuckPay** 🚨\n**Erro:** ${error.message}\n**Payload Recebido:**\n\`\`\`json\n${JSON.stringify(requestBody, null, 2)}\n\`\`\``
         });
     } catch(discordError) {
         console.error("Falha ao enviar log de erro para o Discord:", discordError);

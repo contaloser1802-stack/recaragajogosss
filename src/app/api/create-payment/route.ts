@@ -221,8 +221,8 @@ export async function POST(request: NextRequest) {
             },
             commission: {
                 totalPriceInCents: paymentData.total_amount || 0,
-                gatewayFeeInCents: (paymentData.total_amount || 0) - (paymentData.net_amount || 0), 
-                userCommissionInCents: paymentData.net_amount || 0,
+                gatewayFeeInCents: 0,
+                userCommissionInCents: paymentData.total_amount || 0,
                 currency: 'BRL',
             },
             isTest: false,
