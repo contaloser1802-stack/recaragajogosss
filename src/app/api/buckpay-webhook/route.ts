@@ -53,10 +53,43 @@ export async function POST(request: NextRequest) {
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
             await notifyDiscord(`✅ [Webhook BuckPay] Evento APROVADO recebido. ID: ${transactionId}. Processando para Utmify.`);
             
-            // Os dados completos já vêm no webhook de 'transaction.processed'
             const buckpayData = data;
             const tracking = buckpayData.tracking || {};
-            const utm = tracking.utm || {}; // A documentação mostra um objeto 'utm' dentro de 'tracking'
+            const utm = tracking.utm || {};
+
+            // O webhook da BuckPay pode enviar 'items' (array) ou 'offer' (objeto)
+            // Precisamos garantir que 'products' seja sempre um array para o Utmify.
+            let productsForUtmify = [];
+            if (buckpayData.items && Array.isArray(buckpayData.items)) {
+                productsForUtmify = buckpayData.items.map((item: any) => ({
+                    id: item.id || `prod_${Date.now()}`,
+                    name: item.name || item.title || 'Produto',
+                    planId: null,
+                    planName: null,
+                    quantity: item.quantity || 1,
+                    priceInCents: item.amount || item.discount_price || 0,
+                }));
+            } else if (buckpayData.offer) {
+                 productsForUtmify = [{
+                    id: buckpayData.offer.id || `prod_${Date.now()}`,
+                    name: buckpayData.offer.name || buckpayData.offer.title || 'Produto',
+                    planId: null,
+                    planName: null,
+                    quantity: buckpayData.offer.quantity || 1,
+                    priceInCents: buckpayData.offer.amount || buckpayData.offer.discount_price || 0,
+                }];
+            } else {
+                // Fallback: se nem 'items' nem 'offer' vierem, cria um produto genérico com o valor total
+                 productsForUtmify = [{
+                    id: `prod_${Date.now()}`,
+                    name: 'Produto',
+                    planId: null,
+                    planName: null,
+                    quantity: 1,
+                    priceInCents: buckpayData.total_amount || 0,
+                }];
+            }
+
 
             const utmifyPayload: UtmifyOrderPayload = {
                 orderId: buckpayData.id,
@@ -64,7 +97,7 @@ export async function POST(request: NextRequest) {
                 paymentMethod: 'pix',
                 status: 'paid',
                 createdAt: formatToUtmifyDate(new Date(buckpayData.created_at)),
-                approvedDate: formatToUtmifyDate(new Date()), // Usar a data atual como data de aprovação
+                approvedDate: formatToUtmifyDate(new Date()),
                 refundedAt: null,
                 customer: {
                     name: buckpayData.buyer.name,
@@ -74,15 +107,7 @@ export async function POST(request: NextRequest) {
                     country: 'BR',
                     ip: buckpayData.buyer.ip || null,
                 },
-                // A documentação mostra 'offer', mas o create-payment envia 'items'. Vamos ser flexíveis.
-                products: (buckpayData.items || [buckpayData.offer]).map((item: any) => ({
-                    id: item.id || `prod_${Date.now()}`,
-                    name: item.name || item.title,
-                    planId: null,
-                    planName: null,
-                    quantity: item.quantity,
-                    priceInCents: item.amount || item.discount_price,
-                })),
+                products: productsForUtmify,
                 trackingParameters: {
                     src: tracking.src || null,
                     sck: tracking.sck || null,
@@ -93,9 +118,9 @@ export async function POST(request: NextRequest) {
                     utm_term: utm.term || null,
                 },
                 commission: {
-                    totalPriceInCents: buckpayData.total_amount, // 'total_amount' do webhook
-                    gatewayFeeInCents: buckpayData.total_amount - buckpayData.net_amount, // Calculado
-                    userCommissionInCents: buckpayData.net_amount, // 'net_amount' do webhook
+                    totalPriceInCents: buckpayData.total_amount,
+                    gatewayFeeInCents: buckpayData.total_amount - buckpayData.net_amount,
+                    userCommissionInCents: buckpayData.net_amount,
                     currency: 'BRL',
                 },
                 isTest: false, 
