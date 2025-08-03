@@ -52,8 +52,6 @@ export async function POST(request: NextRequest) {
             // 2. Montar o payload para a Utmify com os dados recuperados, atualizando o status
             let utmifyPayload = transactionData.utmify_payload as UtmifyOrderPayload;
             
-            const isAlreadyPaid = utmifyPayload.status === 'paid';
-
             utmifyPayload.status = 'paid';
             utmifyPayload.approvedDate = formatToUtmifyDate(new Date(data.paid_at || Date.now()));
 
@@ -71,15 +69,10 @@ export async function POST(request: NextRequest) {
               console.log(`[buckpay-webhook] ✅ Status atualizado com sucesso no Supabase para o pedido ${transactionId}.`);
             }
             
-            // Apenas envia para a Utmify se não tiver sido enviado antes
-            if (!isAlreadyPaid) {
-                console.log(`[buckpay-webhook] 📦 Payload de APROVAÇÃO montado para enviar à Utmify para o pedido '${transactionId}':`, JSON.stringify(utmifyPayload, null, 2));
-                // 4. Enviar para a Utmify
-                await sendOrderToUtmify(utmifyPayload);
-                console.log(`[buckpay-webhook] ✅ Dados do pedido ${transactionId} (pago) enviados para Utmify com sucesso.`);
-            } else {
-                console.log(`[buckpay-webhook] ℹ️ Pedido ${transactionId} já estava como 'pago'. Nenhuma notificação enviada para a Utmify para evitar duplicidade.`);
-            }
+            console.log(`[buckpay-webhook] 📦 Payload de APROVAÇÃO montado para enviar à Utmify para o pedido '${transactionId}':`, JSON.stringify(utmifyPayload, null, 2));
+            // 4. Enviar para a Utmify
+            await sendOrderToUtmify(utmifyPayload);
+            console.log(`[buckpay-webhook] ✅ Dados do pedido ${transactionId} (pago) enviados para Utmify com sucesso.`);
 
 
         } else {
