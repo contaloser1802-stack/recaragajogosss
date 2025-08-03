@@ -271,6 +271,7 @@ function CheckoutPageContent() {
       // e o resto das informações necessárias no mesmo nível.
       localStorage.setItem('paymentData', JSON.stringify({
         ...data, // Espalha a resposta da BuckPay (ex: id, status, pix.code, etc)
+        external_id: payload.externalId, // Adiciona o external_id que foi gerado
         playerName: playerName,
         amount: calculateTotal, 
         numericAmount: totalAmount,
