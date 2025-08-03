@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
             // O webhook da BuckPay pode enviar 'items' (array) ou 'offer' (objeto)
             // Precisamos garantir que 'products' seja sempre um array para o Utmify.
             let productsForUtmify = [];
-            if (buckpayData.items && Array.isArray(buckpayData.items)) {
+            if (buckpayData.items && Array.isArray(buckpayData.items) && buckpayData.items.length > 0) {
                 productsForUtmify = buckpayData.items.map((item: any) => ({
                     id: item.id || `prod_${Date.now()}`,
                     name: item.name || item.title || 'Produto',
@@ -89,6 +89,9 @@ export async function POST(request: NextRequest) {
                     priceInCents: buckpayData.total_amount || 0,
                 }];
             }
+            
+            // Tenta obter o IP do cabeçalho da requisição ou usa um fallback
+            const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
 
             const utmifyPayload: UtmifyOrderPayload = {
@@ -105,7 +108,7 @@ export async function POST(request: NextRequest) {
                     phone: buckpayData.buyer.phone?.replace(/\D/g, '') || null,
                     document: buckpayData.buyer.document?.replace(/\D/g, '') || null,
                     country: 'BR',
-                    ip: buckpayData.buyer.ip || null,
+                    ip: ip,
                 },
                 products: productsForUtmify,
                 trackingParameters: {
