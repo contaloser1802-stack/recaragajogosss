@@ -30,13 +30,13 @@ export interface UtmifyTrackingParameters {
 
 export interface UtmifyCommission {
     totalPriceInCents: number;
-    gatewayFeeInCents: number; // Taxas da GhostPay
-    userCommissionInCents: number; // O que você (vendedor) realmente recebe
+    gatewayFeeInCents: number;
+    userCommissionInCents: number;
     currency?: 'BRL' | 'USD' | 'EUR' | 'GBP' | 'ARS' | 'CAD';
 }
 
 export type UtmifyPaymentMethod = 'credit_card' | 'boleto' | 'pix' | 'paypal' | 'free_price';
-export type UtmifyOrderStatus = 'waiting_payment' | 'paid' | 'refused' | 'refunded' | 'chargedback';
+export type UtmifyOrderStatus = 'waiting_payment' | 'paid' | 'refused' | 'refunded' | 'chargedback' | 'in_protest' | 'chargeback_reversal';
 
 export interface UtmifyOrderPayload {
     orderId: string;

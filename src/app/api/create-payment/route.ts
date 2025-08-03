@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { gerarCPFValido } from '@/lib/utils';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
+import { savePendingOrder } from '@/lib/pendingOrders';
 import axios from 'axios';
 
 // Função para obter dados de geolocalização do IP
@@ -94,11 +95,9 @@ export async function POST(request: NextRequest) {
         return new NextResponse(JSON.stringify({ error: 'Itens do pedido inválidos ou ausentes.' }), { status: 400, headers });
     }
 
-    // BuckPay espera um `product` e um `offer` opcional.
     const mainProduct = items[0];
     const offers = items.slice(1);
     
-    // A API da BuckPay parece esperar apenas uma única oferta.
     const offerPayload = offers.length > 0 ? {
         id: offers[0].id || null,
         name: offers[0].title || null,
@@ -195,7 +194,7 @@ export async function POST(request: NextRequest) {
                 country: geoData.countryCode,
                 ip: ip,
             },
-            products: items.map(item => ({
+            products: items.map((item: any) => ({
                 id: item.id || `prod_${Date.now()}`,
                 name: item.title,
                 planId: null,
@@ -221,12 +220,16 @@ export async function POST(request: NextRequest) {
             isTest: false,
         };
 
-        console.log(`[create-payment POST] 📦 Enviando para Utmify (pagamento pendente)...`);
         try {
+            console.log(`[create-payment POST] 📦 Enviando para Utmify (pagamento pendente)...`);
             await sendOrderToUtmify(utmifyPayload);
             console.log(`[create-payment POST] ✅ Dados de pagamento pendente (ID: ${paymentData.id}) enviados para Utmify.`);
-        } catch (utmifyError: any) {
-            console.error(`[create-payment POST] ❌ Erro ao enviar dados pendentes para Utmify (ID: ${paymentData.id}):`, utmifyError.message);
+
+            // Salvar o payload para uso posterior pelo webhook
+            await savePendingOrder(paymentData.id, utmifyPayload);
+            console.log(`[create-payment POST] 💾 Payload pendente salvo para a transação ${paymentData.id}.`);
+        } catch (error: any) {
+            console.error(`[create-payment POST] ❌ Erro durante o processo da Utmify ou ao salvar pedido pendente (ID: ${paymentData.id}):`, error.message);
         }
     }
 
@@ -309,7 +312,6 @@ export async function GET(request: NextRequest) {
     
     console.log(`[create-payment GET] ✅ Resposta de Status da BuckPay (HTTP ${buckpayStatusResponse.status}, JSON):`, JSON.stringify(statusData, null, 2));
 
-    // Acessa o status dentro do objeto `data`
     const paymentStatus = statusData.data?.status?.toUpperCase() || 'UNKNOWN'; 
 
     return new NextResponse(JSON.stringify({ status: paymentStatus }), {
