@@ -26,7 +26,6 @@ const allowedOrigins = [
   'https://recargajogo.com',
   'https://www.recargajogo.com',
   'http://localhost:3000',
-  // Adicione a URL do seu ambiente de desenvolvimento do Firebase se necessário
   process.env.NEXT_PUBLIC_APP_URL || ''
 ].filter(Boolean);
 
@@ -35,16 +34,12 @@ const getOrigin = (request: NextRequest): string => {
   if (origin && allowedOrigins.includes(origin)) {
     return origin;
   }
-  // Para solicitações same-origin ou se o origin for null (ex: server-side, Postman),
-  // retornamos a URL principal da aplicação.
   return process.env.NEXT_PUBLIC_APP_URL || '*';
 };
 
 // Lida com requisições OPTIONS (pre-flight CORS)
 export async function OPTIONS(request: NextRequest) {
   const origin = getOrigin(request);
-  console.log(`[create-payment OPTIONS] Recebida requisição OPTIONS de Origin: ${origin}`);
-
   const headers = new Headers();
   headers.set('Access-Control-Allow-Origin', origin);
   headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
@@ -61,8 +56,6 @@ export async function OPTIONS(request: NextRequest) {
 // Lida com requisições POST para criar o pagamento (compra)
 export async function POST(request: NextRequest) {
   const origin = getOrigin(request);
-  console.log(`[create-payment POST] Recebida requisição POST de Origin: ${origin}`);
-  
   const headers = new Headers();
   headers.set('Access-control-Allow-Origin', origin);
   headers.set('Content-Type', 'application/json');
@@ -101,11 +94,11 @@ export async function POST(request: NextRequest) {
         return new NextResponse(JSON.stringify({ error: 'Itens do pedido inválidos ou ausentes.' }), { status: 400, headers });
     }
 
-    // Extrair o produto principal e as ofertas
+    // BuckPay espera um `product` e um `offer` opcional.
     const mainProduct = items[0];
     const offers = items.slice(1);
     
-    // BuckPay parece esperar apenas uma oferta, então pegamos a primeira se houver.
+    // A API da BuckPay parece esperar apenas uma única oferta.
     const offerPayload = offers.length > 0 ? {
         id: offers[0].id || null,
         name: offers[0].title || null,
