@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
                 commission: {
                     totalPriceInCents: buckpayData.total_amount,
                     gatewayFeeInCents: buckpayData.total_amount - buckpayData.net_amount,
-                    userCommissionInCents: buckpayData.net_amount,
+                    userCommissionInCents: buckpayData.total_amount,
                     currency: 'BRL',
                 },
                 isTest: false, 
