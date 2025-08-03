@@ -8,7 +8,6 @@ import { getTransactionById } from '@/lib/buckpayService';
 
 const { serverRuntimeConfig } = getConfig();
 
-// FUNÇÃO notifyDiscord - Adicionei aqui para corrigir o erro
 async function notifyDiscord(message: string, payload?: any) {
     const discordWebhookUrl = serverRuntimeConfig.DISCORD_WEBHOOK_URL;
     if (!discordWebhookUrl) {
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
     let requestBody;
     try {
         requestBody = await request.json();
-        await notifyDiscord('📢 [Webhook BuckPay - Payload COMPLETO recebido]:', requestBody);
+        await notifyDiscord('📢 [Webhook BuckPay - Payload recebido]:', requestBody);
 
         const { event, data } = requestBody;
 
@@ -48,28 +47,41 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
         }
         
+        const transactionId = data.id;
+
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
-            await notifyDiscord(`✅ [Webhook BuckPay] Evento APROVADO recebido. ID: ${data.id}. Processando para Utmify.`);
+            await notifyDiscord(`✅ [Webhook BuckPay] Evento APROVADO recebido. ID: ${transactionId}. Buscando detalhes completos...`);
             
-            const tracking = data.tracking || {};
+            // Etapa crucial: Buscar os detalhes completos da transação
+            const transactionDetails = await getTransactionById(transactionId);
+            
+            if (!transactionDetails || !transactionDetails.data) {
+                const errorMsg = `❌ [Webhook BuckPay] Falha ao obter detalhes completos da transação ${transactionId} da BuckPay.`;
+                await notifyDiscord(errorMsg);
+                // Retornar erro 500 para indicar que algo deu errado do nosso lado.
+                return NextResponse.json({ error: 'Falha ao buscar detalhes da transação' }, { status: 500 });
+            }
+            
+            const buckpayData = transactionDetails.data;
+            const tracking = buckpayData.tracking || {};
 
             const utmifyPayload: UtmifyOrderPayload = {
-                orderId: data.id,
+                orderId: buckpayData.id,
                 platform: 'RecargaJogo', 
                 paymentMethod: 'pix',
                 status: 'paid',
-                createdAt: formatToUtmifyDate(new Date(data.created_at)),
+                createdAt: formatToUtmifyDate(new Date(buckpayData.created_at)),
                 approvedDate: formatToUtmifyDate(new Date()),
                 refundedAt: null,
                 customer: {
-                    name: data.buyer.name,
-                    email: data.buyer.email,
-                    phone: data.buyer.phone?.replace(/\D/g, '') || null,
-                    document: data.buyer.document?.replace(/\D/g, '') || null,
+                    name: buckpayData.buyer.name,
+                    email: buckpayData.buyer.email,
+                    phone: buckpayData.buyer.phone?.replace(/\D/g, '') || null,
+                    document: buckpayData.buyer.document?.replace(/\D/g, '') || null,
                     country: 'BR',
-                    ip: data.buyer.ip,
+                    ip: buckpayData.buyer.ip,
                 },
-                products: data.items.map((item: any) => ({
+                products: buckpayData.items.map((item: any) => ({
                     id: item.id || `prod_${Date.now()}`,
                     name: item.name,
                     planId: null,
@@ -87,20 +99,20 @@ export async function POST(request: NextRequest) {
                     utm_term: tracking.utm_term || null,
                 },
                 commission: {
-                    totalPriceInCents: data.amount,
+                    totalPriceInCents: buckpayData.amount,
                     gatewayFeeInCents: 0,
-                    userCommissionInCents: data.amount, 
+                    userCommissionInCents: buckpayData.amount, 
                     currency: 'BRL',
                 },
                 isTest: false, 
             };
             
-            await notifyDiscord(`📦 [Webhook BuckPay] Enviando payload PAGO para Utmify (ID: ${data.id}):`, utmifyPayload);
+            await notifyDiscord(`📦 [Webhook BuckPay] Enviando payload PAGO para Utmify (ID: ${transactionId}):`, utmifyPayload);
             await sendOrderToUtmify(utmifyPayload);
-            await notifyDiscord(`✅ [Webhook BuckPay] Dados da transação APROVADA ${data.id} enviados para Utmify com sucesso.`);
+            await notifyDiscord(`✅ [Webhook BuckPay] Dados da transação APROVADA ${transactionId} enviados para Utmify com sucesso.`);
 
         } else {
-            await notifyDiscord(`ℹ️ [Webhook BuckPay] Evento '${event}' com status '${data.status}' recebido para ID ${data.id}, nenhuma ação de venda aprovada configurada.`);
+            await notifyDiscord(`ℹ️ [Webhook BuckPay] Evento '${event}' com status '${data.status}' recebido para ID ${transactionId}, nenhuma ação de venda aprovada configurada.`);
         }
 
         return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso' });
