@@ -1,6 +1,5 @@
 // src/lib/utmifyService.ts
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
-import axios from 'axios';
 
 /**
  * Envia dados de pedido para a API da UTMify.
@@ -11,10 +10,10 @@ import axios from 'axios';
  */
 export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<any> {
   const UTMIFY_API_URL = process.env.UTMIFY_API_URL;
-  const UTMIFY_API_TOKEN = process.env.UTMIFY_API_KEY;
+  const UTMIFY_API_TOKEN = process.env.UTMIFY_API_TOKEN;
 
   if (!UTMIFY_API_TOKEN || !UTMIFY_API_URL) {
-    const errorMessage = "Credenciais da Utmify (UTMIFY_API_URL ou UTMIFY_API_KEY) não estão configuradas no servidor.";
+    const errorMessage = "Credenciais da Utmify (UTMIFY_API_URL ou UTMIFY_API_TOKEN) não estão configuradas no servidor.";
     console.error(`[UtmifyService] ${errorMessage}`);
     throw new Error(errorMessage);
   }
@@ -22,38 +21,27 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
   console.log("[UtmifyService] 📤 Enviando payload para Utmify:", JSON.stringify(payload, null, 2));
 
   try {
-    const response = await axios.post(UTMIFY_API_URL, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-token': UTMIFY_API_TOKEN,
-      },
+    const response = await fetch(UTMIFY_API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': UTMIFY_API_TOKEN,
+        },
+        body: JSON.stringify(payload)
     });
 
-    console.log(`[UtmifyService] ✅ Sucesso! Resposta da Utmify (Status: ${response.status}):`, response.data);
-    return response.data;
+    if (!response.ok) {
+        const errorBody = await response.json();
+        throw new Error(`Erro da API Utmify: ${response.status} - ${JSON.stringify(errorBody)}`);
+    }
+
+    const responseData = await response.json();
+    console.log(`[UtmifyService] ✅ Sucesso! Resposta da Utmify (Status: ${response.status}):`, responseData);
+    return responseData;
     
   } catch (error: any) {
-    let errorMessage = "Erro desconhecido ao comunicar com a Utmify.";
-    
-    if (axios.isAxiosError(error)) {
-        if (error.response) {
-            errorMessage = `Erro da API Utmify: ${error.response.status} - ${JSON.stringify(error.response.data)}`;
-            console.error(`[UtmifyService] ❌ Erro de resposta da Utmify:`, {
-                status: error.response.status,
-                data: error.response.data,
-                headers: error.response.headers,
-            });
-        } else if (error.request) {
-            errorMessage = "Nenhuma resposta recebida da Utmify. Verifique a conectividade.";
-            console.error('[UtmifyService] ❌ Nenhuma resposta da Utmify:', error.request);
-        } else {
-            errorMessage = `Erro ao configurar requisição para Utmify: ${error.message}`;
-            console.error('[UtmifyService] ❌ Erro de configuração da requisição:', error.message);
-        }
-    } else {
-        console.error('[UtmifyService] ❌ Erro inesperado:', error);
-    }
-    
+    let errorMessage = `Erro desconhecido ao comunicar com a Utmify: ${error.message}`;
+    console.error('[UtmifyService] ❌ Erro na chamada fetch para a Utmify:', error.message);
     throw new Error(errorMessage);
   }
 }
