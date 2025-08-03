@@ -37,7 +37,6 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
     
     if (axios.isAxiosError(error)) {
         if (error.response) {
-            // A requisição foi feita e o servidor respondeu com um status code fora do range 2xx
             errorMessage = `Erro da API Utmify: ${error.response.status} - ${JSON.stringify(error.response.data)}`;
             console.error(`[UtmifyService] ❌ Erro de resposta da Utmify:`, {
                 status: error.response.status,
@@ -45,11 +44,9 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
                 headers: error.response.headers,
             });
         } else if (error.request) {
-            // A requisição foi feita mas nenhuma resposta foi recebida
             errorMessage = "Nenhuma resposta recebida da Utmify. Verifique a conectividade.";
             console.error('[UtmifyService] ❌ Nenhuma resposta da Utmify:', error.request);
         } else {
-            // Algo aconteceu na configuração da requisição que acionou um erro
             errorMessage = `Erro ao configurar requisição para Utmify: ${error.message}`;
             console.error('[UtmifyService] ❌ Erro de configuração da requisição:', error.message);
         }
@@ -57,7 +54,6 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
         console.error('[UtmifyService] ❌ Erro inesperado:', error);
     }
     
-    // Propaga o erro para que a API Route possa decidir como lidar com ele.
     throw new Error(errorMessage);
   }
 }

@@ -15,7 +15,6 @@ export async function getTransactionById(transactionId: string): Promise<any | n
     if (!BUCKPAY_API_TOKEN) {
          const errorMsg = `[BuckpayService] Não é possível buscar a transação ${transactionId} pois o token da API (BUCKPAY_API_TOKEN) não está configurado.`;
          console.error(errorMsg);
-         // Lançar um erro aqui para que a função chamadora saiba que falhou.
          throw new Error(errorMsg);
     }
     try {
@@ -39,7 +38,5 @@ export async function getTransactionById(transactionId: string): Promise<any | n
         } else {
             console.error(`[BuckpayService] Erro inesperado ao buscar transação ${transactionId}:`, error);
         }
-        // Retornar null para indicar que a busca falhou.
         return null;
     }
-}

@@ -135,6 +135,4 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         const errorMsg = `❌ [Webhook BuckPay] Erro fatal ao processar webhook: ${error.message}`;
         await notifyDiscord(errorMsg, requestBody);
-        return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
-    }
-}
+        return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 5
