@@ -150,7 +150,8 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiToken}`
+        'Authorization': `Bearer ${apiToken}`,
+        'User-Agent': 'Buckpay API'
       },
       body: JSON.stringify(payloadForBuckPay)
     });
@@ -231,7 +232,8 @@ export async function GET(request: NextRequest) {
       method: 'GET', 
       headers: {
         'Authorization': `Bearer ${apiToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'Buckpay API'
       },
     });
 
