@@ -22,16 +22,35 @@ async function getGeoData(ip: string) {
   }
 }
 
+const allowedOrigins = [
+  'https://recargajogo.com',
+  'https://www.recargajogo.com',
+  'http://localhost:3000',
+  // Adicione a URL do seu ambiente de desenvolvimento do Firebase se necessário
+  process.env.NEXT_PUBLIC_APP_URL || ''
+].filter(Boolean);
+
+const getOrigin = (request: NextRequest): string => {
+  const origin = request.headers.get('origin');
+  if (origin && allowedOrigins.includes(origin)) {
+    return origin;
+  }
+  // Para solicitações same-origin ou se o origin for null (ex: server-side, Postman),
+  // retornamos a URL principal da aplicação.
+  return process.env.NEXT_PUBLIC_APP_URL || '*';
+};
+
 // Lida com requisições OPTIONS (pre-flight CORS)
 export async function OPTIONS(request: NextRequest) {
-  const origin = request.headers.get('origin') || '';
+  const origin = getOrigin(request);
   console.log(`[create-payment OPTIONS] Recebida requisição OPTIONS de Origin: ${origin}`);
 
   const headers = new Headers();
   headers.set('Access-Control-Allow-Origin', origin);
   headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-  headers.set('Access-control-allow-headers', 'Content-Type, Authorization');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   headers.set('Access-Control-Max-Age', '86400');
+  headers.set('Access-Control-Allow-Credentials', 'true');
 
   return new NextResponse(null, {
     status: 204,
@@ -41,8 +60,13 @@ export async function OPTIONS(request: NextRequest) {
 
 // Lida com requisições POST para criar o pagamento (compra)
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get('origin') || '*';
+  const origin = getOrigin(request);
   console.log(`[create-payment POST] Recebida requisição POST de Origin: ${origin}`);
+  
+  const headers = new Headers();
+  headers.set('Access-Control-Allow-Origin', origin);
+  headers.set('Content-Type', 'application/json');
+  headers.set('Access-Control-Allow-Credentials', 'true');
 
   try {
     const body = await request.json();
@@ -62,19 +86,19 @@ export async function POST(request: NextRequest) {
     const apiToken = process.env.BUCKPAY_API_TOKEN;
     if (!apiToken) {
       console.error("[create-payment POST] ERRO: BUCKPAY_API_TOKEN não definida no ambiente do servidor.");
-      return NextResponse.json({ error: 'Chave de API do BuckPay não configurada no servidor.' }, { status: 500 });
+      return new NextResponse(JSON.stringify({ error: 'Chave de API do BuckPay não configurada no servidor.' }), { status: 500, headers });
     }
 
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
         console.error(`[create-payment POST] Validação de entrada: 'amount' inválido ou ausente - Recebido: ${amount}`);
-        return NextResponse.json({ error: 'Valor total do pagamento (amount) inválido ou ausente.' }, { status: 400 });
+        return new NextResponse(JSON.stringify({ error: 'Valor total do pagamento (amount) inválido ou ausente.' }), { status: 400, headers });
     }
     const amountInCents = Math.round(parsedAmount * 100);
 
     if (!Array.isArray(items) || items.length === 0) {
         console.error("[create-payment POST] Validação de entrada: 'items' inválido ou vazio.");
-        return NextResponse.json({ error: 'Itens do pedido inválidos ou ausentes.' }, { status: 400 });
+        return new NextResponse(JSON.stringify({ error: 'Itens do pedido inválidos ou ausentes.' }), { status: 400, headers });
     }
 
     // Extrair o produto principal e as ofertas
@@ -139,17 +163,17 @@ export async function POST(request: NextRequest) {
     } else {
       const textData = await buckpayResponse.text();
       console.error(`[create-payment POST] ❌ Resposta da BuckPay (HTTP ${buckpayResponse.status}, Não-JSON):`, textData);
-      return NextResponse.json(
-        { error: 'Falha ao criar pagamento: Resposta inesperada da BuckPay', details: textData },
-        { status: buckpayResponse.status }
+      return new NextResponse(
+        JSON.stringify({ error: 'Falha ao criar pagamento: Resposta inesperada da BuckPay', details: textData }),
+        { status: buckpayResponse.status, headers }
       );
     }
     
     if (!buckpayResponse.ok) {
         console.error("[create-payment POST] ERRO DA BUCKPAY:", responseData);
-        return NextResponse.json(
-            { error: responseData.error?.message || 'Falha ao criar pagamento na BuckPay.', details: responseData.error?.detail },
-            { status: buckpayResponse.status }
+        return new NextResponse(
+            JSON.stringify({ error: responseData.error?.message || 'Falha ao criar pagamento na BuckPay.', details: responseData.error?.detail }),
+            { status: buckpayResponse.status, headers }
         );
     }
 
@@ -167,37 +191,40 @@ export async function POST(request: NextRequest) {
 
     return new NextResponse(JSON.stringify(paymentData), {
       status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Content-Type': 'application/json'
-      }
+      headers
     });
 
   } catch (error: any) {
     console.error("[create-payment POST] ERRO INTERNO NO SERVIDOR:", error);
-    return NextResponse.json({ error: error.message || 'Erro interno do servidor ao processar pagamento.' }, {
-      status: 500
+    return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor ao processar pagamento.' }), {
+      status: 500,
+      headers
     });
   }
 }
 
 // Lida com requisições GET para verificar o status do pagamento (polling)
 export async function GET(request: NextRequest) {
-  const origin = request.headers.get('origin') || '*';
+  const origin = getOrigin(request);
   const { searchParams } = new URL(request.url);
   const externalId = searchParams.get('externalId');
+  
+  const headers = new Headers();
+  headers.set('Access-Control-Allow-Origin', origin);
+  headers.set('Content-Type', 'application/json');
+  headers.set('Access-Control-Allow-Credentials', 'true');
 
   console.log(`[create-payment GET] Consultando status para externalId: ${externalId}`);
 
   if (!externalId) {
-    return NextResponse.json({ error: 'externalId é obrigatório para consulta de status.' }, { status: 400 });
+    return new NextResponse(JSON.stringify({ error: 'externalId é obrigatório para consulta de status.' }), { status: 400, headers });
   }
 
   try {
     const apiToken = process.env.BUCKPAY_API_TOKEN;
     if (!apiToken) {
       console.error("[create-payment GET] ERRO: BUCKPAY_API_TOKEN não definida para consulta de status.");
-      return NextResponse.json({ error: 'Chave de API do BuckPay não configurada no servidor.' }, { status: 500 });
+      return new NextResponse(JSON.stringify({ error: 'Chave de API do BuckPay não configurada no servidor.' }), { status: 500, headers });
     }
 
     const buckpayStatusResponse = await fetch(`https://api.realtechdev.com.br/v1/transactions/external_id/${externalId}`, {
@@ -210,9 +237,9 @@ export async function GET(request: NextRequest) {
 
     if (buckpayStatusResponse.status === 404) {
         console.log(`[create-payment GET] Transação com externalId ${externalId} não encontrada na BuckPay. Retornando status PENDING para a UI.`);
-        return NextResponse.json({ status: 'PENDING' }, {
+        return new NextResponse(JSON.stringify({ status: 'PENDING' }), {
             status: 200,
-            headers: { 'Access-Control-Allow-Origin': origin, 'Content-Type': 'application/json' }
+            headers
         });
     }
 
@@ -224,17 +251,17 @@ export async function GET(request: NextRequest) {
     } else {
       const textData = await buckpayStatusResponse.text();
       console.error(`[create-payment GET] ❌ Resposta de Status da BuckPay (HTTP ${buckpayStatusResponse.status}, Não-JSON):`, textData);
-      return NextResponse.json(
-        { error: 'Falha ao consultar status: Resposta inesperada da BuckPay', details: textData },
-        { status: buckpayStatusResponse.status }
+      return new NextResponse(
+        JSON.stringify({ error: 'Falha ao consultar status: Resposta inesperada da BuckPay', details: textData }),
+        { status: buckpayStatusResponse.status, headers }
       );
     }
     
     if (!buckpayStatusResponse.ok) {
         console.error("[create-payment GET] ERRO AO CONSULTAR STATUS NA BUCKPAY:", statusData);
-        return NextResponse.json(
-            { error: statusData.error?.message || 'Falha ao consultar status do pagamento.', details: statusData.error?.detail },
-            { status: buckpayStatusResponse.status }
+        return new NextResponse(
+            JSON.stringify({ error: statusData.error?.message || 'Falha ao consultar status do pagamento.', details: statusData.error?.detail }),
+            { status: buckpayStatusResponse.status, headers }
         );
     }
     
@@ -243,16 +270,13 @@ export async function GET(request: NextRequest) {
     // Acessa o status dentro do objeto `data`
     const paymentStatus = statusData.data?.status?.toUpperCase() || 'UNKNOWN'; 
 
-    return NextResponse.json({ status: paymentStatus }, {
+    return new NextResponse(JSON.stringify({ status: paymentStatus }), {
       status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Content-Type': 'application/json'
-      }
+      headers
     });
 
   } catch (error: any) {
     console.error("[create-payment GET] ERRO INTERNO NO SERVIDOR (GET STATUS):", error);
-    return NextResponse.json({ error: error.message || 'Erro interno do servidor ao consultar status.' }, { status: 500 });
+    return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor ao consultar status.' }), { status: 500, headers });
   }
 }

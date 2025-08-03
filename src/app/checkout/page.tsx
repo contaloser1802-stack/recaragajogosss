@@ -263,7 +263,7 @@ function CheckoutPageContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMessage = data.error?.message || "Erro ao processar o pagamento";
+        const errorMessage = data.error || "Erro ao processar o pagamento";
         throw new Error(errorMessage);
       }
 
@@ -461,22 +461,22 @@ function CheckoutPageContent() {
             <DialogTitle className="text-center text-xl">Promoção Especial</DialogTitle>
             <DialogDescription className="text-center text-sm text-muted-foreground pt-2">Aproveite estas ofertas exclusivas para turbinar ainda mais sua conta!</DialogDescription>
           </DialogHeader>
-          <div className="p-6 py-0 space-y-4">
+          <div className="p-6 py-0 space-y-2 max-h-[60vh] overflow-y-auto">
             {specialOfferItems.map((item) => (
               <div 
                 key={item.id} 
-                className="flex items-center justify-between p-3 rounded-lg border cursor-pointer"
+                className="flex items-center justify-between p-2 rounded-lg border cursor-pointer"
                 onClick={() => handleOfferChange(item.id)}
               >
-                <div className="flex items-center gap-4 pointer-events-none">
-                  <div className="w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
-                    <Image src={item.image} alt={item.name} width={200} height={200} className="w-full h-full object-cover" data-ai-hint="game item icon" />
+                <div className="flex items-center gap-3 pointer-events-none">
+                  <div className="w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
+                    <Image src={item.image} alt={item.name} width={64} height={64} className="w-full h-full object-cover" data-ai-hint="game item icon" />
                   </div>
                   <div>
-                    <p className="font-semibold">{item.name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-semibold text-sm">{item.name}</p>
+                    <p className="text-xs text-gray-500">
                       <span className="line-through">R$ {item.originalPrice.toFixed(2).replace('.', ',')}</span>
-                      <span className="text-destructive font-bold ml-2">R$ {item.price.toFixed(2).replace('.', ',')}</span>
+                      <span className="text-destructive font-bold ml-1.5">R$ {item.price.toFixed(2).replace('.', ',')}</span>
                     </p>
                   </div>
                 </div>
