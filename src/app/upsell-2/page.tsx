@@ -126,7 +126,7 @@ const Upsell2Page = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Erro ao criar o pagamento para o upsell.");
+                throw new Error(data.error?.message || "Erro ao criar o pagamento para o upsell.");
             }
             
             localStorage.setItem('paymentData', JSON.stringify({

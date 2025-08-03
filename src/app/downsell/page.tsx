@@ -105,7 +105,7 @@ const DownsellPage = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Erro ao criar o pagamento para o downsell.");
+                throw new Error(data.error?.message || "Erro ao criar o pagamento para o downsell.");
             }
             
             localStorage.setItem('paymentData', JSON.stringify({

@@ -88,7 +88,7 @@ const Upsell3Page = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Erro ao criar o pagamento para a taxa.");
+                throw new Error(data.error?.message || "Erro ao criar o pagamento para a taxa.");
             }
             
             localStorage.setItem('paymentData', JSON.stringify({
