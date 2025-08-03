@@ -15,6 +15,7 @@ async function notifyDiscord(message: string, payload?: any) {
     let content = message;
     if (payload) {
         const payloadString = JSON.stringify(payload, null, 2);
+        // O Discord tem um limite de 2000 caracteres por mensagem. 1800 é um valor seguro.
         const truncatedPayload = payloadString.length > 1800 ? payloadString.substring(0, 1800) + '...' : payloadString;
         content += `\n**Payload:**\n\`\`\`json\n${truncatedPayload}\n\`\`\``;
     }
@@ -135,4 +136,6 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
         const errorMsg = `❌ [Webhook BuckPay] Erro fatal ao processar webhook: ${error.message}`;
         await notifyDiscord(errorMsg, requestBody);
-        return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 5
+        return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
+    }
+}

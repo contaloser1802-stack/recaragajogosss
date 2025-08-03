@@ -7,6 +7,30 @@ import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import axios from 'axios';
 
+// Função para enviar logs para o Discord
+async function notifyDiscord(message: string, payload?: any) {
+    const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    if (!discordWebhookUrl) {
+        console.error("DISCORD_WEBHOOK_URL não está configurada.");
+        return;
+    }
+
+    let content = message;
+    if (payload) {
+        const payloadString = JSON.stringify(payload, null, 2);
+        // O Discord tem um limite de 2000 caracteres por mensagem. 1800 é um valor seguro.
+        const truncatedPayload = payloadString.length > 1800 ? payloadString.substring(0, 1800) + '...' : payloadString;
+        content += `\n**Payload:**\n\`\`\`json\n${truncatedPayload}\n\`\`\``;
+    }
+
+    try {
+        await axios.post(discordWebhookUrl, { content });
+    } catch (discordError) {
+        console.error("Falha ao enviar log para o Discord:", discordError);
+    }
+}
+
+
 // Função para obter dados de geolocalização do IP
 async function getGeoData(ip: string) {
   if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
@@ -61,10 +85,12 @@ export async function POST(request: NextRequest) {
   headers.set('Access-control-Allow-Origin', origin);
   headers.set('Content-Type', 'application/json');
   headers.set('Access-Control-Allow-Credentials', 'true');
+  
+  let body;
 
   try {
-    const body = await request.json();
-    console.log("[create-payment POST] Corpo da requisição recebido:", JSON.stringify(body, null, 2));
+    body = await request.json();
+    await notifyDiscord('🔄 [Criação de Pagamento] Requisição recebida:', body);
 
     const { 
       name, 
@@ -79,19 +105,22 @@ export async function POST(request: NextRequest) {
 
     const apiToken = process.env.BUCKPAY_API_TOKEN;
     if (!apiToken) {
-      console.error("[create-payment POST] ERRO: BUCKPAY_API_TOKEN não definida no ambiente do servidor.");
+      const errorMsg = "❌ [Criação de Pagamento] ERRO: BUCKPAY_API_TOKEN não definida no ambiente do servidor.";
+      await notifyDiscord(errorMsg);
       return new NextResponse(JSON.stringify({ error: 'Chave de API do BuckPay não configurada no servidor.' }), { status: 500, headers });
     }
 
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-        console.error(`[create-payment POST] Validação de entrada: 'amount' inválido ou ausente - Recebido: ${amount}`);
+        const errorMsg = `❌ [Criação de Pagamento] Validação de entrada: 'amount' inválido ou ausente - Recebido: ${amount}`;
+        await notifyDiscord(errorMsg, body);
         return new NextResponse(JSON.stringify({ error: 'Valor total do pagamento (amount) inválido ou ausente.' }), { status: 400, headers });
     }
     const amountInCents = Math.round(parsedAmount * 100);
 
     if (!Array.isArray(items) || items.length === 0) {
-        console.error("[create-payment POST] Validação de entrada: 'items' inválido ou vazio.");
+        const errorMsg = "[Criação de Pagamento] Validação de entrada: 'items' inválido ou vazio.";
+        await notifyDiscord(errorMsg, body);
         return new NextResponse(JSON.stringify({ error: 'Itens do pedido inválidos ou ausentes.' }), { status: 400, headers });
     }
     
@@ -129,7 +158,7 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    console.log("[create-payment POST] PAYLOAD ENVIADO PARA BUCKPAY:", JSON.stringify(payloadForBuckPay, null, 2));
+    await notifyDiscord("📤 [Criação de Pagamento] Enviando payload para BuckPay...", payloadForBuckPay);
 
     const buckpayResponse = await fetch('https://api.realtechdev.com.br/v1/transactions', {
       method: 'POST',
@@ -148,7 +177,8 @@ export async function POST(request: NextRequest) {
       responseData = await buckpayResponse.json();
     } else {
       const textData = await buckpayResponse.text();
-      console.error(`[create-payment POST] ❌ Resposta da BuckPay (HTTP ${buckpayResponse.status}, Não-JSON):`, textData);
+      const errorMsg = `❌ [Criação de Pagamento] Erro: Resposta da BuckPay (HTTP ${buckpayResponse.status}) não é JSON.`;
+      await notifyDiscord(errorMsg, textData);
       return new NextResponse(
         JSON.stringify({ error: 'Falha ao criar pagamento: Resposta inesperada da BuckPay', details: textData }),
         { status: buckpayResponse.status, headers }
@@ -156,14 +186,15 @@ export async function POST(request: NextRequest) {
     }
     
     if (!buckpayResponse.ok) {
-        console.error("[create-payment POST] ERRO DA BUCKPAY:", responseData);
+        const errorMsg = `❌ [Criação de Pagamento] Erro da API BuckPay (HTTP ${buckpayResponse.status}): ${responseData.error?.message || 'Falha ao criar pagamento.'}`;
+        await notifyDiscord(errorMsg, responseData.error);
         return new NextResponse(
             JSON.stringify({ error: responseData.error?.message || 'Falha ao criar pagamento na BuckPay.', details: responseData.error?.detail }),
             { status: buckpayResponse.status, headers }
         );
     }
 
-    console.log(`[create-payment POST] ✅ Resposta da BuckPay (HTTP ${buckpayResponse.status}, JSON):`, JSON.stringify(responseData, null, 2));
+    await notifyDiscord(`✅ [Criação de Pagamento] Resposta da BuckPay (HTTP ${buckpayResponse.status}) recebida:`, responseData);
     
     const paymentData = responseData.data;
 
@@ -213,12 +244,12 @@ export async function POST(request: NextRequest) {
         };
 
         try {
-            console.log(`[create-payment POST] 📦 Enviando para Utmify (pagamento pendente)...`);
+            await notifyDiscord(`📦 [Criação de Pagamento] Enviando payload PENDENTE para Utmify para o pedido '${paymentData.id}':`, utmifyPayload);
             await sendOrderToUtmify(utmifyPayload);
-            console.log(`[create-payment POST] ✅ Dados de pagamento pendente (ID: ${paymentData.id}) enviados para Utmify.`);
+            await notifyDiscord(`✅ [Criação de Pagamento] Dados de pagamento pendente (ID: ${paymentData.id}) enviados para Utmify com sucesso.`);
 
         } catch (error: any) {
-            console.error(`[create-payment POST] ❌ Erro durante o processo da Utmify (ID: ${paymentData.id}):`, error.message);
+            await notifyDiscord(`❌ [Criação de Pagamento] Erro durante o envio para Utmify (ID: ${paymentData.id}):`, error.message);
         }
     }
 
@@ -228,7 +259,8 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error("[create-payment POST] ERRO INTERNO NO SERVIDOR:", error);
+    const errorMsg = `❌ [Criação de Pagamento] Erro fatal no servidor: ${error.message}`;
+    await notifyDiscord(errorMsg, body);
     return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor ao processar pagamento.' }), {
       status: 500,
       headers
@@ -246,8 +278,6 @@ export async function GET(request: NextRequest) {
   headers.set('Access-Control-Allow-Origin', origin);
   headers.set('Content-Type', 'application/json');
   headers.set('Access-Control-Allow-Credentials', 'true');
-
-  console.log(`[create-payment GET] Consultando status para externalId: ${externalId}`);
 
   if (!externalId) {
     return new NextResponse(JSON.stringify({ error: 'externalId é obrigatório para consulta de status.' }), { status: 400, headers });
@@ -270,7 +300,6 @@ export async function GET(request: NextRequest) {
     });
 
     if (buckpayStatusResponse.status === 404) {
-        console.log(`[create-payment GET] Transação com externalId ${externalId} não encontrada na BuckPay. Retornando status PENDING para a UI.`);
         return new NextResponse(JSON.stringify({ status: 'PENDING' }), {
             status: 200,
             headers
@@ -284,7 +313,6 @@ export async function GET(request: NextRequest) {
       statusData = await buckpayStatusResponse.json();
     } else {
       const textData = await buckpayStatusResponse.text();
-      console.error(`[create-payment GET] ❌ Resposta de Status da BuckPay (HTTP ${buckpayStatusResponse.status}, Não-JSON):`, textData);
       return new NextResponse(
         JSON.stringify({ error: 'Falha ao consultar status: Resposta inesperada da BuckPay', details: textData }),
         { status: buckpayStatusResponse.status, headers }
@@ -292,15 +320,12 @@ export async function GET(request: NextRequest) {
     }
     
     if (!buckpayStatusResponse.ok) {
-        console.error("[create-payment GET] ERRO AO CONSULTAR STATUS NA BUCKPAY:", statusData);
         return new NextResponse(
             JSON.stringify({ error: statusData.error?.message || 'Falha ao consultar status do pagamento.', details: statusData.error?.detail }),
             { status: buckpayStatusResponse.status, headers }
         );
     }
     
-    console.log(`[create-payment GET] ✅ Resposta de Status da BuckPay (HTTP ${buckpayStatusResponse.status}, JSON):`, JSON.stringify(statusData, null, 2));
-
     const paymentStatus = statusData.data?.status?.toUpperCase() || 'UNKNOWN'; 
 
     return new NextResponse(JSON.stringify({ status: paymentStatus }), {
