@@ -4,21 +4,24 @@ import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import { supabase } from '@/lib/supabaseClient';
 import axios from 'axios';
 
+async function notifyDiscord(message: string, payload?: any) {
+    const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    if (!discordWebhookUrl) return;
+
+    let content = message;
+    if (payload) {
+        content += `\n**Payload:**\n\`\`\`json\n${JSON.stringify(payload, null, 2)}\n\`\`\``;
+    }
+
+    try {
+        await axios.post(discordWebhookUrl, { content });
+    } catch (discordError) {
+        console.error("Falha ao enviar log para o Discord:", discordError);
+    }
+}
+
 export async function POST(request: NextRequest) {
-    const webhookToken = request.headers.get('authorization');
-    const secretToken = process.env.BUCKPAY_WEBHOOK_TOKEN;
     let requestBody;
-
-    if (!secretToken) {
-        console.error('[buckpay-webhook] ❌ BUCKPAY_WEBHOOK_TOKEN não está configurado no servidor.');
-        return NextResponse.json({ error: 'Internal Server Configuration Error' }, { status: 500 });
-    }
-
-    if (webhookToken !== secretToken) {
-        console.warn(`[buckpay-webhook] Chamada de webhook não autorizada bloqueada.`);
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     try {
         requestBody = await request.json();
         console.log('[buckpay-webhook] 🔄 Payload do webhook recebido:', JSON.stringify(requestBody, null, 2));
@@ -27,10 +30,13 @@ export async function POST(request: NextRequest) {
         const transactionId = data?.id;
 
         if (!event || !transactionId || !data.status) {
-            console.error('[buckpay-webhook] ❌ Payload inválido. Campos essenciais (event, data.id, data.status) não encontrados.');
+            const errorMsg = '[buckpay-webhook] ❌ Payload inválido. Campos essenciais (event, data.id, data.status) não encontrados.';
+            console.error(errorMsg);
+            await notifyDiscord(errorMsg, requestBody);
             return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
         }
 
+        // Ação apenas para pagamentos aprovados
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
             console.log(`[buckpay-webhook] ✅ Iniciando processo para transação APROVADA ID: ${transactionId}`);
 
@@ -43,7 +49,9 @@ export async function POST(request: NextRequest) {
                 .single();
 
             if (supabaseError || !transactionData) {
-                console.error(`[buckpay-webhook] ❌ Erro ao buscar pedido no Supabase para transaction_id ${transactionId}:`, supabaseError?.message);
+                const errorMsg = `[buckpay-webhook] ❌ Erro ao buscar pedido no Supabase para transaction_id ${transactionId}: ${supabaseError?.message || 'Pedido não encontrado.'}`;
+                console.error(errorMsg);
+                await notifyDiscord(errorMsg, requestBody);
                 // Responda 200 para a Buckpay não reenviar, mas logue o erro.
                 return NextResponse.json({ success: true, message: 'Pedido não encontrado no banco de dados interno.' }, { status: 200 });
             }
@@ -52,6 +60,12 @@ export async function POST(request: NextRequest) {
             
             // 2. Montar o payload para a Utmify com os dados recuperados, atualizando o status
             let utmifyPayload = transactionData.utmify_payload as UtmifyOrderPayload;
+            
+            // Verificação para não reprocessar
+            if (utmifyPayload.status === 'paid') {
+                console.log(`[buckpay-webhook] ℹ️ Pedido ${transactionId} já está como 'pago'. Ignorando notificação duplicada.`);
+                return NextResponse.json({ success: true, message: 'Notificação duplicada ignorada.' }, { status: 200 });
+            }
             
             utmifyPayload.status = 'paid';
             utmifyPayload.approvedDate = formatToUtmifyDate(new Date(data.paid_at || Date.now()));
@@ -64,8 +78,10 @@ export async function POST(request: NextRequest) {
               .eq('transaction_id', transactionId);
 
             if (updateError) {
-              console.error(`[buckpay-webhook] ❌ Erro ao atualizar o status no Supabase para o pedido ${transactionId}:`, updateError.message);
-              // Considera-se não fatal para não impedir o envio para a Utmify, mas loga o erro.
+              const errorMsg = `[buckpay-webhook] ❌ Erro ao atualizar o status no Supabase para o pedido ${transactionId}: ${updateError.message}`;
+              console.error(errorMsg);
+              await notifyDiscord(errorMsg, { transactionId, utmifyPayload });
+              // Não impede o envio para a Utmify, mas loga o erro.
             } else {
               console.log(`[buckpay-webhook] ✅ Status atualizado com sucesso no Supabase para o pedido ${transactionId}.`);
             }
@@ -75,7 +91,7 @@ export async function POST(request: NextRequest) {
             // 4. Enviar para a Utmify
             await sendOrderToUtmify(utmifyPayload);
             console.log(`[buckpay-webhook] ✅ Dados do pedido ${transactionId} (pago) enviados para Utmify com sucesso.`);
-
+            await notifyDiscord(`✅ Venda Aprovada e Registrada! Transação ID: ${transactionId}`, utmifyPayload);
 
         } else {
             console.log(`[buckpay-webhook] ℹ️ Evento '${event}' com status '${data.status}' recebido, mas nenhuma ação configurada para ele.`);
@@ -84,18 +100,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso', transactionId: transactionId }, { status: 200 });
 
     } catch (error: any) {
-        console.error('[buckpay-webhook] ❌ Erro fatal ao processar webhook:', error.message);
+        const errorMsg = `[buckpay-webhook] ❌ Erro fatal ao processar webhook: ${error.message}`;
+        console.error(errorMsg);
+        await notifyDiscord(errorMsg, requestBody);
         
-        const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
-        if (discordWebhookUrl) {
-            try {
-                await axios.post(discordWebhookUrl, {
-                    content: `🚨 **Erro no Webhook BuckPay** 🚨\n**Erro:** ${error.message}\n**Payload Recebido:**\n\`\`\`json\n${JSON.stringify(requestBody || 'Falha ao ler o corpo da requisição', null, 2)}\n\`\`\``
-                });
-            } catch (discordError) {
-                console.error("Falha ao enviar log de erro para o Discord:", discordError);
-            }
-        }
-        
-        // Responda 200 para a Buckpay para evitar retentativas em caso de erro interno.
-        return NextResponse.json({ success: true, message: '
+        // Responda 200 para a Buckpay para evitar retentativas em caso de erro interno fatal.
+        return NextResponse.json({ success: true, message: 'Erro interno ao processar, notificação registrada.' }, { status: 200 });
+    }
+}
