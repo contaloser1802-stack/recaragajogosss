@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
@@ -49,6 +49,8 @@ const BuyPage = () => {
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'UNKNOWN'>('PENDING');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   
+  const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const [gameInfo, setGameInfo] = useState({
       name: 'Free Fire',
       banner: 'https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg',
@@ -82,7 +84,7 @@ const BuyPage = () => {
 
   useEffect(() => {
     let timerId: NodeJS.Timeout | null = null;
-    let pollTimeoutId: NodeJS.Timeout | null = null;
+    const isMounted = true;
 
     const loadAndMonitorPaymentData = () => {
       try {
@@ -125,35 +127,31 @@ const BuyPage = () => {
 
           const startPolling = (externalId: string) => {
             let attempt = 0;
-            const maxAttempts = 20; // 2 minutos de polling intenso
-            const initialDelay = 5000; // 5 segundos
-            const maxDelay = 20000; // 20 segundos
+            const maxAttempts = 30; 
+            const initialDelay = 5000;
+            const maxDelay = 20000; 
             
             const poll = async () => {
-              // Condição de parada principal
-              if (paymentStatus === 'PAID' || attempt >= maxAttempts) {
+              if (!isMounted || paymentStatus === 'PAID' || attempt >= maxAttempts) {
                   return;
               }
               try {
                 const res = await fetch(`/api/create-payment?externalId=${externalId}`);
                 if (!res.ok) {
-                    if (res.status !== 404) { // Ignora 404 como erro fatal aqui
+                    if (res.status !== 404) {
                        console.error("Erro na API de status do pagamento:", res.status, await res.text());
                        setPaymentStatus('UNKNOWN');
                        return;
                     }
-                     // Se for 404, continua tentando como PENDING
                 }
                 const statusData = await res.json();
                 console.log("Resposta do status da API (backend):", statusData);
                 const newStatus: typeof paymentStatus = statusData.status?.toUpperCase() || 'PENDING';
 
-                // Atualiza o estado APENAS se houver mudança
                 if (newStatus !== paymentStatus) {
                     setPaymentStatus(newStatus);
                 }
                 
-                // Para de pollar se o status for final
                 if (newStatus === 'PAID' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
                   return; 
                 }
@@ -161,18 +159,16 @@ const BuyPage = () => {
               } catch (error) {
                 console.error("Erro ao checar status do pagamento:", error);
                 setPaymentStatus('UNKNOWN');
-                return; // Para em caso de erro
+                return;
               }
               
               attempt++;
-              // Lógica de backoff exponencial
               const delay = Math.min(initialDelay * Math.pow(1.5, attempt), maxDelay);
-              pollTimeoutId = setTimeout(poll, delay);
+              pollTimeoutRef.current = setTimeout(poll, delay);
             };
             poll();
           };
 
-          // A API BuckPay não retorna um tempo de expiração, então vamos definir um fixo (ex: 15 minutos)
           const EXPIRATION_MINUTES = 15;
           if (parsed.created_at) {
             const createdAtTimestamp = new Date(parsed.created_at).getTime();
@@ -225,7 +221,7 @@ const BuyPage = () => {
 
     return () => {
       if (timerId) clearInterval(timerId);
-      if (pollTimeoutId) clearTimeout(pollTimeoutId);
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
@@ -233,10 +229,12 @@ const BuyPage = () => {
 
   useEffect(() => {
       if (paymentStatus === 'PAID') {
+          if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
           const redirectPath = getSuccessRedirectPath(paymentData?.productId);
           router.push(redirectPath);
           localStorage.removeItem('paymentData');
       } else if (paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') {
+          if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
           toast({
               variant: "destructive",
               title: "Pagamento Expirado/Cancelado",
