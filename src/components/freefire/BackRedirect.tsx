@@ -12,28 +12,25 @@ const BackRedirect: React.FC<BackRedirectProps> = ({ redirectTo }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Flag to mark that the redirect was initiated by this component
-    if (pathname === '/buy') {
-      sessionStorage.setItem('cameFromBackRedirect', 'true');
-    }
+    let urlBackRedirect = redirectTo.trim() +
+      (redirectTo.indexOf('?') > 0 ? '&' : '?') +
+      document.location.search.replace('?', '').toString();
+
+    // Push states to history to handle back button
+    history.pushState(null, '', location.href);
+    history.pushState(null, '', location.href);
+    history.pushState(null, '', location.href);
 
     const onPopState = (e: PopStateEvent) => {
-      // Prevent the default back navigation
+      // Prevent the default back navigation and redirect
       e.preventDefault();
-      // Manually redirect to the desired page
-      router.replace(redirectTo);
+      location.href = urlBackRedirect;
     };
-
-    // This pushes a new state to the history, so the back button will trigger our listener
-    window.history.pushState(null, '', window.location.href);
+    
     window.addEventListener('popstate', onPopState);
 
     return () => {
       window.removeEventListener('popstate', onPopState);
-      // Clean up the flag when the component unmounts
-      if (pathname === '/buy') {
-         sessionStorage.removeItem('cameFromBackRedirect');
-      }
     };
   }, [router, redirectTo, pathname]);
 
