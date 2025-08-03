@@ -32,6 +32,7 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<vo
             headers: {
                 'Content-Type': 'application/json',
                 'x-api-key': apiKey,
+                'User-Agent': 'RecargaJogo/1.0',
             },
             body: JSON.stringify(payload),
         });
