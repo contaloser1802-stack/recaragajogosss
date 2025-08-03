@@ -263,12 +263,14 @@ function CheckoutPageContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMessage = data.error || "Erro ao processar o pagamento";
+        const errorMessage = data.error?.message || data.error || "Erro ao processar o pagamento";
         throw new Error(errorMessage);
       }
 
+      // Correção: Salva o objeto 'data' retornado pela API (que contém a resposta da BuckPay)
+      // e o resto das informações necessárias no mesmo nível.
       localStorage.setItem('paymentData', JSON.stringify({
-        ...data,
+        ...data, // Espalha a resposta da BuckPay (ex: id, status, pix.code, etc)
         playerName: playerName,
         amount: calculateTotal, 
         numericAmount: totalAmount,

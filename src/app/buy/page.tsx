@@ -27,7 +27,7 @@ interface PaymentData {
   numericAmount?: number;
   diamonds?: string;
   external_id?: string;
-  created_at?: string; // Alterado de expiresAt
+  created_at?: string; 
   status?: string;
   originalAmount?: string;
   bonusAmount?: string;

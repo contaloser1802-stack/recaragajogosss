@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
   console.log(`[create-payment POST] Recebida requisição POST de Origin: ${origin}`);
   
   const headers = new Headers();
-  headers.set('Access-Control-Allow-Origin', origin);
+  headers.set('Access-control-Allow-Origin', origin);
   headers.set('Content-Type', 'application/json');
   headers.set('Access-Control-Allow-Credentials', 'true');
 
@@ -183,11 +183,11 @@ export async function POST(request: NextRequest) {
     // A documentação retorna `data`, então acessamos a resposta dentro de `data`
     const paymentData = responseData.data;
 
-    if (paymentData.id) {
+    if (paymentData && paymentData.id) {
         // Envio para Utmify já é feito pelo webhook de "transaction.created" da BuckPay,
         // então não é mais necessário enviar o status 'waiting_payment' aqui.
         // Apenas logamos que o fluxo está correto.
-        console.log(`[create-payment POST] Pagamento criado (ID: ${paymentData.id}). Aguardando webhook de confirmação.`);
+        console.log(`[create-payment POST] Pagamento criado (ID: ${paymentData.id}). O webhook da BuckPay cuidará do envio para Utmify.`);
     }
 
     return new NextResponse(JSON.stringify(paymentData), {
