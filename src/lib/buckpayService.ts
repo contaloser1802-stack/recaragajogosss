@@ -2,28 +2,27 @@
 /**
  * @fileOverview Módulo de serviço para interagir com a API da Buckpay.
  */
-import getConfig from 'next/config';
 
-const { serverRuntimeConfig } = getConfig();
 const BUCKPAY_API_URL = 'https://api.realtechdev.com.br/v1';
 
 /**
  * Busca os detalhes completos de uma transação pelo seu ID.
  * @param transactionId O ID da transação na Buckpay.
+ * @param apiToken O token da API da Buckpay para autenticação.
  * @returns Os dados da transação ou null em caso de erro.
  */
-export async function getTransactionById(transactionId: string): Promise<any | null> {
-    const BUCKPAY_API_TOKEN = serverRuntimeConfig.BUCKPAY_API_TOKEN;
-    if (!BUCKPAY_API_TOKEN) {
-         const errorMsg = `[BuckpayService] Não é possível buscar a transação ${transactionId} pois o token da API (BUCKPAY_API_TOKEN) não está configurado.`;
+export async function getTransactionById(transactionId: string, apiToken: string): Promise<any | null> {
+    if (!apiToken) {
+         const errorMsg = `[BuckpayService] Token da API (apiToken) não foi fornecido para a transação ${transactionId}.`;
          console.error(errorMsg);
-         throw new Error(errorMsg);
+         // Não lança erro, apenas retorna null para o webhook tratar.
+         return null;
     }
     try {
         console.log(`[BuckpayService] Buscando detalhes da transação ID: ${transactionId}`);
         const response = await fetch(`${BUCKPAY_API_URL}/transactions/${transactionId}`, {
              headers: {
-                'Authorization': `Bearer ${BUCKPAY_API_TOKEN}`,
+                'Authorization': `Bearer ${apiToken}`,
                 'Content-Type': 'application/json',
                 'User-Agent': 'Buckpay API'
             }

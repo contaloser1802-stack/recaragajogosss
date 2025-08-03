@@ -1,3 +1,4 @@
+
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -52,13 +53,18 @@ export async function POST(request: NextRequest) {
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
             await notifyDiscord(`✅ [Webhook BuckPay] Evento APROVADO recebido. ID: ${transactionId}. Buscando detalhes completos...`);
             
-            // Etapa crucial: Buscar os detalhes completos da transação
-            const transactionDetails = await getTransactionById(transactionId);
+            const apiToken = serverRuntimeConfig.BUCKPAY_API_TOKEN;
+            if (!apiToken) {
+                 const errorMsg = `❌ [Webhook BuckPay] BUCKPAY_API_TOKEN não configurado no servidor. Impossível buscar detalhes da transação.`;
+                 await notifyDiscord(errorMsg);
+                 return NextResponse.json({ error: 'Configuração do servidor incompleta.' }, { status: 500 });
+            }
+
+            const transactionDetails = await getTransactionById(transactionId, apiToken);
             
             if (!transactionDetails || !transactionDetails.data) {
                 const errorMsg = `❌ [Webhook BuckPay] Falha ao obter detalhes completos da transação ${transactionId} da BuckPay.`;
                 await notifyDiscord(errorMsg);
-                // Retornar erro 500 para indicar que algo deu errado do nosso lado.
                 return NextResponse.json({ error: 'Falha ao buscar detalhes da transação' }, { status: 500 });
             }
             
