@@ -187,21 +187,19 @@ function CheckoutPageContent() {
       id: product.id,
     }];
     
-    // Adiciona itens do order bump apenas se não for Delta Force
-    if (!isDeltaForce) {
-      selectedOffers.forEach(offerId => {
-        const offer = specialOfferItems.find(o => o.id === offerId);
-        if (offer) {
-          payloadItems.push({
-            unitPrice: offer.price,
-            title: offer.name,
-            quantity: 1,
-            tangible: false,
-            id: offer.id,
-          });
-        }
-      });
-    }
+    // Adiciona itens do order bump
+    selectedOffers.forEach(offerId => {
+      const offer = specialOfferItems.find(o => o.id === offerId);
+      if (offer) {
+        payloadItems.push({
+          unitPrice: offer.price,
+          title: offer.name,
+          quantity: 1,
+          tangible: false,
+          id: offer.id,
+        });
+      }
+    });
 
     return payloadItems;
   }
@@ -246,7 +244,6 @@ function CheckoutPageContent() {
       name: values.name,
       email: values.email,
       phone: values.phone.replace(/\D/g, ''),
-      paymentMethod: "PIX",
       amount: totalAmount,
       externalId: `ff-${Date.now()}`,
       items: items,
@@ -267,11 +264,9 @@ function CheckoutPageContent() {
         throw new Error(errorMessage);
       }
 
-      // Correção: Salva o objeto 'data' retornado pela API (que contém a resposta da BuckPay)
-      // e o resto das informações necessárias no mesmo nível.
       localStorage.setItem('paymentData', JSON.stringify({
-        ...data, // Espalha a resposta da BuckPay (ex: id, status, pix.code, etc)
-        external_id: payload.externalId, // Adiciona o external_id que foi gerado
+        ...data,
+        external_id: payload.externalId,
         playerName: playerName,
         amount: calculateTotal, 
         numericAmount: totalAmount,
@@ -495,14 +490,13 @@ function CheckoutPageContent() {
               <span>Total:</span>
               <span>{calculateTotal}</span>
             </div>
-            {selectedOffers.length > 0 ? (
-                <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
-                    {isSubmitting ? "Finalizando..." : "Finalizar Pedido"}
-                </Button>
-            ) : (
-                <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
-                    {isSubmitting ? "Finalizando..." : "Recusar promoção"}
-                </Button>
+            <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="destructive" className="w-full h-12 text-lg">
+                {isSubmitting ? "Finalizando..." : (selectedOffers.length > 0 ? `Adicionar e Pagar ${calculateTotal}` : "Finalizar Pedido")}
+            </Button>
+            {selectedOffers.length === 0 && (
+                 <Button onClick={handleFinalSubmit} disabled={isSubmitting} variant="ghost" className="w-full">
+                    Não, obrigado
+                 </Button>
             )}
           </div>
         </DialogContent>

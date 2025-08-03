@@ -1,8 +1,6 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
-import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import { gerarCPFValido } from '@/lib/utils';
 import axios from 'axios';
 
@@ -184,8 +182,7 @@ export async function POST(request: NextRequest) {
     const paymentData = responseData.data;
 
     if (paymentData && paymentData.id) {
-        // Envio para Utmify já é feito pelo webhook de "transaction.created" da BuckPay,
-        // então não é mais necessário enviar o status 'waiting_payment' aqui.
+        // O envio para Utmify é feito pelo webhook de "transaction.created" da BuckPay.
         // Apenas logamos que o fluxo está correto.
         console.log(`[create-payment POST] Pagamento criado (ID: ${paymentData.id}). O webhook da BuckPay cuidará do envio para Utmify.`);
     }

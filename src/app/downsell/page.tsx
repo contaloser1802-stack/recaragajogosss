@@ -26,7 +26,6 @@ const DownsellPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
 
-    // Este useEffect é novo, para limpar o sinalizador do back redirect ao entrar na página
     useEffect(() => {
         try {
             const storedAppId = localStorage.getItem('selectedAppId');
@@ -36,8 +35,6 @@ const DownsellPage = () => {
         } catch(e) {
             console.error("Could not read from localstorage", e);
         }
-        // Marca que o usuário veio do back redirect para lógica especial na página /buy
-        sessionStorage.setItem('cameFromBackRedirect', 'true');
     }, []);
 
     const handleDecline = () => {
@@ -88,19 +85,17 @@ const DownsellPage = () => {
             tangible: false
         }];
 
-        try {
-            const payload: Omit<PaymentPayload, 'cpf'> = {
-                name: customerData.name,
-                email: customerData.email,
-                phone: customerData.phone.replace(/\D/g, ''),
-                paymentMethod: "PIX",
-                amount: selectedProduct.price,
-                externalId: `ff-downsell-${Date.now()}`,
-                items: payloadItems,
-                utmQuery,
-                traceable: true,
-            };
+        const payload: Omit<PaymentPayload, 'cpf'> = {
+            name: customerData.name,
+            email: customerData.email,
+            phone: customerData.phone.replace(/\D/g, ''),
+            amount: selectedProduct.price,
+            externalId: `ff-downsell-${Date.now()}`,
+            items: payloadItems,
+            utmQuery,
+        };
 
+        try {
             const response = await fetch("/api/create-payment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -115,6 +110,7 @@ const DownsellPage = () => {
             
             localStorage.setItem('paymentData', JSON.stringify({
                 ...data,
+                external_id: payload.externalId,
                 playerName: playerName,
                 amount: selectedProduct.formattedPrice,
                 numericAmount: selectedProduct.price,

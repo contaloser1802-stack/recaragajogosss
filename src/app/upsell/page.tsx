@@ -104,20 +104,18 @@ const UpsellPage = () => {
             quantity: 1,
             tangible: false,
         }));
+
+        const payload: Omit<PaymentPayload, 'cpf'> = {
+            name: customerData.name,
+            email: customerData.email,
+            phone: customerData.phone.replace(/\D/g, ''),
+            amount: totalNumericAmount,
+            externalId: `ff-upsell1-skins-${Date.now()}`,
+            items: payloadItems,
+            utmQuery,
+        };
         
         try {
-            const payload: Omit<PaymentPayload, 'cpf'> = {
-                name: customerData.name,
-                email: customerData.email,
-                phone: customerData.phone.replace(/\D/g, ''),
-                paymentMethod: "PIX",
-                amount: totalNumericAmount,
-                externalId: `ff-upsell1-skins-${Date.now()}`,
-                items: payloadItems,
-                utmQuery,
-                traceable: true,
-            };
-
             const response = await fetch("/api/create-payment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -132,6 +130,7 @@ const UpsellPage = () => {
 
             localStorage.setItem('paymentData', JSON.stringify({
                 ...data,
+                external_id: payload.externalId,
                 playerName: playerName,
                 amount: totalAmount,
                 numericAmount: totalNumericAmount,

@@ -4,7 +4,6 @@ export interface PaymentPayload {
   email: string;
   cpf?: string; 
   phone: string;
-  paymentMethod: 'PIX';
   amount: number;
   externalId: string;
   items: {

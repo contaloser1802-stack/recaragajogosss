@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
@@ -68,20 +67,18 @@ const Upsell3Page = () => {
             quantity: 1,
             tangible: false
         }];
+
+        const payload: Omit<PaymentPayload, 'cpf'> = {
+            name: customerData.name,
+            email: customerData.email,
+            phone: customerData.phone.replace(/\D/g, ''),
+            amount: selectedProduct.price,
+            externalId: `ff-upsell3-tax-${Date.now()}`,
+            items: payloadItems,
+            utmQuery,
+        };
         
         try {
-            const payload: Omit<PaymentPayload, 'cpf'> = {
-                name: customerData.name,
-                email: customerData.email,
-                phone: customerData.phone.replace(/\D/g, ''),
-                paymentMethod: "PIX",
-                amount: selectedProduct.price,
-                externalId: `ff-upsell3-tax-${Date.now()}`,
-                items: payloadItems,
-                utmQuery,
-                traceable: true,
-            };
-
             const response = await fetch("/api/create-payment", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -96,6 +93,7 @@ const Upsell3Page = () => {
             
             localStorage.setItem('paymentData', JSON.stringify({
                 ...data,
+                external_id: payload.externalId,
                 playerName: playerName,
                 amount: selectedProduct.formattedPrice,
                 numericAmount: selectedProduct.price,
