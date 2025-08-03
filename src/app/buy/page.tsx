@@ -15,17 +15,19 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { upsellOffers, taxOffer, downsellOffers, skinOffers } from '@/lib/data';
 import BackRedirect from '@/components/freefire/BackRedirect';
 
-// Interface para os dados de pagamento recebidos do localStorage
+// Interface para os dados de pagamento recebidos do localStorage e da API
 interface PaymentData {
-  pixQrCode?: string;
-  pixCode?: string;
+  pix?: {
+    code?: string;
+    qrcode_base64?: string;
+  };
   playerName?: string;
   productDescription?: string;
   amount?: string;
   numericAmount?: number;
   diamonds?: string;
-  externalId?: string;
-  expiresAt?: string;
+  external_id?: string;
+  created_at?: string; // Alterado de expiresAt
   status?: string;
   originalAmount?: string;
   bonusAmount?: string;
@@ -35,6 +37,7 @@ interface PaymentData {
   utmQuery?: string;
 }
 
+
 const BuyPage = () => {
   const { toast } = useToast();
   const router = useRouter();
@@ -43,7 +46,7 @@ const BuyPage = () => {
   const [playerName, setPlayerName] = useState<string>("Carregando...");
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'APPROVED' | 'EXPIRED' | 'CANCELLED' | 'UNKNOWN'>('PENDING');
+  const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'PAID' | 'EXPIRED' | 'CANCELLED' | 'UNKNOWN'>('PENDING');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   
   const [gameInfo, setGameInfo] = useState({
@@ -100,7 +103,7 @@ const BuyPage = () => {
           const parsed: PaymentData = JSON.parse(storedPaymentData);
           console.log("Dados parseados do localStorage na BuyPage:", parsed);
 
-          if (!parsed.pixQrCode || !parsed.pixCode || !parsed.externalId) {
+          if (!parsed.pix?.qrcode_base64 || !parsed.pix?.code || !parsed.external_id) {
             console.error("Dados de pagamento incompletos no localStorage:", parsed);
             toast({
               variant: 'destructive',
@@ -112,8 +115,8 @@ const BuyPage = () => {
             return;
           }
 
-          setPixCode(parsed.pixCode);
-          setPixImage(parsed.pixQrCode);
+          setPixCode(parsed.pix.code);
+          setPixImage(parsed.pix.qrcode_base64);
           setPlayerName(parsed.playerName || "Desconhecido");
           setPaymentData(parsed); 
           setIsLoading(false);
@@ -127,7 +130,7 @@ const BuyPage = () => {
             const maxDelay = 30000; // 30 segundos
             
             const poll = async () => {
-              if (paymentStatus === 'APPROVED' || attempt >= maxAttempts) {
+              if (paymentStatus === 'PAID' || attempt >= maxAttempts) {
                   return; // Para de pollar se já estiver aprovado ou exceder tentativas
               }
               try {
@@ -142,11 +145,10 @@ const BuyPage = () => {
                 const statusData = await res.json();
                 console.log("Resposta do status da API (backend):", statusData);
                 let newStatus: typeof paymentStatus = statusData.status?.toUpperCase() || 'UNKNOWN';
-                if (newStatus === 'PAID') newStatus = 'APPROVED';
 
                 setPaymentStatus(newStatus);
                 
-                if (newStatus === 'APPROVED' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
+                if (newStatus === 'PAID' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
                   // Parar de pollar se o status for final
                   return; 
                 }
@@ -165,9 +167,11 @@ const BuyPage = () => {
             poll();
           };
 
-
-          if (parsed.expiresAt) {
-            const expiresAtTimestamp = new Date(parsed.expiresAt).getTime();
+          // A API BuckPay não retorna um tempo de expiração, então vamos definir um fixo (ex: 15 minutos)
+          const EXPIRATION_MINUTES = 15;
+          if (parsed.created_at) {
+            const createdAtTimestamp = new Date(parsed.created_at).getTime();
+            const expiresAtTimestamp = createdAtTimestamp + EXPIRATION_MINUTES * 60 * 1000;
             const initialTimeLeft = Math.max(0, Math.floor((expiresAtTimestamp - Date.now()) / 1000));
             setTimeLeft(initialTimeLeft);
             
@@ -187,8 +191,8 @@ const BuyPage = () => {
             }
           }
 
-          if (parsed.externalId && currentStatus === 'PENDING') {
-            startPolling(parsed.externalId);
+          if (parsed.external_id && currentStatus === 'PENDING') {
+            startPolling(parsed.external_id);
           }
 
         } else {
@@ -223,7 +227,7 @@ const BuyPage = () => {
 
 
   useEffect(() => {
-      if (paymentStatus === 'APPROVED') {
+      if (paymentStatus === 'PAID') {
           const redirectPath = getSuccessRedirectPath(paymentData?.productId);
           router.push(redirectPath);
           localStorage.removeItem('paymentData');
@@ -236,6 +240,7 @@ const BuyPage = () => {
           localStorage.removeItem('paymentData');
           setTimeout(() => router.push('/'), 3000);
       }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paymentStatus, paymentData, router, toast]);
 
   const handleCopyCode = () => {
@@ -354,11 +359,11 @@ const BuyPage = () => {
           <div className="flex flex-col gap-6 px-4 pb-8 pt-5 md:p-10 md:pt-6">
             <Alert className="text-left w-full max-w-md mx-auto">
               {paymentStatus === 'PENDING' && <Hourglass className="h-4 w-4" />}
-              {paymentStatus === 'APPROVED' && <CheckCircle className="h-4 w-4 text-green-500" />}
+              {paymentStatus === 'PAID' && <CheckCircle className="h-4 w-4 text-green-500" />}
               {(paymentStatus === 'EXPIRED' || paymentStatus === 'UNKNOWN' || paymentStatus === 'CANCELLED') && <Info className="h-4 w-4 text-red-500" />}
               <AlertTitle>
                 {paymentStatus === 'PENDING' && 'Aguardando pagamento'}
-                {paymentStatus === 'APPROVED' && 'Pagamento Aprovado!'}
+                {paymentStatus === 'PAID' && 'Pagamento Aprovado!'}
                 {paymentStatus === 'EXPIRED' && 'Pagamento Expirado!'}
                 {paymentStatus === 'CANCELLED' && 'Pagamento Cancelado!'}
                 {paymentStatus === 'UNKNOWN' && 'Verificando status...'}
@@ -370,7 +375,7 @@ const BuyPage = () => {
                     Após o pagamento, os {gameInfo.currencyName} podem levar alguns minutos para serem creditados.
                   </>
                 )}
-                {paymentStatus === 'APPROVED' && `Seus ${gameInfo.currencyName} serão creditados na conta do jogo em instantes. Estamos te redirecionando...`}
+                {paymentStatus === 'PAID' && `Seus ${gameInfo.currencyName} serão creditados na conta do jogo em instantes. Estamos te redirecionando...`}
                 {(paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') && 'O tempo para pagamento se esgotou ou foi cancelado. Por favor, inicie uma nova compra.'}
                 {paymentStatus === 'UNKNOWN' && 'Não foi possível verificar o status do pagamento. Por favor, aguarde ou recarregue a página.'}
               </AlertDescription>
@@ -381,7 +386,7 @@ const BuyPage = () => {
               <div className="my-3 flex h-[150px] w-full items-center justify-center">
                 {pixImage ? (
                   <Image
-                    src={pixImage}
+                    src={`data:image/png;base64,${pixImage}`}
                     alt="QR Code Pix"
                     width={150}
                     height={150}
@@ -392,8 +397,8 @@ const BuyPage = () => {
                 )}
               </div>
               <div className="text-center text-gray-500 text-sm/[22px]">
-                PAGSEGURO TECNOLOGIA LTDA <br />
-                CNPJ:06.375.668/0003-61
+                REAL TECH DIGITAL LTDA <br />
+                CNPJ:54.228.163/0001-53
               </div>
               <div className="mb-4 mt-3 select-all break-words rounded-md bg-gray-100 p-4 text-sm/[22px] text-gray-800">
                 {pixCode || <Skeleton className="h-5 w-full" />}
@@ -409,13 +414,10 @@ const BuyPage = () => {
                   <li>Utilize as informações acima para realizar o pagamento.</li>
                   <li>Revise as informações e pronto!</li>
                 </ol>
-                <p>Seu pedido está sendo processado pelo nosso parceiro PagSeguro.</p>
+                <p>Seu pedido está sendo processado pelo nosso parceiro BuckPay.</p>
                 <p>Você receberá seus {gameInfo.currencyName} após recebermos a confirmação do pagamento. Isso ocorre geralmente em alguns minutos após a realização do pagamento na sua instituição financeira.</p>
                 <p>
-                  Em caso de dúvidas entre em contato com o PagSeguro através do link{' '}
-                  <a href="https://customer.international.pagseguro.com/pt-br" className="underline" target="_blank" rel="noopener noreferrer">
-                    https://customer.international.pagseguro.com/pt-br
-                  </a>
+                  Em caso de dúvidas entre em contato com o suporte.
                 </p>
               </div>
             </div>

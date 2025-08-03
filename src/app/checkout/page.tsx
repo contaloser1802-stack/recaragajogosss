@@ -248,7 +248,6 @@ function CheckoutPageContent() {
       phone: values.phone.replace(/\D/g, ''),
       paymentMethod: "PIX",
       amount: totalAmount,
-      traceable: true,
       externalId: `ff-${Date.now()}`,
       items: items,
       utmQuery,
@@ -264,7 +263,7 @@ function CheckoutPageContent() {
       const data = await response.json();
 
       if (!response.ok) {
-        const errorMessage = data.message || data.error || "Erro ao processar o pagamento";
+        const errorMessage = data.error?.message || "Erro ao processar o pagamento";
         throw new Error(errorMessage);
       }
 
@@ -445,7 +444,7 @@ function CheckoutPageContent() {
           />
 
           <div className="text-gray-500 text-xs/normal">
-            Ao clicar em “Prosseguir para Pagamento”, atesto que li e concordo com os <a href="https://international.pagseguro.com/legal-compliance" className="underline" target="_blank" rel="noopener noreferrer">termos de uso</a> e com a <a href="https://sobreuol.noticias.uol.com.br/normas-de-seguranca-e-privacidade/" className="underline" target="_blank" rel="noopener noreferrer">política de privacidade</a> do PagSeguro
+            Ao clicar em “Prosseguir para Pagamento”, atesto que li e concordo com os termos de uso e com a política de privacidade.
           </div>
 
           <div className="mt-2">

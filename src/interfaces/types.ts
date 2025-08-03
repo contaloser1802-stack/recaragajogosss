@@ -1,16 +1,15 @@
-// Interface para o payload da sua API create-payment (GhostPay)
+// Interface para o payload da sua API create-payment (BuckPay)
 export interface PaymentPayload {
   name: string;
   email: string;
-  cpf?: string; // CPF é opcional, pois pode ser gerado no backend
+  cpf?: string; 
   phone: string;
   paymentMethod: 'PIX';
-  amount: number; // Alterado para number em vez de string
-  traceable: boolean;
+  amount: number;
   externalId: string;
   items: {
     id: string; 
-    unitPrice: number; // Alterado para number
+    unitPrice: number;
     title: string;
     quantity: number;
     tangible: boolean;
@@ -26,5 +25,6 @@ export interface ProductData {
   totalAmount: string;
   price: number; 
   formattedPrice: string;
-  image?: string; 
+  image?: string;
+  promo?: string; 
 }
