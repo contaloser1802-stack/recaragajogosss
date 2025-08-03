@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
 
             if (supabaseError || !transactionData) {
                 console.error(`[buckpay-webhook] ❌ Erro ao buscar pedido no Supabase para transaction_id ${transactionId}:`, supabaseError?.message);
+                // Responda 200 para a Buckpay não reenviar, mas logue o erro.
                 return NextResponse.json({ success: true, message: 'Pedido não encontrado no banco de dados interno.' }, { status: 200 });
             }
 
@@ -102,6 +103,7 @@ export async function POST(request: NextRequest) {
             }
         }
         
+        // Responda 200 para a Buckpay para evitar retentativas em caso de erro interno.
         return NextResponse.json({ success: true, message: 'Erro processado internamente, não haverá retentativa.' }, { status: 200 });
     }
 }

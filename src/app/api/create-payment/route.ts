@@ -218,6 +218,7 @@ export async function POST(request: NextRequest) {
             console.log(`[create-payment POST] ✅ Dados de pagamento pendente (ID: ${paymentData.id}) enviados para Utmify.`);
 
             // Salvar no Supabase
+            console.log(`[create-payment POST] 💾 Salvando pedido pendente no Supabase (ID: ${paymentData.id})...`);
             const { error: supabaseError } = await supabase
               .from('transactions')
               .insert({
