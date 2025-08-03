@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
-import { UtmifyOrderPayload } from '@/interfaces/utmify';
+import { UtmifyOrderPayload, UtmifyProduct } from '@/interfaces/utmify';
 import axios from 'axios';
 
 // Função para obter dados de geolocalização do IP
@@ -52,27 +52,24 @@ export async function POST(request: NextRequest) {
 
       const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
       const geoData = await getGeoData(ip);
-
-      const products = [];
-      if (data.product?.name) {
-          products.push({
-              id: data.product.id || `prod_${Date.now()}`,
-              name: data.product.name,
+      
+      let products: UtmifyProduct[] = [];
+      // Corrigido: O webhook da BuckPay usa `items` e não `product` ou `offer`.
+      if (Array.isArray(data.items) && data.items.length > 0) {
+          products = data.items.map((item: any) => ({
+              id: item.id || `prod_${Date.now()}`,
+              name: item.title,
               planId: null,
               planName: null,
-              quantity: 1, // Assumindo 1 para o produto principal
-              priceInCents: 0, // O preço total já está em total_amount
-          });
+              quantity: item.quantity,
+              priceInCents: Math.round(item.unit_price * 100) // Buckpay webhook `items` tem `unit_price` em BRL.
+          }));
       }
-      if (data.offer?.name) {
-          products.push({
-              id: data.offer.id || `offer_${Date.now()}`,
-              name: data.offer.name,
-              planId: null,
-              planName: null,
-              quantity: data.offer.quantity || 1,
-              priceInCents: data.offer.discount_price || 0,
-          });
+
+      if (products.length === 0) {
+        console.error('[buckpay-webhook] ❌ Nenhum produto encontrado no payload do webhook (`data.items`). Não é possível enviar para Utmify.');
+        // Ainda retornamos 200 para não causar re-tentativas do webhook.
+         return NextResponse.json({ success: true, message: 'Webhook recebido, mas sem itens para processar.' }, { status: 200 });
       }
 
       const utmifyPayload: UtmifyOrderPayload = {
