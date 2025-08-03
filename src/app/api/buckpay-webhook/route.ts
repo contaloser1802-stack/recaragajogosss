@@ -1,14 +1,14 @@
+
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
 import getConfig from 'next/config';
 import { getTransactionById } from '@/lib/buckpayService';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
-import { UtmifyOrderPayload, UtmifyProduct, UtmifyTrackingParameters } from '@/interfaces/utmify';
+import { UtmifyOrderPayload } from '@/interfaces/utmify';
 
 const { serverRuntimeConfig } = getConfig();
 
-// Função para enviar logs para o Discord
 async function notifyDiscord(message: string, payload?: any) {
     const discordWebhookUrl = serverRuntimeConfig.DISCORD_WEBHOOK_URL;
     if (!discordWebhookUrl) {
@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
             await notifyDiscord(`✅ [Webhook BuckPay] Transação APROVADA ID: ${transactionId}. Buscando detalhes...`);
 
-            // Busca os detalhes completos da transação na BuckPay
             const transactionDetails = await getTransactionById(transactionId);
             
             if (!transactionDetails || !transactionDetails.data) {

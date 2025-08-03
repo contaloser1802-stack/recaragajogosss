@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -15,7 +16,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { upsellOffers, taxOffer, downsellOffers, skinOffers } from '@/lib/data';
 import BackRedirect from '@/components/freefire/BackRedirect';
 
-// Interface para os dados de pagamento recebidos do localStorage e da API
 interface PaymentData {
   pix?: {
     code?: string;
@@ -65,23 +65,22 @@ const BuyPage = () => {
   const getSuccessRedirectPath = (productId?: string) => {
     const selectedAppId = typeof window !== 'undefined' ? localStorage.getItem('selectedAppId') : '100067';
     if (selectedAppId === '100151') {
-      return '/success'; // Jogo Delta Force vai direto para o sucesso
+      return '/success'; 
     }
   
-    // Lógica de upsell apenas para Free Fire
-    if (!productId) return '/upsell'; // Default da compra principal
+    if (!productId) return '/upsell'; 
   
     const isUpsell1 = skinOffers.some(o => o.id === productId);
     const isUpsell2 = upsellOffers.some(o => o.id === productId);
     const isUpsell3 = taxOffer.some(o => o.id === productId);
     const isDownsell = downsellOffers.some(o => o.id === productId);
     
-    if (isDownsell) return '/upsell'; // Pagou downsell, vai pro upsell 1
-    if (isUpsell1) return '/upsell-2'; // Pagou upsell 1 (skins), vai pro 2
-    if (isUpsell2) return '/upsell-3'; // Pagou upsell 2 (diamantes), vai pro 3
-    if (isUpsell3) return '/success';  // Pagou upsell 3 (taxa), vai pro sucesso
+    if (isDownsell) return '/upsell'; 
+    if (isUpsell1) return '/upsell-2'; 
+    if (isUpsell2) return '/upsell-3'; 
+    if (isUpsell3) return '/success';  
   
-    return '/upsell'; // Fallback para compra principal
+    return '/upsell'; 
   };
 
   useEffect(() => {
@@ -140,28 +139,29 @@ const BuyPage = () => {
               }
               try {
                 const res = await fetch(`/api/create-payment?externalId=${externalId}`);
-                if (!res.ok) {
-                    if (res.status !== 404) {
-                       console.error("Erro na API de status do pagamento:", res.status, await res.text());
-                       setPaymentStatus('UNKNOWN');
-                       return;
+                if (res.status === 404) {
+                    console.log("Transação não encontrada ainda, continuando polling.");
+                    // Não retorna, apenas continua o polling
+                } else if (!res.ok) {
+                    console.error("Erro na API de status do pagamento:", res.status, await res.text());
+                    setPaymentStatus('UNKNOWN');
+                    return; // Para o polling em caso de erro
+                } else {
+                    const statusData = await res.json();
+                    console.log("Resposta do status da API (backend):", statusData);
+                    const newStatus: typeof paymentStatus = statusData.status?.toUpperCase() || 'PENDING';
+                    
+                    if (isMounted.current) {
+                      if (newStatus !== paymentStatus) {
+                          setPaymentStatus(newStatus);
+                      }
+                      
+                      if (newStatus === 'PAID' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
+                        if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+                        return; 
+                      }
                     }
                 }
-                const statusData = await res.json();
-                console.log("Resposta do status da API (backend):", statusData);
-                const newStatus: typeof paymentStatus = statusData.status?.toUpperCase() || 'PENDING';
-                
-                if (isMounted.current) {
-                  if (newStatus !== paymentStatus) {
-                      setPaymentStatus(newStatus);
-                  }
-                  
-                  if (newStatus === 'PAID' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
-                    if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
-                    return; 
-                  }
-                }
-
               } catch (error) {
                 console.error("Erro ao checar status do pagamento:", error);
                  if (isMounted.current) setPaymentStatus('UNKNOWN');
@@ -169,7 +169,7 @@ const BuyPage = () => {
               }
               
               attempt++;
-              const delay = Math.min(initialDelay * Math.pow(1.5, attempt), maxDelay);
+              const delay = Math.min(initialDelay * 1.5, maxDelay);
               pollTimeoutRef.current = setTimeout(poll, delay);
             };
             poll();
@@ -192,7 +192,6 @@ const BuyPage = () => {
 
               if (newTimeLeft <= 0) {
                 if (timerId) clearInterval(timerId);
-                // Apenas atualiza se o status ainda for PENDING, para não sobrescrever um status 'PAID'
                 setPaymentStatus(prevStatus => prevStatus === 'PENDING' ? 'EXPIRED' : prevStatus);
               }
             }, 1000);

@@ -21,14 +21,6 @@ import { specialOfferItems } from '@/lib/data';
 import { PaymentPayload, ProductData } from '@/interfaces/types';
 import { formatPhoneNumber } from '@/lib/utils';
 
-const cpfMask = (value: string) => {
-    let v = value.replace(/\D/g, '').slice(0, 11);
-    if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
-    else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, '$1.$2');
-    return v;
-};
-
 const formSchema = z.object({
   name: z.string()
     .min(1, { message: "Nome é obrigatório." })
@@ -247,7 +239,7 @@ function CheckoutPageContent() {
     const items = buildPayloadItems();
     const totalAmount = getNumericTotalAmount;
     
-    const payload: Omit<PaymentPayload, 'cpf'> & { cpf?: string } = {
+    const payload: PaymentPayload = {
       name: values.name,
       email: values.email,
       phone: values.phone.replace(/\D/g, ''),

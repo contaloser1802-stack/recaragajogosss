@@ -5,11 +5,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import getConfig from 'next/config';
 import { gerarCPFValido } from '@/lib/utils';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
-import { UtmifyOrderPayload, UtmifyProduct, UtmifyTrackingParameters } from '@/interfaces/utmify';
+import { UtmifyOrderPayload } from '@/interfaces/utmify';
+import { PaymentPayload } from '@/interfaces/types';
 
 const { serverRuntimeConfig } = getConfig();
 
-// Função para enviar logs para o Discord
 async function notifyDiscord(message: string, payload?: any) {
     const discordWebhookUrl = serverRuntimeConfig.DISCORD_WEBHOOK_URL;
     if (!discordWebhookUrl) {
@@ -35,239 +35,169 @@ async function notifyDiscord(message: string, payload?: any) {
     }
 }
 
-const allowedOrigins = [
-  'https://recargajogo.com',
-  'https://www.recargajogo.com',
-  'http://localhost:3000',
-  process.env.NEXT_PUBLIC_APP_URL || ''
-].filter(Boolean);
-
-const getOrigin = (request: NextRequest): string => {
-  const origin = request.headers.get('origin');
-  if (origin && allowedOrigins.includes(origin)) {
-    return origin;
-  }
-  return process.env.NEXT_PUBLIC_APP_URL || '*';
-};
-
-// Lida com requisições OPTIONS (pre-flight CORS)
-export async function OPTIONS(request: NextRequest) {
-  const origin = getOrigin(request);
-  const headers = new Headers();
-  headers.set('Access-Control-Allow-Origin', origin);
-  headers.set('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  headers.set('Access-Control-Max-Age', '86400');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-
-  return new NextResponse(null, {
-    status: 204,
-    headers,
-  });
-}
-
-// Lida com requisições POST para criar o pagamento (compra)
 export async function POST(request: NextRequest) {
-  const origin = getOrigin(request);
-  const headers = new Headers();
-  headers.set('Access-control-Allow-Origin', origin);
-  headers.set('Content-Type', 'application/json');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-  
-  let body;
+    let requestBody: PaymentPayload;
+    try {
+        requestBody = await request.json();
+        await notifyDiscord('🔄 [Criação de Pagamento - BuckPay] Requisição recebida:', requestBody);
 
-  try {
-    body = await request.json();
-    await notifyDiscord('🔄 [Criação de Pagamento] Requisição recebida:', body);
+        const { name, email, phone, amount, items, externalId, utmQuery } = requestBody;
 
-    const { 
-      name, 
-      email, 
-      cpf, 
-      phone, 
-      amount, 
-      items,  
-      externalId, 
-      utmQuery 
-    } = body;
+        const apiToken = serverRuntimeConfig.BUCKPAY_API_TOKEN;
+        if (!apiToken) {
+            const errorMsg = "❌ [Criação de Pagamento - BuckPay] ERRO: BUCKPAY_API_TOKEN não definida.";
+            await notifyDiscord(errorMsg);
+            return new NextResponse(JSON.stringify({ error: 'Configuração do servidor incompleta.' }), { status: 500 });
+        }
 
-    const apiToken = serverRuntimeConfig.BUCKPAY_API_TOKEN;
-    if (!apiToken) {
-      const errorMsg = "❌ [Criação de Pagamento] ERRO: BUCKPAY_API_TOKEN não definida.";
-      await notifyDiscord(errorMsg);
-      return new NextResponse(JSON.stringify({ error: 'Configuração do servidor incompleta.' }), { status: 500, headers });
-    }
+        const parsedAmount = parseFloat(String(amount));
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+            return new NextResponse(JSON.stringify({ error: 'Valor total do pagamento (amount) inválido.' }), { status: 400 });
+        }
+        const amountInCents = Math.round(parsedAmount * 100);
 
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
-        return new NextResponse(JSON.stringify({ error: 'Valor total do pagamento (amount) inválido.' }), { status: 400, headers });
-    }
-    const amountInCents = Math.round(parsedAmount * 100);
+        if (!Array.isArray(items) || items.length === 0) {
+            return new NextResponse(JSON.stringify({ error: 'Itens do pedido inválidos.' }), { status: 400 });
+        }
+        
+        const finalCpf = (requestBody.cpf || gerarCPFValido()).replace(/\D/g, '');
+        const utmParams = new URLSearchParams(utmQuery || '');
+        const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
-    if (!Array.isArray(items) || items.length === 0) {
-        return new NextResponse(JSON.stringify({ error: 'Itens do pedido inválidos.' }), { status: 400, headers });
-    }
-    
-    const finalCpf = (cpf || gerarCPFValido()).replace(/\D/g, '');
-    const utmParams = new URLSearchParams(utmQuery);
-    const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
-
-    const payloadForBuckPay = {
-      external_id: externalId,
-      payment_method: 'pix',
-      amount: amountInCents,
-      buyer: {
-        name,
-        email,
-        document: finalCpf,
-        phone: `55${phone.replace(/\D/g, '')}`,
-        ip,
-      },
-      items: items.map((item: any) => ({
-        id: item.id || `prod_${Date.now()}`,
-        name: item.title,
-        amount: Math.round(item.unitPrice * 100),
-        quantity: item.quantity,
-      })),
-      tracking: {
-        ref: utmParams.get('ref') || null,
-        src: utmParams.get('utm_source') || null,
-        sck: utmParams.get('sck') || null,
-        utm_source: utmParams.get('utm_source') || null,
-        utm_medium: utmParams.get('utm_medium') || null,
-        utm_campaign: utmParams.get('utm_campaign') || null,
-        utm_id: utmParams.get('utm_id') || null,
-        utm_term: utmParams.get('utm_term') || null,
-        utm_content: utmParams.get('utm_content') || null,
-      }
-    };
-
-    await notifyDiscord("📤 [Criação de Pagamento] Enviando payload para BuckPay...", payloadForBuckPay);
-
-    const buckpayResponse = await fetch('https://api.realtechdev.com.br/v1/transactions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiToken}`,
-        'User-Agent': 'Buckpay API'
-      },
-      body: JSON.stringify(payloadForBuckPay)
-    });
-
-    let responseData;
-    const contentType = buckpayResponse.headers.get('content-type');
-
-    if (contentType && contentType.includes('application/json')) {
-      responseData = await buckpayResponse.json();
-    } else {
-      const textData = await buckpayResponse.text();
-      const errorMsg = `❌ [Criação de Pagamento] Erro: Resposta da BuckPay (HTTP ${buckpayResponse.status}) não é JSON.`;
-      await notifyDiscord(errorMsg, textData);
-      return new NextResponse(
-        JSON.stringify({ error: 'Falha ao criar pagamento: Resposta inesperada da BuckPay', details: textData }),
-        { status: buckpayResponse.status, headers }
-      );
-    }
-    
-    if (!buckpayResponse.ok) {
-        const errorMsg = `❌ [Criação de Pagamento] Erro da API BuckPay (HTTP ${buckpayResponse.status}): ${responseData.error?.message || 'Falha'}`;
-        await notifyDiscord(errorMsg, responseData.error);
-        return new NextResponse(
-            JSON.stringify({ error: responseData.error?.message || 'Falha na BuckPay.', details: responseData.error?.detail }),
-            { status: buckpayResponse.status, headers }
-        );
-    }
-
-    await notifyDiscord(`✅ [Criação de Pagamento] Resposta da BuckPay (HTTP ${buckpayResponse.status}) recebida:`, responseData);
-    
-    const buckpayData = responseData.data;
-    if (buckpayData && buckpayData.id) {
-        const utmifyPayload: UtmifyOrderPayload = {
-            orderId: buckpayData.id,
-            platform: 'RecargaJogo',
-            paymentMethod: 'pix',
-            status: 'waiting_payment',
-            createdAt: formatToUtmifyDate(new Date()),
-            approvedDate: null,
-            refundedAt: null,
-            customer: {
-                name: name,
-                email: email,
-                phone: phone.replace(/\D/g, ''),
+        const payloadForBuckPay = {
+            external_id: externalId,
+            payment_method: 'pix',
+            amount: amountInCents,
+            buyer: {
+                name,
+                email,
                 document: finalCpf,
-                country: 'BR',
-                ip: ip,
+                phone: `55${phone.replace(/\D/g, '')}`,
+                ip,
             },
-            products: items.map((item: any) => ({
+            items: items.map((item: any) => ({
                 id: item.id || `prod_${Date.now()}`,
                 name: item.title,
-                planId: null,
-                planName: null,
+                amount: Math.round(item.unitPrice * 100),
                 quantity: item.quantity,
-                priceInCents: Math.round(item.unitPrice * 100),
             })),
-            trackingParameters: {
+            tracking: {
+                ref: utmParams.get('ref') || null,
                 src: utmParams.get('utm_source') || null,
                 sck: utmParams.get('sck') || null,
                 utm_source: utmParams.get('utm_source') || null,
-                utm_campaign: utmParams.get('utm_campaign') || null,
                 utm_medium: utmParams.get('utm_medium') || null,
-                utm_content: utmParams.get('utm_content') || null,
+                utm_campaign: utmParams.get('utm_campaign') || null,
+                utm_id: utmParams.get('utm_id') || null,
                 utm_term: utmParams.get('utm_term') || null,
-            },
-            commission: {
-                totalPriceInCents: amountInCents,
-                gatewayFeeInCents: 0,
-                userCommissionInCents: amountInCents,
-                currency: 'BRL',
-            },
-            isTest: false,
+                utm_content: utmParams.get('utm_content') || null,
+            }
         };
 
-        try {
-            await notifyDiscord(`📦 [Criação de Pagamento] Enviando payload PENDENTE para Utmify para o pedido ${buckpayData.id}:`, utmifyPayload);
-            await sendOrderToUtmify(utmifyPayload);
-            await notifyDiscord(`✅ [Criação de Pagamento] Payload PENDENTE enviado para Utmify com sucesso (ID: ${buckpayData.id}).`);
-        } catch (utmifyError: any) {
-             await notifyDiscord(`❌ [Criação de Pagamento] Erro durante o envio PENDENTE para Utmify (ID: ${buckpayData.id}):`, utmifyError.message);
-        }
-    }
-    
-    return new NextResponse(JSON.stringify(responseData), {
-      status: 200,
-      headers
-    });
+        await notifyDiscord("📤 [Criação de Pagamento - BuckPay] Enviando payload...", payloadForBuckPay);
 
-  } catch (error: any) {
-    const errorMsg = `❌ [Criação de Pagamento] Erro fatal no servidor: ${error.message}`;
-    await notifyDiscord(errorMsg, body);
-    return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor.' }), {
-      status: 500,
-      headers
-    });
-  }
+        const buckpayResponse = await fetch('https://api.realtechdev.com.br/v1/transactions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiToken}`,
+                'User-Agent': 'Buckpay API'
+            },
+            body: JSON.stringify(payloadForBuckPay)
+        });
+
+        const responseData = await buckpayResponse.json();
+        
+        if (!buckpayResponse.ok) {
+            const errorMsg = `❌ [Criação de Pagamento - BuckPay] Erro da API BuckPay (HTTP ${buckpayResponse.status}): ${responseData.error?.message || 'Falha'}`;
+            await notifyDiscord(errorMsg, responseData.error);
+            return new NextResponse(
+                JSON.stringify({ error: responseData.error?.message || 'Falha na BuckPay.', details: responseData.error?.detail }),
+                { status: buckpayResponse.status }
+            );
+        }
+
+        await notifyDiscord(`✅ [Criação de Pagamento - BuckPay] Resposta da BuckPay (HTTP ${buckpayResponse.status}) recebida:`, responseData);
+        
+        const buckpayData = responseData.data;
+        if (buckpayData && buckpayData.id) {
+            const utmifyPayload: UtmifyOrderPayload = {
+                orderId: buckpayData.id,
+                platform: 'RecargaJogo',
+                paymentMethod: 'pix',
+                status: 'waiting_payment',
+                createdAt: formatToUtmifyDate(new Date()),
+                approvedDate: null,
+                refundedAt: null,
+                customer: {
+                    name: name,
+                    email: email,
+                    phone: phone.replace(/\D/g, ''),
+                    document: finalCpf,
+                    country: 'BR',
+                    ip: ip,
+                },
+                products: items.map((item: any) => ({
+                    id: item.id || `prod_${Date.now()}`,
+                    name: item.title,
+                    planId: null,
+                    planName: null,
+                    quantity: item.quantity,
+                    priceInCents: Math.round(item.unitPrice * 100),
+                })),
+                trackingParameters: {
+                    src: utmParams.get('utm_source') || null,
+                    sck: utmParams.get('sck') || null,
+                    utm_source: utmParams.get('utm_source') || null,
+                    utm_campaign: utmParams.get('utm_campaign') || null,
+                    utm_medium: utmParams.get('utm_medium') || null,
+                    utm_content: utmParams.get('utm_content') || null,
+                    utm_term: utmParams.get('utm_term') || null,
+                },
+                commission: {
+                    totalPriceInCents: amountInCents,
+                    gatewayFeeInCents: 0,
+                    userCommissionInCents: amountInCents,
+                    currency: 'BRL',
+                },
+                isTest: false,
+            };
+
+            try {
+                await notifyDiscord(`📦 [Criação de Pagamento] Enviando payload PENDENTE para Utmify para o pedido ${buckpayData.id}:`, utmifyPayload);
+                await sendOrderToUtmify(utmifyPayload);
+                await notifyDiscord(`✅ [Criação de Pagamento] Payload PENDENTE enviado para Utmify com sucesso (ID: ${buckpayData.id}).`);
+            } catch (utmifyError: any) {
+                 await notifyDiscord(`❌ [Criação de Pagamento] Erro durante o envio PENDENTE para Utmify (ID: ${buckpayData.id}):`, utmifyError.message);
+            }
+        }
+        
+        return new NextResponse(JSON.stringify(responseData), {
+          status: 200
+        });
+
+    } catch (error: any) {
+        const errorMsg = `❌ [Criação de Pagamento] Erro fatal no servidor: ${error.message}`;
+        await notifyDiscord(errorMsg, request.body);
+        return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor.' }), {
+          status: 500
+        });
+    }
 }
 
-// Lida com requisições GET para verificar o status do pagamento (polling)
 export async function GET(request: NextRequest) {
-  const origin = getOrigin(request);
   const { searchParams } = new URL(request.url);
   const externalId = searchParams.get('externalId');
-  
-  const headers = new Headers();
-  headers.set('Access-Control-Allow-Origin', origin);
-  headers.set('Content-Type', 'application/json');
-  headers.set('Access-Control-Allow-Credentials', 'true');
 
   if (!externalId) {
-    return new NextResponse(JSON.stringify({ error: 'externalId é obrigatório.' }), { status: 400, headers });
+    return new NextResponse(JSON.stringify({ error: 'externalId é obrigatório.' }), { status: 400 });
   }
 
   try {
     const apiToken = serverRuntimeConfig.BUCKPAY_API_TOKEN;
     if (!apiToken) {
       console.error("[create-payment GET] ERRO: BUCKPAY_API_TOKEN não definida.");
-      return new NextResponse(JSON.stringify({ error: 'Configuração do servidor incompleta.' }), { status: 500, headers });
+      return new NextResponse(JSON.stringify({ error: 'Configuração do servidor incompleta.' }), { status: 500 });
     }
 
     const buckpayStatusResponse = await fetch(`https://api.realtechdev.com.br/v1/transactions/external_id/${externalId}`, {
@@ -281,28 +211,16 @@ export async function GET(request: NextRequest) {
 
     if (buckpayStatusResponse.status === 404) {
         return new NextResponse(JSON.stringify({ status: 'PENDING' }), {
-            status: 200,
-            headers
+            status: 200
         });
     }
 
-    let statusData;
-    const contentType = buckpayStatusResponse.headers.get('content-type');
-
-    if (contentType && contentType.includes('application/json')) {
-      statusData = await buckpayStatusResponse.json();
-    } else {
-      const textData = await buckpayStatusResponse.text();
-      return new NextResponse(
-        JSON.stringify({ error: 'Falha ao consultar status: Resposta inesperada da BuckPay', details: textData }),
-        { status: buckpayStatusResponse.status, headers }
-      );
-    }
+    const statusData = await buckpayStatusResponse.json();
     
     if (!buckpayStatusResponse.ok) {
         return new NextResponse(
             JSON.stringify({ error: statusData.error?.message || 'Falha ao consultar status.', details: statusData.error?.detail }),
-            { status: buckpayStatusResponse.status, headers }
+            { status: buckpayStatusResponse.status }
         );
     }
     
@@ -310,11 +228,10 @@ export async function GET(request: NextRequest) {
 
     return new NextResponse(JSON.stringify({ status: paymentStatus }), {
       status: 200,
-      headers
     });
 
   } catch (error: any) {
     console.error("[create-payment GET] ERRO INTERNO NO SERVIDOR (GET STATUS):", error);
-    return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor.' }), { status: 500, headers });
+    return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor.' }), { status: 500 });
   }
 }
