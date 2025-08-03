@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { gerarCPFValido } from '@/lib/utils';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
-import { savePendingOrder } from '@/lib/pendingOrders';
 import axios from 'axios';
 
 // Função para obter dados de geolocalização do IP
@@ -107,6 +106,7 @@ export async function POST(request: NextRequest) {
 
     const finalCpf = (cpf || gerarCPFValido()).replace(/\D/g, '');
     const utmParams = new URLSearchParams(utmQuery);
+    const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
     const payloadForBuckPay = {
       external_id: externalId,
@@ -117,6 +117,7 @@ export async function POST(request: NextRequest) {
         email,
         document: finalCpf,
         phone: `55${phone.replace(/\D/g, '')}`,
+        ip,
       },
       product: {
         id: mainProduct.id || null,
@@ -175,7 +176,6 @@ export async function POST(request: NextRequest) {
     const paymentData = responseData.data;
 
     if (paymentData && paymentData.id) {
-        const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
         const geoData = await getGeoData(ip);
 
         const utmifyPayload: UtmifyOrderPayload = {
@@ -224,16 +224,12 @@ export async function POST(request: NextRequest) {
             console.log(`[create-payment POST] 📦 Enviando para Utmify (pagamento pendente)...`);
             await sendOrderToUtmify(utmifyPayload);
             console.log(`[create-payment POST] ✅ Dados de pagamento pendente (ID: ${paymentData.id}) enviados para Utmify.`);
-
-            // Salvar o payload para uso posterior pelo webhook
-            await savePendingOrder(paymentData.id, utmifyPayload);
-            console.log(`[create-payment POST] 💾 Payload pendente salvo para a transação ${paymentData.id}.`);
         } catch (error: any) {
-            console.error(`[create-payment POST] ❌ Erro durante o processo da Utmify ou ao salvar pedido pendente (ID: ${paymentData.id}):`, error.message);
+            console.error(`[create-payment POST] ❌ Erro durante o processo da Utmify (ID: ${paymentData.id}):`, error.message);
         }
     }
 
-    return new NextResponse(JSON.stringify(paymentData), {
+    return new NextResponse(JSON.stringify(responseData), {
       status: 200,
       headers
     });
