@@ -18,6 +18,7 @@ interface CustomerData {
     name: string;
     email: string;
     phone: string;
+    cpf?: string;
 }
 
 const UpsellPage = () => {
@@ -105,10 +106,11 @@ const UpsellPage = () => {
             tangible: false,
         }));
 
-        const payload: Omit<PaymentPayload, 'cpf'> = {
+        const payload: PaymentPayload = {
             name: customerData.name,
             email: customerData.email,
             phone: customerData.phone.replace(/\D/g, ''),
+            cpf: customerData.cpf?.replace(/\D/g, ''),
             amount: totalNumericAmount,
             externalId: `ff-upsell1-skins-${Date.now()}`,
             items: payloadItems,

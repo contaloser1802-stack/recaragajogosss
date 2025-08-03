@@ -17,6 +17,7 @@ interface CustomerData {
     name: string;
     email: string;
     phone: string;
+    cpf?: string;
 }
 
 const DownsellPage = () => {
@@ -85,10 +86,11 @@ const DownsellPage = () => {
             tangible: false
         }];
 
-        const payload: Omit<PaymentPayload, 'cpf'> = {
+        const payload: PaymentPayload = {
             name: customerData.name,
             email: customerData.email,
             phone: customerData.phone.replace(/\D/g, ''),
+            cpf: customerData.cpf?.replace(/\D/g, ''),
             amount: selectedProduct.price,
             externalId: `ff-downsell-${Date.now()}`,
             items: payloadItems,
