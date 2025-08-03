@@ -1,14 +1,14 @@
-
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
 import getConfig from 'next/config';
-import { getTransactionById } from '@/lib/buckpayService';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
+import { getTransactionById } from '@/lib/buckpayService';
 
 const { serverRuntimeConfig } = getConfig();
 
+// FUNÇÃO notifyDiscord - Adicionei aqui para corrigir o erro
 async function notifyDiscord(message: string, payload?: any) {
     const discordWebhookUrl = serverRuntimeConfig.DISCORD_WEBHOOK_URL;
     if (!discordWebhookUrl) {
@@ -38,49 +38,38 @@ export async function POST(request: NextRequest) {
     let requestBody;
     try {
         requestBody = await request.json();
-        await notifyDiscord('🔄 [Webhook BuckPay V2] Payload recebido:', requestBody);
+        await notifyDiscord('📢 [Webhook BuckPay - Payload COMPLETO recebido]:', requestBody);
 
         const { event, data } = requestBody;
 
         if (!event || !data || !data.id || !data.status) {
-            const errorMsg = '❌ [Webhook BuckPay V2] Payload inválido.';
+            const errorMsg = '❌ [Webhook BuckPay] Payload inválido.';
             await notifyDiscord(errorMsg, requestBody);
             return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
         }
         
-        const transactionId = data.id;
-
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
-            await notifyDiscord(`✅ [Webhook BuckPay V2] Transação APROVADA ID: ${transactionId}. Buscando detalhes...`);
-
-            const transactionDetails = await getTransactionById(transactionId);
+            await notifyDiscord(`✅ [Webhook BuckPay] Evento APROVADO recebido. ID: ${data.id}. Processando para Utmify.`);
             
-            if (!transactionDetails || !transactionDetails.data) {
-                const errorMsg = `❌ [Webhook BuckPay V2] Falha ao obter detalhes da transação ${transactionId} da BuckPay.`;
-                await notifyDiscord(errorMsg);
-                return NextResponse.json({ error: 'Falha ao buscar detalhes da transação' }, { status: 500 });
-            }
+            const tracking = data.tracking || {};
 
-            const buckpayData = transactionDetails.data;
-            const tracking = buckpayData.tracking || {};
-            
             const utmifyPayload: UtmifyOrderPayload = {
-                orderId: buckpayData.id,
+                orderId: data.id,
                 platform: 'RecargaJogo', 
                 paymentMethod: 'pix',
                 status: 'paid',
-                createdAt: formatToUtmifyDate(new Date(buckpayData.created_at)),
+                createdAt: formatToUtmifyDate(new Date(data.created_at)),
                 approvedDate: formatToUtmifyDate(new Date()),
                 refundedAt: null,
                 customer: {
-                    name: buckpayData.buyer.name,
-                    email: buckpayData.buyer.email,
-                    phone: buckpayData.buyer.phone?.replace(/\D/g, '') || null,
-                    document: buckpayData.buyer.document?.replace(/\D/g, '') || null,
+                    name: data.buyer.name,
+                    email: data.buyer.email,
+                    phone: data.buyer.phone?.replace(/\D/g, '') || null,
+                    document: data.buyer.document?.replace(/\D/g, '') || null,
                     country: 'BR',
-                    ip: buckpayData.buyer.ip,
+                    ip: data.buyer.ip,
                 },
-                products: buckpayData.items.map((item: any) => ({
+                products: data.items.map((item: any) => ({
                     id: item.id || `prod_${Date.now()}`,
                     name: item.name,
                     planId: null,
@@ -98,26 +87,26 @@ export async function POST(request: NextRequest) {
                     utm_term: tracking.utm_term || null,
                 },
                 commission: {
-                    totalPriceInCents: buckpayData.amount,
+                    totalPriceInCents: data.amount,
                     gatewayFeeInCents: 0,
-                    userCommissionInCents: buckpayData.amount, 
+                    userCommissionInCents: data.amount, 
                     currency: 'BRL',
                 },
                 isTest: false, 
             };
             
-            await notifyDiscord(`📦 [Webhook BuckPay V2] Enviando payload PAGO para Utmify para o pedido ${transactionId}:`, utmifyPayload);
+            await notifyDiscord(`📦 [Webhook BuckPay] Enviando payload PAGO para Utmify (ID: ${data.id}):`, utmifyPayload);
             await sendOrderToUtmify(utmifyPayload);
-            await notifyDiscord(`✅ [Webhook BuckPay V2] Dados da transação APROVADA ${transactionId} enviados para Utmify com sucesso.`);
+            await notifyDiscord(`✅ [Webhook BuckPay] Dados da transação APROVADA ${data.id} enviados para Utmify com sucesso.`);
 
         } else {
-            await notifyDiscord(`ℹ️ [Webhook BuckPay V2] Evento '${event}' com status '${data.status}' recebido para ID ${transactionId}, nenhuma ação de venda aprovada configurada.`);
+            await notifyDiscord(`ℹ️ [Webhook BuckPay] Evento '${event}' com status '${data.status}' recebido para ID ${data.id}, nenhuma ação de venda aprovada configurada.`);
         }
 
         return NextResponse.json({ success: true, message: 'Webhook recebido com sucesso' });
 
     } catch (error: any) {
-        const errorMsg = `❌ [Webhook BuckPay V2] Erro fatal ao processar webhook: ${error.message}`;
+        const errorMsg = `❌ [Webhook BuckPay] Erro fatal ao processar webhook: ${error.message}`;
         await notifyDiscord(errorMsg, requestBody);
         return NextResponse.json({ error: 'Erro interno no servidor' }, { status: 500 });
     }
