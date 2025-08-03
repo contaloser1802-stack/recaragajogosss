@@ -22,7 +22,7 @@ export async function getTransactionById(transactionId: string): Promise<any | n
              headers: {
                 'Authorization': `Bearer ${BUCKPAY_API_TOKEN}`,
                 'Content-Type': 'application/json',
-                'User-Agent': 'RecargaJogo-Integration/1.0'
+                'User-Agent': 'Buckpay API'
             }
         });
         

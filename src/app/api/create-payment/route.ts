@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiToken}`,
-        'User-Agent': 'RecargaJogo/1.0'
+        'User-Agent': 'Buckpay API'
       },
       body: JSON.stringify(payloadForBuckPay)
     });
@@ -177,7 +177,6 @@ export async function POST(request: NextRequest) {
 
     await notifyDiscord(`✅ [Criação de Pagamento] Resposta da BuckPay (HTTP ${buckpayResponse.status}) recebida:`, responseData);
     
-    // Envio para Utmify com status "waiting_payment"
     const buckpayData = responseData.data;
     if (buckpayData && buckpayData.id) {
         const utmifyPayload: UtmifyOrderPayload = {
@@ -273,7 +272,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Authorization': `Bearer ${apiToken}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'RecargaJogo/1.0'
+        'User-Agent': 'Buckpay API'
       },
     });
 
