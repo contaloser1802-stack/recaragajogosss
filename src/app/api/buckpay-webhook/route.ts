@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
               const errorMsg = `[buckpay-webhook] ❌ Erro ao atualizar o status no Supabase para o pedido ${transactionId}: ${updateError.message}`;
               console.error(errorMsg);
               await notifyDiscord(errorMsg, { transactionId, utmifyPayload });
+              // Continue mesmo se a atualização falhar para garantir que a Utmify seja notificada
             } else {
               console.log(`[buckpay-webhook] ✅ Status atualizado com sucesso no Supabase para o pedido ${transactionId}.`);
             }
@@ -96,6 +97,7 @@ export async function POST(request: NextRequest) {
         console.error(errorMsg);
         await notifyDiscord(errorMsg, requestBody);
         
+        // Retornamos 200 para a Buckpay para evitar retries desnecessários, pois já logamos o erro.
         return NextResponse.json({ success: true, message: 'Erro interno ao processar, notificação registrada.' }, { status: 200 });
     }
 }

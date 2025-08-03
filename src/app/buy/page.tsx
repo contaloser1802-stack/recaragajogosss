@@ -50,6 +50,8 @@ const BuyPage = () => {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   
   const pollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMounted = useRef(true);
+
 
   const [gameInfo, setGameInfo] = useState({
       name: 'Free Fire',
@@ -83,8 +85,8 @@ const BuyPage = () => {
   };
 
   useEffect(() => {
+    isMounted.current = true;
     let timerId: NodeJS.Timeout | null = null;
-    const isMounted = true;
 
     const loadAndMonitorPaymentData = () => {
       try {
@@ -132,7 +134,8 @@ const BuyPage = () => {
             const maxDelay = 20000; 
             
             const poll = async () => {
-              if (!isMounted || paymentStatus === 'PAID' || attempt >= maxAttempts) {
+              if (!isMounted.current || paymentStatus === 'PAID' || attempt >= maxAttempts) {
+                  if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
                   return;
               }
               try {
@@ -147,18 +150,21 @@ const BuyPage = () => {
                 const statusData = await res.json();
                 console.log("Resposta do status da API (backend):", statusData);
                 const newStatus: typeof paymentStatus = statusData.status?.toUpperCase() || 'PENDING';
-
-                if (newStatus !== paymentStatus) {
-                    setPaymentStatus(newStatus);
-                }
                 
-                if (newStatus === 'PAID' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
-                  return; 
+                if (isMounted.current) {
+                  if (newStatus !== paymentStatus) {
+                      setPaymentStatus(newStatus);
+                  }
+                  
+                  if (newStatus === 'PAID' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
+                    if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+                    return; 
+                  }
                 }
 
               } catch (error) {
                 console.error("Erro ao checar status do pagamento:", error);
-                setPaymentStatus('UNKNOWN');
+                 if (isMounted.current) setPaymentStatus('UNKNOWN');
                 return;
               }
               
@@ -173,23 +179,23 @@ const BuyPage = () => {
           if (parsed.created_at) {
             const createdAtTimestamp = new Date(parsed.created_at).getTime();
             const expiresAtTimestamp = createdAtTimestamp + EXPIRATION_MINUTES * 60 * 1000;
-            const initialTimeLeft = Math.max(0, Math.floor((expiresAtTimestamp - Date.now()) / 1000));
-            setTimeLeft(initialTimeLeft);
             
-            if (initialTimeLeft <= 0) {
-              setPaymentStatus('EXPIRED');
-            } else {
-              timerId = setInterval(() => {
-                setTimeLeft(prevTime => {
-                  if (prevTime === null || prevTime <= 1) {
-                    clearInterval(timerId as NodeJS.Timeout);
-                    if (paymentStatus === 'PENDING') setPaymentStatus('EXPIRED');
-                    return 0;
-                  }
-                  return prevTime - 1;
-                });
-              }, 1000);
-            }
+            timerId = setInterval(() => {
+              if (!isMounted.current) {
+                if (timerId) clearInterval(timerId);
+                return;
+              }
+
+              const now = Date.now();
+              const newTimeLeft = Math.max(0, Math.floor((expiresAtTimestamp - now) / 1000));
+              setTimeLeft(newTimeLeft);
+
+              if (newTimeLeft <= 0) {
+                if (timerId) clearInterval(timerId);
+                // Apenas atualiza se o status ainda for PENDING, para não sobrescrever um status 'PAID'
+                setPaymentStatus(prevStatus => prevStatus === 'PENDING' ? 'EXPIRED' : prevStatus);
+              }
+            }, 1000);
           }
 
           if (parsed.external_id && currentStatus === 'PENDING') {
@@ -220,6 +226,7 @@ const BuyPage = () => {
     loadAndMonitorPaymentData();
 
     return () => {
+      isMounted.current = false;
       if (timerId) clearInterval(timerId);
       if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
     };
@@ -228,6 +235,8 @@ const BuyPage = () => {
 
 
   useEffect(() => {
+      if (!isMounted.current) return;
+
       if (paymentStatus === 'PAID') {
           if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
           const redirectPath = getSuccessRedirectPath(paymentData?.productId);
