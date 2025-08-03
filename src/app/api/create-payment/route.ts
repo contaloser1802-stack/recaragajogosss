@@ -3,8 +3,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { gerarCPFValido } from '@/lib/utils';
-import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
-import { UtmifyOrderPayload } from '@/interfaces/utmify';
 
 // Função para enviar logs para o Discord
 async function notifyDiscord(message: string, payload?: any) {
@@ -200,63 +198,6 @@ export async function POST(request: NextRequest) {
 
     await notifyDiscord(`✅ [Criação de Pagamento] Resposta da BuckPay (HTTP ${buckpayResponse.status}) recebida:`, responseData);
     
-    const paymentData = responseData.data;
-
-    if (paymentData && paymentData.id) {
-        const geoData = await getGeoData(ip);
-
-        const utmifyPayload: UtmifyOrderPayload = {
-            orderId: paymentData.id,
-            platform: 'RecargaJogo',
-            paymentMethod: 'pix',
-            status: 'waiting_payment',
-            createdAt: formatToUtmifyDate(new Date(paymentData.created_at || Date.now())),
-            approvedDate: null,
-            refundedAt: null,
-            customer: {
-                name: payloadForBuckPay.buyer.name,
-                email: payloadForBuckPay.buyer.email,
-                phone: payloadForBuckPay.buyer.phone.replace(/^55/, ''),
-                document: payloadForBuckPay.buyer.document,
-                country: geoData.countryCode,
-                ip: ip,
-            },
-            products: items.map((item: any) => ({
-                id: item.id || `prod_${Date.now()}`,
-                name: item.title,
-                planId: null,
-                planName: null,
-                quantity: item.quantity,
-                priceInCents: Math.round(item.unitPrice * 100)
-            })),
-            trackingParameters: {
-                src: payloadForBuckPay.tracking.src,
-                sck: payloadForBuckPay.tracking.sck,
-                utm_source: payloadForBuckPay.tracking.utm_source,
-                utm_campaign: payloadForBuckPay.tracking.utm_campaign,
-                utm_medium: payloadForBuckPay.tracking.utm_medium,
-                utm_content: payloadForBuckPay.tracking.utm_content,
-                utm_term: payloadForBuckPay.tracking.utm_term,
-            },
-            commission: {
-                totalPriceInCents: paymentData.total_amount || 0,
-                gatewayFeeInCents: 0, 
-                userCommissionInCents: paymentData.total_amount || 0, 
-                currency: 'BRL',
-            },
-            isTest: false,
-        };
-
-        try {
-            await notifyDiscord(`📦 [Criação de Pagamento] Enviando payload PENDENTE para Utmify para o pedido '${paymentData.id}':`, utmifyPayload);
-            await sendOrderToUtmify(utmifyPayload);
-            await notifyDiscord(`✅ [Criação de Pagamento] Dados de pagamento pendente (ID: ${paymentData.id}) enviados para Utmify com sucesso.`);
-
-        } catch (error: any) {
-            await notifyDiscord(`❌ [Criação de Pagamento] Erro durante o envio para Utmify (ID: ${paymentData.id}):`, error.message);
-        }
-    }
-
     return new NextResponse(JSON.stringify(responseData), {
       status: 200,
       headers
@@ -340,5 +281,3 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("[create-payment GET] ERRO INTERNO NO SERVIDOR (GET STATUS):", error);
     return new NextResponse(JSON.stringify({ error: error.message || 'Erro interno do servidor ao consultar status.' }), { status: 500, headers });
-  }
-}

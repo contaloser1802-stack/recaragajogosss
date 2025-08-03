@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, type KeyboardEvent } from 'react';
 import { cn } from '@/lib/utils';
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -334,7 +334,7 @@ function HomePageContent() {
                               </label>
                               <div className="flex">
                                 <Popover open={!isMobile && isHistoryPopoverOpen} onOpenChange={setIsHistoryPopoverOpen}>
-                                  <PopoverAnchor asChild>
+                                  
                                     <div className="relative grow">
                                       <Input
                                         id="player-id"
@@ -373,7 +373,7 @@ function HomePageContent() {
                                         </>
                                       )}
                                     </div>
-                                  </PopoverAnchor>
+                                  
                                   {!isMobile && history.length > 0 && (
                                       <HistoryPopover
                                           history={history}

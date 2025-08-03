@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { deltaForcePacks, deltaForceSpecialOffers, paymentMethods } from '@/lib/data';
 import { ShieldCheckIcon, StepMarker, InfoIcon, SwitchAccountIcon } from '@/components/freefire/Icons';
-import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { HistoryPopover } from '@/components/freefire/HistoryPopover';
 import { Sheet, SheetTrigger } from '@/components/ui/sheet';
@@ -118,7 +118,6 @@ export function DeltaForceContent({
                               </label>
                               <div className="flex">
                                 <Popover open={!isMobile && isHistoryPopoverOpen} onOpenChange={setIsHistoryPopoverOpen}>
-                                   <PopoverAnchor asChild>
                                     <div className="relative grow">
                                       <Input
                                         id="df-player-id"
@@ -154,7 +153,6 @@ export function DeltaForceContent({
                                         </>
                                       )}
                                     </div>
-                                  </PopoverAnchor>
                                   {!isMobile && history.length > 0 && (
                                       <HistoryPopover
                                           history={history}
