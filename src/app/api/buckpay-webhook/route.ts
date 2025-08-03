@@ -3,7 +3,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import getConfig from 'next/config';
-import { getTransactionById } from '@/lib/buckpayService';
 import { sendOrderToUtmify, formatToUtmifyDate } from '@/lib/utmifyService';
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
     let requestBody;
     try {
         requestBody = await request.json();
-        await notifyDiscord('🔄 [Webhook BuckPay] Payload recebido:', requestBody);
+        await notifyDiscord('📢 [Webhook BuckPay - Payload recebido]:', requestBody);
 
         const { event, data } = requestBody;
 
@@ -50,27 +49,22 @@ export async function POST(request: NextRequest) {
         
         const transactionId = data.id;
 
+        // Ação para pagamento APROVADO
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
-            await notifyDiscord(`✅ [Webhook BuckPay] Transação APROVADA ID: ${transactionId}. Buscando detalhes...`);
-
-            const transactionDetails = await getTransactionById(transactionId);
+            await notifyDiscord(`✅ [Webhook BuckPay] Evento APROVADO recebido. ID: ${transactionId}. Processando para Utmify.`);
             
-            if (!transactionDetails || !transactionDetails.data) {
-                const errorMsg = `❌ [Webhook BuckPay] Falha ao obter detalhes da transação ${transactionId} da BuckPay.`;
-                await notifyDiscord(errorMsg);
-                return NextResponse.json({ error: 'Falha ao buscar detalhes da transação' }, { status: 500 });
-            }
-
-            const buckpayData = transactionDetails.data;
+            // Os dados completos já vêm no webhook de 'transaction.processed'
+            const buckpayData = data;
             const tracking = buckpayData.tracking || {};
-            
+            const utm = tracking.utm || {}; // A documentação mostra um objeto 'utm' dentro de 'tracking'
+
             const utmifyPayload: UtmifyOrderPayload = {
                 orderId: buckpayData.id,
                 platform: 'RecargaJogo', 
                 paymentMethod: 'pix',
                 status: 'paid',
                 createdAt: formatToUtmifyDate(new Date(buckpayData.created_at)),
-                approvedDate: formatToUtmifyDate(new Date()),
+                approvedDate: formatToUtmifyDate(new Date()), // Usar a data atual como data de aprovação
                 refundedAt: null,
                 customer: {
                     name: buckpayData.buyer.name,
@@ -78,35 +72,36 @@ export async function POST(request: NextRequest) {
                     phone: buckpayData.buyer.phone?.replace(/\D/g, '') || null,
                     document: buckpayData.buyer.document?.replace(/\D/g, '') || null,
                     country: 'BR',
-                    ip: buckpayData.buyer.ip,
+                    ip: buckpayData.buyer.ip || null,
                 },
-                products: buckpayData.items.map((item: any) => ({
+                // A documentação mostra 'offer', mas o create-payment envia 'items'. Vamos ser flexíveis.
+                products: (buckpayData.items || [buckpayData.offer]).map((item: any) => ({
                     id: item.id || `prod_${Date.now()}`,
-                    name: item.name,
+                    name: item.name || item.title,
                     planId: null,
                     planName: null,
                     quantity: item.quantity,
-                    priceInCents: item.amount,
+                    priceInCents: item.amount || item.discount_price,
                 })),
                 trackingParameters: {
                     src: tracking.src || null,
                     sck: tracking.sck || null,
-                    utm_source: tracking.utm_source || null,
-                    utm_campaign: tracking.utm_campaign || null,
-                    utm_medium: tracking.utm_medium || null,
-                    utm_content: tracking.utm_content || null,
-                    utm_term: tracking.utm_term || null,
+                    utm_source: utm.source || null,
+                    utm_campaign: utm.campaign || null,
+                    utm_medium: utm.medium || null,
+                    utm_content: utm.content || null,
+                    utm_term: utm.term || null,
                 },
                 commission: {
-                    totalPriceInCents: buckpayData.amount,
-                    gatewayFeeInCents: 0,
-                    userCommissionInCents: buckpayData.amount, 
+                    totalPriceInCents: buckpayData.total_amount, // 'total_amount' do webhook
+                    gatewayFeeInCents: buckpayData.total_amount - buckpayData.net_amount, // Calculado
+                    userCommissionInCents: buckpayData.net_amount, // 'net_amount' do webhook
                     currency: 'BRL',
                 },
                 isTest: false, 
             };
             
-            await notifyDiscord(`📦 [Webhook BuckPay] Enviando payload PAGO para Utmify para o pedido ${transactionId}:`, utmifyPayload);
+            await notifyDiscord(`📦 [Webhook BuckPay] Enviando payload PAGO para Utmify (ID: ${transactionId}):`, utmifyPayload);
             await sendOrderToUtmify(utmifyPayload);
             await notifyDiscord(`✅ [Webhook BuckPay] Dados da transação APROVADA ${transactionId} enviados para Utmify com sucesso.`);
 

@@ -1,6 +1,7 @@
-
 /**
  * @fileOverview Módulo de serviço para interagir com a API da Buckpay.
+ * NO MOMENTO, ESTE ARQUIVO NÃO É UTILIZADO, POIS O WEBHOOK FORNECE TODOS OS DADOS.
+ * Mantido para futuras implementações ou consultas diretas se necessário.
  */
 
 const BUCKPAY_API_URL = 'https://api.realtechdev.com.br/v1';
@@ -15,8 +16,7 @@ export async function getTransactionById(transactionId: string, apiToken: string
     if (!apiToken) {
          const errorMsg = `[BuckpayService] Token da API (apiToken) não foi fornecido para a transação ${transactionId}.`;
          console.error(errorMsg);
-         // Não lança erro, apenas retorna null para o webhook tratar.
-         return null;
+         throw new Error(errorMsg);
     }
     try {
         console.log(`[BuckpayService] Buscando detalhes da transação ID: ${transactionId}`);
@@ -24,7 +24,7 @@ export async function getTransactionById(transactionId: string, apiToken: string
              headers: {
                 'Authorization': `Bearer ${apiToken}`,
                 'Content-Type': 'application/json',
-                'User-Agent': 'Buckpay API'
+                'User-Agent': 'RecargaJogo/1.0'
             }
         });
         
