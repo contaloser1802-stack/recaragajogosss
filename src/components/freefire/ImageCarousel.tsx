@@ -80,7 +80,7 @@ export function ImageCarousel() {
                             {loopedBanners.map((banner, index) => {
                                 const isActive = currentIndex === index;
                                 return (
-                                    <div key={index} className="w-full flex-shrink-0 md:w-[50.577%]">
+                                    <div key={index} className="flex-shrink-0 w-full md:w-[50.577%]">
                                         <div
                                             className="block h-full w-full relative"
                                         >

@@ -14,9 +14,10 @@ import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { GameSelection } from '@/components/freefire/GameSelection';
-import { diamondPacks, specialOffers, paymentMethods, deltaForcePacks, deltaForceSpecialOffers } from '@/lib/data';
+import { diamondPacks, specialOffers, paymentMethods, deltaForcePacks, deltaForceSpecialOffers, banners } from '@/lib/data';
 import { ImageCarousel } from '@/components/freefire/ImageCarousel';
 import { PurchaseFooter } from '@/components/freefire/PurchaseFooter';
 import { ShieldCheckIcon, StepMarker, InfoIcon, SwitchAccountIcon } from '@/components/freefire/Icons';
@@ -29,6 +30,7 @@ function HomePageContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [playerId, setPlayerId] = useState('');
+  const [modalPlayerId, setModalPlayerId] = useState('');
   const [playerName, setPlayerName] = useState('');
   const [error, setError] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -44,6 +46,7 @@ function HomePageContent() {
   const isMobile = useIsMobile();
   const [isSocialLoginAlertOpen, setIsSocialLoginAlertOpen] = useState(false);
   const [isFreeItemModalOpen, setIsFreeItemModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const selectedApp = searchParams.get('app') || '100067';
   const showFreeFireContent = selectedApp === '100067';
@@ -124,6 +127,7 @@ function HomePageContent() {
     }
     setIsLoading(true);
     setError('');
+    // Use the id passed to the function, which could be from main input or modal input
     setPlayerId(id);
 
     if (showDeltaForceContent) {
@@ -135,6 +139,7 @@ function HomePageContent() {
         localStorage.setItem('selectedAppId', selectedApp);
         updateHistory({ id: id, name: fakeNickname });
         setIsHistoryPopoverOpen(false);
+        setIsLoginModalOpen(false); // Close modal on success
         setIsLoading(false);
         return;
     }
@@ -153,29 +158,40 @@ function HomePageContent() {
         localStorage.setItem('selectedAppId', selectedApp);
         updateHistory({ id: id, name: nickname });
         setIsHistoryPopoverOpen(false);
+        setIsLoginModalOpen(false); // Close modal on success
       } else {
         setError(data.error || 'ID de jogador não encontrado.');
+        // Don't clear global state if error comes from modal
+        if (!isLoginModalOpen) {
+          localStorage.removeItem('playerName');
+          localStorage.removeItem('playerId');
+          localStorage.removeItem('selectedAppId');
+          setIsLoggedIn(false);
+          setPlayerName('');
+        }
+      }
+    } catch (err) {
+      setError('Erro ao buscar jogador. Tente novamente.');
+       if (!isLoginModalOpen) {
         localStorage.removeItem('playerName');
         localStorage.removeItem('playerId');
         localStorage.removeItem('selectedAppId');
         setIsLoggedIn(false);
         setPlayerName('');
       }
-    } catch (err) {
-      setError('Erro ao buscar jogador. Tente novamente.');
-      localStorage.removeItem('playerName');
-      localStorage.removeItem('playerId');
-      localStorage.removeItem('selectedAppId');
-      setIsLoggedIn(false);
-      setPlayerName('');
     } finally {
       setIsLoading(false);
     }
-  }, [updateHistory, selectedApp, showDeltaForceContent]);
+  }, [updateHistory, selectedApp, showDeltaForceContent, isLoginModalOpen]);
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     await performLogin(playerId);
+  };
+  
+  const handleModalLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    await performLogin(modalPlayerId);
   };
 
   const handleLogout = (showAlert = true) => {
@@ -266,14 +282,9 @@ function HomePageContent() {
   const handleFreeItemClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (!isLoggedIn) {
-        toast({
-            variant: "destructive",
-            title: "Faça login primeiro.",
-        });
-        const loginSection = document.getElementById('login-section');
-        if (loginSection) {
-            loginSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+      setError('');
+      setModalPlayerId('');
+      setIsLoginModalOpen(true);
     } else {
       setIsFreeItemModalOpen(true);
     }
@@ -308,40 +319,38 @@ function HomePageContent() {
                     </div>
                   </div>
                     
-                   <div className="bg-gray-100 rounded-lg p-4 mx-2 my-4 lg:mx-0 relative overflow-hidden md:max-w-[464px] flex items-center" style={{
+                   <div className="p-4 bg-gray-100 rounded-lg mx-2 my-4 lg:mx-0 relative overflow-hidden md:max-w-[464px] flex items-center justify-between" style={{
                        backgroundImage: "url('https://i.ibb.co/YFqTtRSJ/freefire-freeitem-bg-light-3457641a.png')",
                        backgroundRepeat: 'no-repeat',
                        backgroundPosition: 'center',
-                       backgroundSize: 'cover',
+                       backgroundSize: 'contain',
                        height: '108px'
                    }}>
-                      <div className="flex items-center justify-between w-full">
-                          <div className="item">
-                              <h3 className="font-bold text-lg text-gray-800">Item Grátis</h3>
-                              <p className="text-sm text-gray-600">Resgate aqui seus itens exclusivos grátis</p>
-                              <Button
-                                  variant="destructive"
-                                  className="mt-3"
-                                  style={{ width: '80px', height: '28px' }}
-                                  onClick={handleFreeItemClick}
-                              >
-                                  Resgatar
-                              </Button>
-                          </div>
-                          <div className="flex-shrink-0 text-center">
-                              <Image
-                                  src="https://i.postimg.cc/KRYGcBrV/cubomagic.png"
-                                  alt="Cubo Mágico"
-                                  width={60}
-                                  height={60}
-                                  className="mx-auto rounded-md"
-                                  data-ai-hint="magic cube"
-                              />
-                              <span className="text-xs text-gray-700 mt-1 inline-flex items-center gap-1">
-                                  Cubo mágico
-                                  <InfoIcon />
-                              </span>
-                          </div>
+                      <div className="item">
+                          <h3 className="font-bold text-lg text-gray-800">Item Grátis</h3>
+                          <p className="text-sm text-gray-600">Resgate aqui seus itens exclusivos grátis</p>
+                          <Button
+                              variant="destructive"
+                              className="mt-3"
+                              style={{ width: '80px', height: '28px' }}
+                              onClick={handleFreeItemClick}
+                          >
+                              Resgatar
+                          </Button>
+                      </div>
+                      <div className="flex-shrink-0 text-center">
+                          <Image
+                              src="https://i.postimg.cc/KRYGcBrV/cubomagic.png"
+                              alt="Cubo Mágico"
+                              width={60}
+                              height={60}
+                              className="mx-auto rounded-md"
+                              data-ai-hint="magic cube"
+                          />
+                          <span className="text-xs text-gray-700 mt-1 inline-flex items-center gap-1">
+                              Cubo mágico
+                              <InfoIcon />
+                          </span>
                       </div>
                   </div>
 
@@ -623,6 +632,73 @@ function HomePageContent() {
         <div className="z-[9] pointer-events-none sticky bottom-0"></div>
       </main>
       {(showFreeFireContent || showDeltaForceContent) && <PurchaseFooter selectedRechargeId={selectedRechargeId} selectedPaymentId={selectedPaymentId} onPurchase={handlePurchase} gameId={selectedApp} />}
+      
+      {/* Modals */}
+      <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
+        <DialogContent className="max-w-sm p-0 overflow-hidden">
+            <div className="relative h-24">
+                <Image src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg" alt="Free Fire Banner" layout="fill" objectFit="cover" data-ai-hint="gameplay screenshot"/>
+            </div>
+            <div className="relative p-6">
+                <div className="absolute -top-8 left-6 flex items-center gap-3">
+                    <div className="h-16 w-16 rounded-lg bg-white p-1">
+                        <Image src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png" alt="Free Fire Icon" width={64} height={64} data-ai-hint="game icon"/>
+                    </div>
+                    <div>
+                        <h2 className="font-bold text-lg text-gray-800">Free Fire</h2>
+                        <p className="text-sm text-gray-600">Faça login primeiro antes do pagamento.</p>
+                    </div>
+                </div>
+                
+                <div className="mt-12">
+                     <form onSubmit={handleModalLogin}>
+                        <label className="mb-2 flex items-center gap-1 text-[15px]/4 font-medium text-gray-800" htmlFor="modal-player-id">
+                            ID do jogador
+                            <InfoIcon />
+                        </label>
+                        <div className="flex">
+                            <Input
+                                id="modal-player-id"
+                                className="w-full bg-gray-100 rounded-r-none"
+                                type="text"
+                                pattern="\d*"
+                                inputMode="numeric"
+                                autoComplete="off"
+                                placeholder="Insira o ID de jogador aqui"
+                                value={modalPlayerId}
+                                onChange={(e) => setModalPlayerId(e.target.value.replace(/\D/g, ''))}
+                            />
+                            <Button type="submit" variant="destructive" className="rounded-l-none" disabled={!modalPlayerId.trim() || isLoading}>
+                                {isLoading ? '...' : 'Login'}
+                            </Button>
+                        </div>
+                        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+                    </form>
+
+                    <div className="my-4 flex items-center gap-2">
+                        <hr className="grow" />
+                        <span className="text-xs text-gray-400">Ou entre com sua conta de jogo</span>
+                        <hr className="grow" />
+                    </div>
+
+                    <div className="flex items-center justify-center gap-4 text-xs/normal text-gray-500 md:text-sm/[22px]">
+                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2.5 transition-opacity hover:opacity-70 bg-[#006AFC]">
+                            <Image width={24} height={24} className="h-6 w-6 brightness-0 invert" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-fb-485c92b0.svg" alt="Facebook logo" data-ai-hint="social media logo" />
+                        </button>
+                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2.5 transition-opacity hover:opacity-70 border border-gray-200 bg-white">
+                            <Image width={24} height={24} className="h-6 w-6" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-google-d2ceaa95.svg" alt="Google logo" data-ai-hint="social media logo"/>
+                        </button>
+                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2.5 transition-opacity hover:opacity-70 border border-gray-200 bg-white">
+                            <Image width={24} height={24} className="h-6 w-6" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-twitter-92527e61.svg" alt="Twitter logo" data-ai-hint="social media logo" />
+                        </button>
+                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2.5 transition-opacity hover:opacity-70 bg-[#0077FF]">
+                            <Image width={24} height={24} className="h-6 w-6 brightness-0 invert" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-vk-abadf989.svg" alt="VK logo" data-ai-hint="social media logo" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </DialogContent>
+      </Dialog>
       <AlertDialog open={isLogoutAlertOpen} onOpenChange={setIsLogoutAlertOpen}>
         <AlertDialogContent className="max-w-[320px] rounded-lg p-6">
           <AlertDialogHeader className="text-justfy center space-y-3">
