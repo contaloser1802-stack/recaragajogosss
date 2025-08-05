@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
@@ -298,7 +297,7 @@ function HomePageContent() {
                     </div>
                   </div>
                     
-                   <div className="bg-gray-100 rounded-lg p-4 mx-2 my-4 lg:mx-0 relative overflow-hidden" style={{
+                   <div className="bg-gray-100 rounded-lg p-4 mx-2 my-4 lg:mx-0 relative overflow-hidden md:max-w-[464px]" style={{
                        backgroundImage: "url('https://i.ibb.co/YFqTtRSJ/freefire-freeitem-bg-light-3457641a.png')",
                        backgroundRepeat: 'no-repeat',
                        backgroundPosition: 'center',
