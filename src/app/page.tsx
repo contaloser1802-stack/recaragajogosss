@@ -3,7 +3,7 @@
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, Trash2, X } from 'lucide-react';
+import { ChevronLeft, Gift, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Header } from '@/components/freefire/Header';
@@ -44,6 +44,7 @@ function HomePageContent() {
   const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
   const isMobile = useIsMobile();
   const [isSocialLoginAlertOpen, setIsSocialLoginAlertOpen] = useState(false);
+  const [isFreeItemModalOpen, setIsFreeItemModalOpen] = useState(false);
 
   const selectedApp = searchParams.get('app') || '100067';
   const showFreeFireContent = selectedApp === '100067';
@@ -263,6 +264,11 @@ function HomePageContent() {
     setIsSocialLoginAlertOpen(true);
   };
 
+  const handleFreeItemClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setIsFreeItemModalOpen(true);
+  }
+
   const avatarIcon = showDeltaForceContent ? 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png' : 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png';
 
 
@@ -300,7 +306,7 @@ function HomePageContent() {
                               <Button 
                                   variant="destructive" 
                                   className="mt-3"
-                                  onClick={handleSocialLoginClick}
+                                  onClick={handleFreeItemClick}
                               >
                                   Resgatar
                               </Button>
@@ -587,7 +593,8 @@ function HomePageContent() {
               selectedRechargeId={selectedRechargeId}
               selectedPaymentId={selectedPaymentId}
               onRechargeSelect={handleRechargeSelection}
-              onPaymentSelect={handleSelectionKeyDown}
+              onPaymentSelect={handlePaymentSelection}
+              onSelectionKeyDown={handleSelectionKeyDown}
               history={history}
               isHistoryPopoverOpen={isHistoryPopoverOpen}
               setIsHistoryPopoverOpen={setIsHistoryPopoverOpen}
@@ -628,6 +635,24 @@ function HomePageContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <AlertDialog open={isFreeItemModalOpen} onOpenChange={setIsFreeItemModalOpen}>
+        <AlertDialogContent className="max-w-xs rounded-lg p-6">
+          <AlertDialogHeader className="text-center space-y-4">
+              <div className="text-center">
+                  <Gift className="h-10 w-10 text-destructive inline-block" />
+              </div>
+              <AlertDialogTitle className="text-xl">Quase lá para o seu Item Grátis!</AlertDialogTitle>
+              <AlertDialogDescription className="text-base text-gray-600">
+                Para receber o seu <strong>Cubo Mágico</strong>, finalize sua compra e ele será adicionado automaticamente junto com seus diamantes!
+              </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-4">
+              <AlertDialogAction onClick={() => setIsFreeItemModalOpen(false)} className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90 text-lg h-11">
+                  OK
+              </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Footer />
     </div>
   );
@@ -641,7 +666,3 @@ export default function HomePage() {
     </Suspense>
   )
 }
-
-    
-
-    
