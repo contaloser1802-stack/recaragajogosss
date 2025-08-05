@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
@@ -434,7 +435,7 @@ function HomePageContent() {
                               )}
                             >
                                {pack.promo && (
-                                    <div className="bg-destructive text-white text-[10px] font-bold text-center leading-tight py-0.5">
+                                    <div className="bg-destructive text-white text-center text-[10px] font-bold leading-tight py-0.5">
                                         {pack.promo}
                                     </div>
                                 )}
@@ -614,3 +615,5 @@ export default function HomePage() {
     </Suspense>
   )
 }
+
+    
