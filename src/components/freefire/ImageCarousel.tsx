@@ -14,8 +14,8 @@ export function ImageCarousel() {
     const isMobile = useIsMobile();
 
     const loopedBanners = useMemo(() => {
-      if (banners.length === 0) return [];
-      return [banners[banners.length - 1], ...banners, banners[0]]
+        if (banners.length === 0) return [];
+        return [banners[banners.length - 1], ...banners, banners[0]];
     }, []);
 
     const resetTimeout = useCallback(() => {
@@ -25,14 +25,17 @@ export function ImageCarousel() {
     }, []);
 
     const handleNext = useCallback(() => {
+        if (isTransitioning) return;
         setCurrentIndex(prevIndex => prevIndex + 1);
-    }, []);
+    }, [isTransitioning]);
     
-    const handlePrev = () => {
+    const handlePrev = useCallback(() => {
+        if (isTransitioning) return;
         setCurrentIndex(prevIndex => prevIndex - 1);
-    };
+    }, [isTransitioning]);
 
     const handleDotClick = (index: number) => {
+        if (isTransitioning) return;
         setCurrentIndex(index + 1); 
     };
     
@@ -46,24 +49,32 @@ export function ImageCarousel() {
         if (currentIndex === 0 || currentIndex === loopedBanners.length - 1) {
             setIsTransitioning(true);
             const timer = setTimeout(() => {
-                setIsTransitioning(false);
                 if (currentIndex === 0) {
                     setCurrentIndex(loopedBanners.length - 2);
                 } else if (currentIndex === loopedBanners.length - 1) {
                     setCurrentIndex(1);
                 }
-            }, 500); // Duration of the transition
+                setTimeout(() => setIsTransitioning(false), 50); // Small delay to allow state to update before re-enabling transitions
+            }, 500); // This should match the CSS transition duration
             return () => clearTimeout(timer);
         }
     }, [currentIndex, loopedBanners.length]);
 
-    
     const getSlideOffset = () => {
         if (isMobile) {
             return `-${currentIndex * 100}%`;
         }
         return `calc(-${currentIndex * 50}% + 25%)`;
     };
+
+    const getTransitionStyle = () => {
+        // Disable transition when jumping from clone to real slide
+        if (isTransitioning) {
+            return 'none';
+        }
+        return 'transform 500ms ease-in-out';
+    };
+
 
     return (
         <div className="bg-[#151515]">
@@ -74,10 +85,13 @@ export function ImageCarousel() {
                             className="absolute inset-0 flex"
                             style={{
                                 transform: `translateX(${getSlideOffset()})`,
-                                transition: isTransitioning ? 'none' : 'transform 500ms ease-in-out',
+                                transition: getTransitionStyle(),
                             }}
                         >
                             {loopedBanners.map((banner, index) => {
+                                // The "active" slide is the one visually in the center.
+                                // The actual index of the active banner is `(currentIndex - 1 + banners.length) % banners.length`
+                                // For styling purposes, we check if the current `index` matches `currentIndex`.
                                 const isActive = currentIndex === index;
                                 return (
                                     <div key={index} className="flex-shrink-0 w-full md:w-[50.577%]">
@@ -97,6 +111,7 @@ export function ImageCarousel() {
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, 50.577vw"
                                                 priority={index >= 0 && index <= 2}
+                                                data-ai-hint="game banner"
                                             />
                                         </div>
                                     </div>
@@ -119,7 +134,7 @@ export function ImageCarousel() {
 
                     <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-2 md:gap-3">
                         {banners.map((_, index) => {
-                            const normalizedCurrentIndex = (currentIndex -1 + banners.length) % banners.length;
+                            const normalizedCurrentIndex = (currentIndex - 1 + banners.length) % banners.length;
                             const isActive = normalizedCurrentIndex === index;
                             return(
                                 <button

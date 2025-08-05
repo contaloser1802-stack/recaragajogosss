@@ -657,8 +657,7 @@ function HomePageContent() {
                 <div className="mt-12">
                      <form onSubmit={handleModalLogin}>
                         <label className="mb-2 flex items-center gap-1 text-[15px]/4 font-medium text-gray-800" htmlFor="modal-player-id">
-                            ID do jogador
-                            <InfoIcon />
+
                         </label>
                         <div className="flex">
                             <Input
