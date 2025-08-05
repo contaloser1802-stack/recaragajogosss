@@ -440,7 +440,7 @@ function HomePageContent() {
                                 )}
                               <div className={cn("flex flex-1 items-center justify-center", pack.promo && "pt-3")}>
                                 <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
-                                <span className="text-sm/none font-medium md:text-lg/none">{pack.originalAmount}</span>
+                                <span className="text-xs/none font-medium md:text-lg/none">{pack.originalAmount}</span>
                               </div>
                             </div>
                           );
