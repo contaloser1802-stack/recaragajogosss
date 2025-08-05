@@ -32,7 +32,7 @@ export default function TaxWarningPage() {
           <p className="text-gray-600 mb-8">
             A taxa de liberação obrigatória não foi paga. Para receber os produtos que você adquiriu, é necessário concluir este pagamento.
           </p>
-          <Link href="/upsell-3">
+          <Link href="/upsell-4">
             <Button variant="destructive" className="w-full text-lg py-3">
               Pagar Taxa Agora
             </Button>

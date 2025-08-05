@@ -35,6 +35,10 @@ export const upsellOffers = [
     { id: 'upsell-5600', name: '5.600 Diamantes', originalAmount: '5.600', bonusAmount: '0', totalAmount: '5.600', price: 14.90, formattedPrice: 'R$ 14,90' },
 ];
 
+export const premiumStatusOffer = [
+    { id: 'status-premium', name: 'Status Premium', originalAmount: '', bonusAmount: '', totalAmount: 'Status Premium', price: 67.80, formattedPrice: 'R$ 67,80', image: 'https://i.ibb.co/hFDG8Gbn/status-premium-banner.png' }
+];
+
 export const downsellOffers = [
     { id: 'downsell-bonus', name: '5.600 Diamantes +399 Bônus', originalAmount: '5.600', bonusAmount: '399', totalAmount: '5.999', price: 17.80, formattedPrice: 'R$ 17,80' },
 ];

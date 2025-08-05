@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Hourglass, Info, RefreshCcw } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { upsellOffers, taxOffer, downsellOffers, skinOffers } from '@/lib/data';
+import { upsellOffers, taxOffer, downsellOffers, skinOffers, premiumStatusOffer } from '@/lib/data';
 import BackRedirect from '@/components/freefire/BackRedirect';
 
 interface PaymentData {
@@ -72,13 +72,15 @@ const BuyPage = () => {
   
     const isUpsell1 = skinOffers.some(o => o.id === productId);
     const isUpsell2 = upsellOffers.some(o => o.id === productId);
-    const isUpsell3 = taxOffer.some(o => o.id === productId);
+    const isUpsell3 = premiumStatusOffer.some(o => o.id === productId);
+    const isUpsell4 = taxOffer.some(o => o.id === productId);
     const isDownsell = downsellOffers.some(o => o.id === productId);
     
     if (isDownsell) return '/upsell'; 
     if (isUpsell1) return '/upsell-2'; 
     if (isUpsell2) return '/upsell-3'; 
-    if (isUpsell3) return '/success';  
+    if (isUpsell3) return '/upsell-4'; 
+    if (isUpsell4) return '/success';  
   
     return '/upsell'; 
   };
