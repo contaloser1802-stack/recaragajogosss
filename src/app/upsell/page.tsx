@@ -40,7 +40,7 @@ const UpsellPage = () => {
     }, []);
 
     const handleDecline = () => {
-        router.push('/downsell');
+        router.push('/upsell-2');
     };
     
     const handleSkinSelection = (skinId: string) => {
@@ -159,7 +159,7 @@ const UpsellPage = () => {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            <BackRedirect redirectTo="/downsell" />
+            <BackRedirect redirectTo="/upsell-2" />
             <Header avatarIcon={avatarIcon} />
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-lg w-full border">
