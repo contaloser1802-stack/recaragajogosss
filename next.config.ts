@@ -77,6 +77,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'recargarjogo.help',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   serverRuntimeConfig: {
