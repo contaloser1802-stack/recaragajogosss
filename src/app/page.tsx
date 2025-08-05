@@ -313,6 +313,7 @@ function HomePageContent() {
                                   className="mt-3"
                                   style={{ width: '80px', height: '28px' }}
                                   onClick={handleFreeItemClick}
+                                  disabled={!isLoggedIn}
                               >
                                   Resgatar
                               </Button>
