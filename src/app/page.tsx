@@ -429,16 +429,11 @@ function HomePageContent() {
                               onKeyDown={(e) => handleSelectionKeyDown(e, () => handleRechargeSelection(itemId))}
                               onClick={() => handleRechargeSelection(itemId)}
                               className={cn(
-                                "group flex min-h-[50px] cursor-pointer flex-col overflow-hidden rounded-md bg-white p-0 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
+                                "group flex flex-col min-h-[50px] cursor-pointer overflow-hidden rounded-md bg-white p-0 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
                                 "focus-visible:ring-2 focus-visible:ring-ring",
                                 isSelected && "ring-2 ring-destructive"
                               )}
                             >
-                               {pack.promo && (
-                                    <div className="bg-destructive text-white text-center text-[10px] font-bold leading-tight py-0.5">
-                                        {pack.promo}
-                                    </div>
-                                )}
                               <div className="flex flex-1 items-center justify-center p-1">
                                 <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
                                 <span className="text-xs/none font-medium md:text-lg/none">{pack.originalAmount}</span>
