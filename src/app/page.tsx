@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { GameSelection } from '@/components/freefire/GameSelection';
 import { diamondPacks, specialOffers, paymentMethods, deltaForcePacks, deltaForceSpecialOffers, banners } from '@/lib/data';
@@ -319,11 +319,11 @@ function HomePageContent() {
                     </div>
                   </div>
                     
-                   <div className="p-4 bg-gray-100 rounded-lg mx-2 my-4 lg:mx-0 relative overflow-hidden md:max-w-[464px] flex items-center justify-between" style={{
+                   <div className="p-4 bg-gray-100 rounded-lg mx-2 my-4 lg:mx-0 relative overflow-hidden flex items-center justify-between" style={{
                        backgroundImage: "url('https://i.ibb.co/YFqTtRSJ/freefire-freeitem-bg-light-3457641a.png')",
                        backgroundRepeat: 'no-repeat',
                        backgroundPosition: 'center',
-                       backgroundSize: 'contain',
+                       backgroundSize: 'cover',
                        height: '108px'
                    }}>
                       <div className="item">
@@ -634,17 +634,21 @@ function HomePageContent() {
       {(showFreeFireContent || showDeltaForceContent) && <PurchaseFooter selectedRechargeId={selectedRechargeId} selectedPaymentId={selectedPaymentId} onPurchase={handlePurchase} gameId={selectedApp} />}
       
       {/* Modals */}
-      <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
-        <DialogContent className="max-w-sm p-0 overflow-hidden">
-            <div className="relative h-24">
-                <Image src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg" alt="Free Fire Banner" layout="fill" objectFit="cover" data-ai-hint="gameplay screenshot"/>
+       <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
+        <DialogContent className="max-w-sm p-0 overflow-hidden rounded-lg">
+            <div className="relative">
+                <Image src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg" alt="Free Fire Banner" width={400} height={100} className="w-full h-auto" data-ai-hint="gameplay screenshot"/>
+                <button onClick={() => setIsLoginModalOpen(false)} className="absolute top-2 right-2 bg-black/50 rounded-full p-1 text-white hover:bg-black/75 transition-colors">
+                    <X className="h-4 w-4" />
+                </button>
             </div>
-            <div className="relative p-6">
+            <div className="relative p-6 pt-0">
                 <div className="absolute -top-8 left-6 flex items-center gap-3">
-                    <div className="h-16 w-16 rounded-lg bg-white p-1">
+                    <div className="relative h-16 w-16 rounded-lg bg-white p-1 ring-4 ring-white">
                         <Image src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png" alt="Free Fire Icon" width={64} height={64} data-ai-hint="game icon"/>
+                         <div className="absolute -top-1 -right-1.5 bg-destructive text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm transform -rotate-12">HOT</div>
                     </div>
-                    <div>
+                    <div className="pt-8">
                         <h2 className="font-bold text-lg text-gray-800">Free Fire</h2>
                         <p className="text-sm text-gray-600">Faça login primeiro antes do pagamento.</p>
                     </div>
@@ -682,16 +686,16 @@ function HomePageContent() {
                     </div>
 
                     <div className="flex items-center justify-center gap-4 text-xs/normal text-gray-500 md:text-sm/[22px]">
-                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2.5 transition-opacity hover:opacity-70 bg-[#006AFC]">
+                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2 transition-opacity hover:opacity-70 bg-[#006AFC]">
                             <Image width={24} height={24} className="h-6 w-6 brightness-0 invert" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-fb-485c92b0.svg" alt="Facebook logo" data-ai-hint="social media logo" />
                         </button>
-                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2.5 transition-opacity hover:opacity-70 border border-gray-200 bg-white">
+                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2 transition-opacity hover:opacity-70 border border-gray-200 bg-white">
                             <Image width={24} height={24} className="h-6 w-6" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-google-d2ceaa95.svg" alt="Google logo" data-ai-hint="social media logo"/>
                         </button>
-                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2.5 transition-opacity hover:opacity-70 border border-gray-200 bg-white">
+                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2 transition-opacity hover:opacity-70 border border-gray-200 bg-white">
                             <Image width={24} height={24} className="h-6 w-6" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-twitter-92527e61.svg" alt="Twitter logo" data-ai-hint="social media logo" />
                         </button>
-                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2.5 transition-opacity hover:opacity-70 bg-[#0077FF]">
+                        <button type="button" onClick={handleSocialLoginClick} className="shrink-0 rounded-full p-2 transition-opacity hover:opacity-70 bg-[#0077FF]">
                             <Image width={24} height={24} className="h-6 w-6 brightness-0 invert" src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ic-vk-abadf989.svg" alt="VK logo" data-ai-hint="social media logo" />
                         </button>
                     </div>
