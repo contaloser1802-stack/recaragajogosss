@@ -297,19 +297,21 @@ function HomePageContent() {
                     </div>
                   </div>
                     
-                   <div className="bg-gray-100 rounded-lg p-4 mx-2 my-4 lg:mx-0 relative overflow-hidden md:max-w-[464px]" style={{
+                   <div className="bg-gray-100 rounded-lg p-4 mx-2 my-4 lg:mx-0 relative overflow-hidden md:max-w-[464px] flex items-center" style={{
                        backgroundImage: "url('https://i.ibb.co/YFqTtRSJ/freefire-freeitem-bg-light-3457641a.png')",
                        backgroundRepeat: 'no-repeat',
                        backgroundPosition: 'center',
                        backgroundSize: 'contain',
+                       height: '108px'
                    }}>
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between w-full">
                           <div className="item">
                               <h3 className="font-bold text-lg text-gray-800">Item Grátis</h3>
                               <p className="text-sm text-gray-600">Resgate aqui seus itens exclusivos grátis</p>
                               <Button
                                   variant="destructive"
                                   className="mt-3"
+                                  style={{ width: '80px', height: '28px' }}
                                   onClick={handleFreeItemClick}
                               >
                                   Resgatar
@@ -319,8 +321,8 @@ function HomePageContent() {
                               <Image
                                   src="https://i.postimg.cc/KRYGcBrV/cubomagic.png"
                                   alt="Cubo Mágico"
-                                  width={80}
-                                  height={80}
+                                  width={60}
+                                  height={60}
                                   className="mx-auto rounded-md"
                                   data-ai-hint="magic cube"
                               />
