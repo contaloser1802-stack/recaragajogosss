@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,16 +8,9 @@ import { banners } from '@/lib/data';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export function ImageCarousel() {
-    const [currentIndex, setCurrentIndex] = useState(1);
-    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [currentIndex, setCurrentIndex] = useState(0);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isMobile = useIsMobile();
-
-    const loopedBanners = useMemo(() => {
-        if (banners.length === 0) return [];
-        // Clone o último item para o início e o primeiro para o fim
-        return [banners[banners.length - 1], ...banners, banners[0]];
-    }, []);
 
     const resetTimeout = useCallback(() => {
         if (timeoutRef.current) {
@@ -26,18 +19,15 @@ export function ImageCarousel() {
     }, []);
 
     const handleNext = useCallback(() => {
-        if (isTransitioning) return;
-        setCurrentIndex(prevIndex => prevIndex + 1);
-    }, [isTransitioning]);
+        setCurrentIndex(prevIndex => (prevIndex === banners.length - 1 ? 0 : prevIndex + 1));
+    }, []);
     
     const handlePrev = useCallback(() => {
-        if (isTransitioning) return;
-        setCurrentIndex(prevIndex => prevIndex - 1);
-    }, [isTransitioning]);
+        setCurrentIndex(prevIndex => (prevIndex === 0 ? banners.length - 1 : prevIndex - 1));
+    }, []);
 
     const handleDotClick = (index: number) => {
-        if (isTransitioning) return;
-        setCurrentIndex(index + 1); 
+        setCurrentIndex(index); 
     };
     
     useEffect(() => {
@@ -45,36 +35,24 @@ export function ImageCarousel() {
         timeoutRef.current = setTimeout(handleNext, 3000);
         return () => resetTimeout();
     }, [currentIndex, handleNext, resetTimeout]);
-    
-    useEffect(() => {
-        if (currentIndex === 0 || currentIndex === loopedBanners.length - 1) {
-            setIsTransitioning(true);
-            const timer = setTimeout(() => {
-                if (currentIndex === 0) {
-                    setCurrentIndex(loopedBanners.length - 2); 
-                } else if (currentIndex === loopedBanners.length - 1) {
-                    setCurrentIndex(1); 
-                }
-                setTimeout(() => setIsTransitioning(false), 50);
-            }, 500); 
-            return () => clearTimeout(timer);
-        }
-    }, [currentIndex, loopedBanners.length]);
 
     const getSlideOffset = () => {
         if (isMobile) {
             return `-${currentIndex * 100}%`;
         }
+        // Centraliza o slide ativo e mostra partes dos adjacentes
         return `calc(-${currentIndex * 50}% + 25%)`;
     };
 
     const getTransitionStyle = (): React.CSSProperties => {
         return {
-          transitionProperty: isTransitioning ? 'none' : 'transform',
-          transitionDuration: '500ms',
-          transitionTimingFunction: 'ease-in-out',
+          transition: 'transform 500ms ease-in-out',
         };
     };
+
+    if (banners.length === 0) {
+        return null;
+    }
 
     return (
         <div className="bg-[#151515]">
@@ -88,7 +66,7 @@ export function ImageCarousel() {
                                 ...getTransitionStyle(),
                             }}
                         >
-                            {loopedBanners.map((banner, index) => {
+                            {banners.map((banner, index) => {
                                 const isActive = currentIndex === index;
                                 return (
                                     <div key={index} className="flex-shrink-0 w-full md:w-[50.577%]">
@@ -131,8 +109,7 @@ export function ImageCarousel() {
 
                     <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex gap-2 md:gap-3">
                         {banners.map((_, index) => {
-                            const normalizedCurrentIndex = (currentIndex - 1 + banners.length) % banners.length;
-                            const isActive = normalizedCurrentIndex === index;
+                            const isActive = currentIndex === index;
                             return(
                                 <button
                                     key={index}
