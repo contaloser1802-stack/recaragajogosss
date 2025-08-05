@@ -265,7 +265,18 @@ function HomePageContent() {
 
   const handleFreeItemClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setIsFreeItemModalOpen(true);
+    if (!isLoggedIn) {
+        toast({
+            variant: "destructive",
+            title: "Faça login primeiro.",
+        });
+        const loginSection = document.getElementById('login-section');
+        if (loginSection) {
+            loginSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    } else {
+      setIsFreeItemModalOpen(true);
+    }
   }
 
   const avatarIcon = showDeltaForceContent ? 'https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png' : 'https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png';
@@ -301,8 +312,8 @@ function HomePageContent() {
                        backgroundImage: "url('https://i.ibb.co/YFqTtRSJ/freefire-freeitem-bg-light-3457641a.png')",
                        backgroundRepeat: 'no-repeat',
                        backgroundPosition: 'center',
-                       backgroundSize: 'contain',
-                       height: '98px'
+                       backgroundSize: 'cover',
+                       height: '108px'
                    }}>
                       <div className="flex items-center justify-between w-full">
                           <div className="item">
@@ -313,7 +324,6 @@ function HomePageContent() {
                                   className="mt-3"
                                   style={{ width: '80px', height: '28px' }}
                                   onClick={handleFreeItemClick}
-                                  disabled={!isLoggedIn}
                               >
                                   Resgatar
                               </Button>
