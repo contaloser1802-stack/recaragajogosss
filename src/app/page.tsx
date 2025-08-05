@@ -299,7 +299,7 @@ function HomePageContent() {
                   </div>
                     
                    <div className="bg-gray-100 rounded-lg p-4 mx-2 my-4 lg:mx-0 relative overflow-hidden" style={{
-                       backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ff-logo-large-2661523a.png')",
+                       backgroundImage: "url('https://i.ibb.co/YFqTtRSJ/freefire-freeitem-bg-light-3457641a.png')",
                        backgroundRepeat: 'no-repeat',
                        backgroundPosition: 'center',
                        backgroundSize: 'contain',
@@ -316,7 +316,7 @@ function HomePageContent() {
                                   Resgatar
                               </Button>
                           </div>
-                          <div className="icone text-center">
+                          <div className="flex-shrink-0 text-center">
                               <Image
                                   src="https://i.postimg.cc/KRYGcBrV/cubomagic.png"
                                   alt="Cubo Mágico"
