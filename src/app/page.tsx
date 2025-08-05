@@ -291,6 +291,36 @@ function HomePageContent() {
                       </div>
                     </div>
                   </div>
+                    
+                   <div className="bg-gray-100 rounded-lg p-4 mx-2 my-4 lg:mx-0">
+                      <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                              <h3 className="font-bold text-lg text-gray-800">Item Grátis</h3>
+                              <p className="text-sm text-gray-600">Resgate aqui seus itens exclusivos grátis</p>
+                              <Button 
+                                  variant="destructive" 
+                                  className="mt-3"
+                                  onClick={handleSocialLoginClick}
+                              >
+                                  Resgatar
+                              </Button>
+                          </div>
+                          <div className="flex-shrink-0 text-center">
+                              <Image 
+                                  src="https://recargarjogo.help/public/images/cubomagic.png" 
+                                  alt="Cubo Mágico"
+                                  width={80}
+                                  height={80}
+                                  className="mx-auto"
+                                  data-ai-hint="magic cube"
+                              />
+                              <span className="text-xs text-gray-700 mt-1 inline-flex items-center gap-1">
+                                  Cubo mágico
+                                  <InfoIcon />
+                              </span>
+                          </div>
+                      </div>
+                  </div>
 
                   <div className="flex flex-col gap-9 px-2 lg:px-0">
                     {/* Login Section */}
@@ -422,23 +452,32 @@ function HomePageContent() {
                           const isSelected = selectedRechargeId === itemId;
                           return (
                             <div
-                              key={itemId}
-                              role="radio"
-                              aria-checked={isSelected}
-                              tabIndex={0}
-                              onKeyDown={(e) => handleSelectionKeyDown(e, () => handleRechargeSelection(itemId))}
-                              onClick={() => handleRechargeSelection(itemId)}
-                              className={cn(
-                                "group flex flex-col min-h-[50px] cursor-pointer overflow-hidden rounded-md bg-white p-0 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
+                                key={itemId}
+                                role="radio"
+                                aria-checked={isSelected}
+                                tabIndex={0}
+                                onKeyDown={(e) => handleSelectionKeyDown(e, () => handleRechargeSelection(itemId))}
+                                onClick={() => handleRechargeSelection(itemId)}
+                                className={cn(
+                                "group flex min-h-[50px] cursor-pointer flex-col overflow-hidden rounded-md bg-white p-0 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
                                 "focus-visible:ring-2 focus-visible:ring-ring",
                                 isSelected && "ring-2 ring-destructive"
-                              )}
+                                )}
                             >
-                              <div className="flex flex-1 items-center justify-center p-1">
-                                <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
-                                <span className="text-xs/none font-medium md:text-lg/none">{pack.originalAmount}</span>
-                              </div>
+                                {pack.promo && (
+                                    <div className="bg-destructive text-white text-[10px] font-bold text-center leading-tight py-0.5">
+                                        {pack.promo}
+                                    </div>
+                                )}
+                                <div className={cn(
+                                    "flex flex-1 items-center justify-center p-1",
+                                    pack.promo && "pt-3"
+                                )}>
+                                    <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
+                                    <span className="text-xs/none font-medium md:text-lg/none">{pack.originalAmount}</span>
+                                </div>
                             </div>
+
                           );
                         })}
                       </div>
@@ -610,5 +649,7 @@ export default function HomePage() {
     </Suspense>
   )
 }
+
+    
 
     
