@@ -15,6 +15,7 @@ export function ImageCarousel() {
 
     const loopedBanners = useMemo(() => {
         if (banners.length === 0) return [];
+        // Clone o último item para o início e o primeiro para o fim
         return [banners[banners.length - 1], ...banners, banners[0]];
     }, []);
 
@@ -46,16 +47,19 @@ export function ImageCarousel() {
     }, [currentIndex, handleNext, resetTimeout]);
     
     useEffect(() => {
+        // Quando o carrossel chega em um dos clones, preparamos para o "salto"
         if (currentIndex === 0 || currentIndex === loopedBanners.length - 1) {
             setIsTransitioning(true);
             const timer = setTimeout(() => {
+                // Desativa a animação, salta para o slide real correspondente
                 if (currentIndex === 0) {
-                    setCurrentIndex(loopedBanners.length - 2);
+                    setCurrentIndex(loopedBanners.length - 2); // Salta para o último slide real
                 } else if (currentIndex === loopedBanners.length - 1) {
-                    setCurrentIndex(1);
+                    setCurrentIndex(1); // Salta para o primeiro slide real
                 }
-                setTimeout(() => setIsTransitioning(false), 50); // Small delay to allow state to update before re-enabling transitions
-            }, 500); // This should match the CSS transition duration
+                 // Permite que o estado atualize antes de reativar as transições
+                setTimeout(() => setIsTransitioning(false), 50);
+            }, 500); // Duração da animação CSS
             return () => clearTimeout(timer);
         }
     }, [currentIndex, loopedBanners.length]);
@@ -68,7 +72,7 @@ export function ImageCarousel() {
     };
 
     const getTransitionStyle = () => {
-        // Disable transition when jumping from clone to real slide
+        // Desativa a transição durante o salto para torná-lo invisível
         if (isTransitioning) {
             return 'none';
         }
@@ -89,9 +93,6 @@ export function ImageCarousel() {
                             }}
                         >
                             {loopedBanners.map((banner, index) => {
-                                // The "active" slide is the one visually in the center.
-                                // The actual index of the active banner is `(currentIndex - 1 + banners.length) % banners.length`
-                                // For styling purposes, we check if the current `index` matches `currentIndex`.
                                 const isActive = currentIndex === index;
                                 return (
                                     <div key={index} className="flex-shrink-0 w-full md:w-[50.577%]">
