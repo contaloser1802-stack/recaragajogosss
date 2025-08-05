@@ -9,7 +9,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 export function ImageCarousel() {
     const [currentIndex, setCurrentIndex] = useState(1);
-    const [isTransitioning, setIsTransitioning] = useState(true);
+    const [isTransitioning, setIsTransitioning] = useState(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isMobile = useIsMobile();
 
@@ -25,20 +25,14 @@ export function ImageCarousel() {
     }, []);
 
     const handleNext = useCallback(() => {
-        if (isTransitioning) return;
-        setIsTransitioning(true);
         setCurrentIndex(prevIndex => prevIndex + 1);
-    }, [isTransitioning]);
+    }, []);
     
     const handlePrev = () => {
-        if (isTransitioning) return;
-        setIsTransitioning(true);
         setCurrentIndex(prevIndex => prevIndex - 1);
     };
 
     const handleDotClick = (index: number) => {
-        if (isTransitioning) return;
-        setIsTransitioning(true);
         setCurrentIndex(index + 1); 
     };
     
@@ -48,14 +42,21 @@ export function ImageCarousel() {
         return () => resetTimeout();
     }, [currentIndex, handleNext, resetTimeout]);
     
-    const handleTransitionEnd = () => {
-        setIsTransitioning(false);
-        if (currentIndex === 0) {
-            setCurrentIndex(banners.length);
-        } else if (currentIndex > banners.length) {
-            setCurrentIndex(1);
+    useEffect(() => {
+        if (currentIndex === 0 || currentIndex === loopedBanners.length - 1) {
+            setIsTransitioning(true);
+            const timer = setTimeout(() => {
+                setIsTransitioning(false);
+                if (currentIndex === 0) {
+                    setCurrentIndex(loopedBanners.length - 2);
+                } else if (currentIndex === loopedBanners.length - 1) {
+                    setCurrentIndex(1);
+                }
+            }, 500); // Duration of the transition
+            return () => clearTimeout(timer);
         }
-    };
+    }, [currentIndex, loopedBanners.length]);
+
     
     const getSlideOffset = () => {
         if (isMobile) {
@@ -66,16 +67,15 @@ export function ImageCarousel() {
 
     return (
         <div className="bg-[#151515]">
-            <div className="group mx-auto w-full max-w-[1366px] md:py-2.5 lg:py-5">
+            <div className="group mx-auto max-w-[1366px] md:py-2.5 lg:py-5">
                 <div className="relative overflow-hidden">
                     <div className="relative h-0 pt-[43.478%] md:pt-[19.106%]">
                         <div
                             className="absolute inset-0 flex"
                             style={{
                                 transform: `translateX(${getSlideOffset()})`,
-                                transition: isTransitioning ? 'transform 500ms ease-in-out' : 'none',
+                                transition: isTransitioning ? 'none' : 'transform 500ms ease-in-out',
                             }}
-                            onTransitionEnd={handleTransitionEnd}
                         >
                             {loopedBanners.map((banner, index) => {
                                 const isActive = currentIndex === index;

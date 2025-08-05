@@ -302,7 +302,7 @@ function HomePageContent() {
                        backgroundRepeat: 'no-repeat',
                        backgroundPosition: 'center',
                        backgroundSize: 'contain',
-                       height: '108px'
+                       height: '98px'
                    }}>
                       <div className="flex items-center justify-between w-full">
                           <div className="item">

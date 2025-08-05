@@ -5,16 +5,8 @@ export const banners = [
         alt: 'Banner 1' 
     },
     { 
-        src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/47BED91C7ABCF1EA.png?v=1752155361', 
-        alt: 'Banner 2' 
-    },
-    { 
-        src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/47C95AECB3BF44D6.jpg?v=1753969332', 
-        alt: 'Banner 3' 
-    },
-    { 
-        src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/6FAE33F6E97F3F4C.png?v=1752169162', 
-        alt: 'Banner 4' 
+        src: 'https://i.ibb.co/HfYhLH5L/recarregue-seus-diamantes-ganhe-o-dobro.jpg', 
+        alt: 'Banner Recarregue em Dobro' 
     },
     { 
         src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/77EA32E48F86033D.jpg?v=1753856459', 
