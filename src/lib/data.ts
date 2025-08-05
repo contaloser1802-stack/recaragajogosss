@@ -1,10 +1,6 @@
 
 export const banners = [
     { 
-        src: 'https://contentgarena-a.akamaihd.net/GOP/newshop_banners/26B06340B596B557.png?v=1729016596', 
-        alt: 'Banner 1' 
-    },
-    { 
         src: 'https://i.ibb.co/WNVytw37/recarregue-seus-diamantes-ganhe-o-dobro-1.jpg', 
         alt: 'Banner Recarregue em Dobro' 
     },
