@@ -302,7 +302,7 @@ function HomePageContent() {
                        backgroundImage: "url('https://i.ibb.co/YFqTtRSJ/freefire-freeitem-bg-light-3457641a.png')",
                        backgroundRepeat: 'no-repeat',
                        backgroundPosition: 'center',
-                       backgroundSize: 'contain',
+                       backgroundSize: 'cover',
                    }}>
                       <div className="flex items-center justify-between">
                           <div className="item">
