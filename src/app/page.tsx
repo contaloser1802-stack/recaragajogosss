@@ -298,9 +298,14 @@ function HomePageContent() {
                     </div>
                   </div>
                     
-                   <div className="bg-gray-100 rounded-lg p-4 mx-2 my-4 lg:mx-0">
+                   <div className="bg-gray-100 rounded-lg p-4 mx-2 my-4 lg:mx-0 relative overflow-hidden" style={{
+                       backgroundImage: "url('https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/ff-logo-large-2661523a.png')",
+                       backgroundRepeat: 'no-repeat',
+                       backgroundPosition: 'center',
+                       backgroundSize: 'contain',
+                   }}>
                       <div className="flex items-center justify-between">
-                          <div className="flex-1">
+                          <div className="item">
                               <h3 className="font-bold text-lg text-gray-800">Item Grátis</h3>
                               <p className="text-sm text-gray-600">Resgate aqui seus itens exclusivos grátis</p>
                               <Button
@@ -311,7 +316,7 @@ function HomePageContent() {
                                   Resgatar
                               </Button>
                           </div>
-                          <div className="flex-shrink-0 text-center">
+                          <div className="icone text-center">
                               <Image
                                   src="https://i.postimg.cc/KRYGcBrV/cubomagic.png"
                                   alt="Cubo Mágico"
