@@ -47,19 +47,16 @@ export function ImageCarousel() {
     }, [currentIndex, handleNext, resetTimeout]);
     
     useEffect(() => {
-        // Quando o carrossel chega em um dos clones, preparamos para o "salto"
         if (currentIndex === 0 || currentIndex === loopedBanners.length - 1) {
             setIsTransitioning(true);
             const timer = setTimeout(() => {
-                // Desativa a animação, salta para o slide real correspondente
                 if (currentIndex === 0) {
-                    setCurrentIndex(loopedBanners.length - 2); // Salta para o último slide real
+                    setCurrentIndex(loopedBanners.length - 2); 
                 } else if (currentIndex === loopedBanners.length - 1) {
-                    setCurrentIndex(1); // Salta para o primeiro slide real
+                    setCurrentIndex(1); 
                 }
-                 // Permite que o estado atualize antes de reativar as transições
                 setTimeout(() => setIsTransitioning(false), 50);
-            }, 500); // Duração da animação CSS
+            }, 500); 
             return () => clearTimeout(timer);
         }
     }, [currentIndex, loopedBanners.length]);
@@ -71,14 +68,13 @@ export function ImageCarousel() {
         return `calc(-${currentIndex * 50}% + 25%)`;
     };
 
-    const getTransitionStyle = () => {
-        // Desativa a transição durante o salto para torná-lo invisível
-        if (isTransitioning) {
-            return 'none';
-        }
-        return 'transform 500ms ease-in-out';
+    const getTransitionStyle = (): React.CSSProperties => {
+        return {
+          transitionProperty: isTransitioning ? 'none' : 'transform',
+          transitionDuration: '500ms',
+          transitionTimingFunction: 'ease-in-out',
+        };
     };
-
 
     return (
         <div className="bg-[#151515]">
@@ -89,7 +85,7 @@ export function ImageCarousel() {
                             className="absolute inset-0 flex"
                             style={{
                                 transform: `translateX(${getSlideOffset()})`,
-                                transition: getTransitionStyle(),
+                                ...getTransitionStyle(),
                             }}
                         >
                             {loopedBanners.map((banner, index) => {
