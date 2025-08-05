@@ -303,8 +303,8 @@ function HomePageContent() {
                           <div className="flex-1">
                               <h3 className="font-bold text-lg text-gray-800">Item Grátis</h3>
                               <p className="text-sm text-gray-600">Resgate aqui seus itens exclusivos grátis</p>
-                              <Button 
-                                  variant="destructive" 
+                              <Button
+                                  variant="destructive"
                                   className="mt-3"
                                   onClick={handleFreeItemClick}
                               >
@@ -312,12 +312,12 @@ function HomePageContent() {
                               </Button>
                           </div>
                           <div className="flex-shrink-0 text-center">
-                              <Image 
-                                  src="https://i.postimg.cc/KRYGcBrV/cubomagic.png" 
+                              <Image
+                                  src="https://i.postimg.cc/KRYGcBrV/cubomagic.png"
                                   alt="Cubo Mágico"
                                   width={80}
                                   height={80}
-                                  className="mx-auto"
+                                  className="mx-auto rounded-md"
                                   data-ai-hint="magic cube"
                               />
                               <span className="text-xs text-gray-700 mt-1 inline-flex items-center gap-1">
