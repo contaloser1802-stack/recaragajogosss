@@ -428,17 +428,17 @@ function HomePageContent() {
                               onKeyDown={(e) => handleSelectionKeyDown(e, () => handleRechargeSelection(itemId))}
                               onClick={() => handleRechargeSelection(itemId)}
                               className={cn(
-                                "group relative flex min-h-[50px] cursor-pointer flex-col overflow-hidden rounded-md bg-white p-1 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
+                                "group flex min-h-[50px] cursor-pointer flex-col overflow-hidden rounded-md bg-white p-0 sm:min-h-[64px] md:min-h-[72px] border border-gray-200 outline-none transition-all",
                                 "focus-visible:ring-2 focus-visible:ring-ring",
                                 isSelected && "ring-2 ring-destructive"
                               )}
                             >
                                {pack.promo && (
-                                    <div className="absolute top-0 right-0 left-0 bg-destructive text-white text-[9px] font-bold px-1 text-center">
+                                    <div className="bg-destructive text-white text-[10px] font-bold text-center leading-tight py-0.5">
                                         {pack.promo}
                                     </div>
                                 )}
-                              <div className={cn("flex flex-1 items-center justify-center", pack.promo && "pt-3")}>
+                              <div className="flex flex-1 items-center justify-center p-1">
                                 <Image className="me-1 h-3 w-3 object-contain md:h-4 md:w-4" src="https://cdn-gop.garenanow.com/gop/app/0000/100/067/point.png" width={16} height={16} alt="Diamante" data-ai-hint="diamond gem" />
                                 <span className="text-xs/none font-medium md:text-lg/none">{pack.originalAmount}</span>
                               </div>
@@ -560,8 +560,7 @@ function HomePageContent() {
               selectedRechargeId={selectedRechargeId}
               selectedPaymentId={selectedPaymentId}
               onRechargeSelect={handleRechargeSelection}
-              onPaymentSelect={handlePaymentSelection}
-              onSelectionKeyDown={handleSelectionKeyDown}
+              onPaymentSelect={handleSelectionKeyDown}
               history={history}
               isHistoryPopoverOpen={isHistoryPopoverOpen}
               setIsHistoryPopoverOpen={setIsHistoryPopoverOpen}
