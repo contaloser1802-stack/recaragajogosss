@@ -74,22 +74,18 @@ function CheckoutComponent() {
   const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
 
   useEffect(() => {
+    const currentParams: { [key: string]: string } = {};
+    searchParams.forEach((value, key) => {
+      currentParams[key] = value;
+    });
+    setUtmParams(currentParams);
+    console.log("Parâmetros UTM capturados:", currentParams);
+    
     try {
-      if (window.utm_pixel && typeof window.utm_pixel.track === 'function') {
-        window.utm_pixel.track('InitiateCheckout');
+      if (Object.keys(currentParams).some(key => key.startsWith('utm_'))) {
+          localStorage.setItem('utmParams', JSON.stringify(currentParams));
       }
-
-      const currentParams: { [key: string]: string } = {};
-      searchParams.forEach((value, key) => {
-        currentParams[key] = value;
-      });
-      setUtmParams(currentParams);
       
-      localStorage.setItem('utmParams', JSON.stringify(currentParams));
-      
-      console.log("Parâmetros UTM capturados e salvos:", currentParams);
-
-
       const storedAppId = localStorage.getItem('selectedAppId');
       const storedProduct = localStorage.getItem('selectedProduct');
       const storedPlayerName = localStorage.getItem('playerName');
@@ -133,6 +129,28 @@ function CheckoutComponent() {
     }
   }, [router, toast, searchParams]);
 
+  useEffect(() => {
+    let attempts = 0;
+    const maxAttempts = 10;
+    const interval = 500; // 500ms
+
+    const trackCheckout = () => {
+      if (typeof window.utm_pixel?.track === 'function') {
+        window.utm_pixel.track('InitiateCheckout');
+        console.log('Utmify: InitiateCheckout event triggered.');
+      } else {
+        attempts++;
+        if (attempts < maxAttempts) {
+          console.log(`Utmify pixel not ready, retrying in ${interval}ms... (Attempt ${attempts})`);
+          setTimeout(trackCheckout, interval);
+        } else {
+          console.error('Utmify pixel could not be loaded after several attempts.');
+        }
+      }
+    };
+
+    trackCheckout();
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -267,6 +285,8 @@ function CheckoutComponent() {
 
     const items = buildPayloadItems();
     const totalAmount = getNumericTotalAmount;
+    const finalUtmParams = utmParams;
+
 
     const payload: PaymentPayload = {
       name: values.name,
@@ -275,7 +295,7 @@ function CheckoutComponent() {
       amount: totalAmount,
       externalId: `ff-${Date.now()}`,
       items: items,
-      utmQuery: utmParams,
+      utmQuery: finalUtmParams,
     };
 
     try {
@@ -308,7 +328,7 @@ function CheckoutComponent() {
         totalAmount: product.totalAmount,
         productId: product.id,
         items: items,
-        utmQuery: utmParams,
+        utmQuery: finalUtmParams,
       }));
 
       router.push('/buy');
