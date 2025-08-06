@@ -36,7 +36,7 @@ export const upsellOffers = [
 ];
 
 export const premiumStatusOffer = [
-    { id: 'status-premium', name: 'Status Premium', originalAmount: '', bonusAmount: '', totalAmount: 'Status Premium', price: 67.80, formattedPrice: 'R$ 67,80', image: 'https://i.ibb.co/hFDG8Gbn/status-premium-banner.png' }
+    { id: 'status-premium', name: 'Influencer Beta', originalAmount: '', bonusAmount: '', totalAmount: 'Influencer Beta', price: 67.80, formattedPrice: 'R$ 67,80', image: 'https://i.ibb.co/hFDG8Gbn/status-premium-banner.png' }
 ];
 
 export const downsellOffers = [

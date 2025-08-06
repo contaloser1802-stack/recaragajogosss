@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         }
         
         const finalCpf = (requestBody.cpf || gerarCPFValido()).replace(/\D/g, '');
-        const utmParams = new URLSearchParams(utmQuery || '');
+        const utmParams = utmQuery || {};
         const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
         const payloadForBuckPay = {
@@ -82,15 +82,15 @@ export async function POST(request: NextRequest) {
                 quantity: item.quantity,
             })),
             tracking: {
-                ref: utmParams.get('ref') || null,
-                src: utmParams.get('utm_source') || null,
-                sck: utmParams.get('sck') || null,
-                utm_source: utmParams.get('utm_source') || null,
-                utm_medium: utmParams.get('utm_medium') || null,
-                utm_campaign: utmParams.get('utm_campaign') || null,
-                utm_id: utmParams.get('utm_id') || null,
-                utm_term: utmParams.get('utm_term') || null,
-                utm_content: utmParams.get('utm_content') || null,
+                ref: utmParams['ref'] || null,
+                src: utmParams['src'] || utmParams['utm_source'] || null,
+                sck: utmParams['sck'] || null,
+                utm_source: utmParams['utm_source'] || null,
+                utm_medium: utmParams['utm_medium'] || null,
+                utm_campaign: utmParams['utm_campaign'] || null,
+                utm_id: utmParams['utm_id'] || null,
+                utm_term: utmParams['utm_term'] || null,
+                utm_content: utmParams['utm_content'] || null,
             }
         };
 
@@ -146,13 +146,13 @@ export async function POST(request: NextRequest) {
                     priceInCents: Math.round(item.unitPrice * 100),
                 })),
                 trackingParameters: {
-                    src: utmParams.get('utm_source') || null,
-                    sck: utmParams.get('sck') || null,
-                    utm_source: utmParams.get('utm_source') || null,
-                    utm_campaign: utmParams.get('utm_campaign') || null,
-                    utm_medium: utmParams.get('utm_medium') || null,
-                    utm_content: utmParams.get('utm_content') || null,
-                    utm_term: utmParams.get('utm_term') || null,
+                    src: utmParams['src'] || utmParams['utm_source'] || null,
+                    sck: utmParams['sck'] || null,
+                    utm_source: utmParams['utm_source'] || null,
+                    utm_campaign: utmParams['utm_campaign'] || null,
+                    utm_medium: utmParams['utm_medium'] || null,
+                    utm_content: utmParams['utm_content'] || null,
+                    utm_term: utmParams['utm_term'] || null,
                 },
                 commission: {
                     totalPriceInCents: amountInCents,

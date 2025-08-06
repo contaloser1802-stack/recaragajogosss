@@ -13,7 +13,7 @@ export interface PaymentPayload {
     quantity: number;
     tangible: boolean;
   }[];
-  utmQuery?: string;
+  utmQuery?: { [key: string]: string };
 }
 
 export interface ProductData {

@@ -129,10 +129,10 @@ const Upsell3Page = () => {
             <main className="flex-1 flex flex-col items-center justify-center p-4 text-center">
                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 max-w-2xl w-full border">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800 uppercase tracking-wider">
-                        OFERTA EXCLUSIVA <span className="text-destructive">STATUS PREMIUM</span>
+                        OFERTA EXCLUSIVA <span className="text-destructive">SE TORNE UM INFLUENCIADOR</span>
                     </h1>
                     <p className="mt-3 text-base text-gray-600">
-                        Eleve sua conta para o próximo nível com o Status Premium e receba benefícios exclusivos.
+                        Eleve sua conta para o próximo nível virando o mais novo influencer e receba benefícios exclusivos.
                     </p>
                     
                     <div className="my-8">
@@ -157,7 +157,7 @@ const Upsell3Page = () => {
                             className="w-full text-lg py-6 font-bold"
                             variant="destructive"
                         >
-                            {isSubmitting ? 'Processando...' : 'Sim, Eu Quero o Status Premium!'}
+                            {isSubmitting ? 'Processando...' : 'SIM, EU QUERO!'}
                         </Button>
                         <Button
                             onClick={handleDecline}

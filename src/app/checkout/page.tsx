@@ -48,6 +48,7 @@ function CheckoutComponent() {
   const [playerName, setPlayerName] = useState("Carregando...");
   const [paymentMethodName] = useState("PIX");
   const [selectedOffers, setSelectedOffers] = useState<string[]>([]);
+  const [utmParams, setUtmParams] = useState<{ [key: string]: string }>({});
 
   const selectedAppId = typeof window !== 'undefined' ? localStorage.getItem('selectedAppId') : '100067';
   const isDeltaForce = selectedAppId === '100151';
@@ -67,6 +68,12 @@ function CheckoutComponent() {
 
   useEffect(() => {
     try {
+      const currentParams: { [key: string]: string } = {};
+      searchParams.forEach((value, key) => {
+        currentParams[key] = value;
+      });
+      setUtmParams(currentParams);
+
       const storedAppId = localStorage.getItem('selectedAppId');
       const storedProduct = localStorage.getItem('selectedProduct');
       const storedPlayerName = localStorage.getItem('playerName');
@@ -108,7 +115,7 @@ function CheckoutComponent() {
       });
       router.push('/');
     }
-  }, [router, toast]);
+  }, [router, toast, searchParams]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -242,7 +249,6 @@ function CheckoutComponent() {
       console.warn("Não foi possível salvar os dados do cliente no localStorage.");
     }
 
-    const utmQuery = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).toString() : '';
     const items = buildPayloadItems();
     const totalAmount = getNumericTotalAmount;
 
@@ -253,7 +259,7 @@ function CheckoutComponent() {
       amount: totalAmount,
       externalId: `ff-${Date.now()}`,
       items: items,
-      utmQuery,
+      utmQuery: utmParams,
     };
 
     try {
@@ -286,7 +292,7 @@ function CheckoutComponent() {
         totalAmount: product.totalAmount,
         productId: product.id,
         items: items,
-        utmQuery: utmQuery,
+        utmQuery: utmParams,
       }));
 
       router.push('/buy');
