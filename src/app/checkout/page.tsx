@@ -131,7 +131,7 @@ function CheckoutComponent() {
 
   useEffect(() => {
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 20; // Aumentado para 20 tentativas (10 segundos)
     const interval = 500; // 500ms
 
     const trackCheckout = () => {
