@@ -260,8 +260,11 @@ function HomePageContent() {
         localStorage.setItem('paymentMethodName', selectedPayment.displayName);
         localStorage.setItem('selectedAppId', selectedApp); // Save the current game
         
+        const currentParams = new URLSearchParams(window.location.search);
+        currentParams.set('app', selectedApp);
+
         const checkoutUrl = selectedPayment.type === 'cc' ? '/checkout-credit-card' : '/checkout';
-        router.push(`${checkoutUrl}?app=${selectedApp}`);
+        router.push(`${checkoutUrl}?${currentParams.toString()}`);
 
     } catch (e) {
         console.error("Failed to access localStorage", e);
@@ -763,4 +766,5 @@ export default function HomePage() {
   )
 }
  
+    
     
