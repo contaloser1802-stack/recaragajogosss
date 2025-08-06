@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 declare global {
   interface Window {
     utm_pixel?: {
-      track: (eventName: string) => void;
+      track: (eventName: string, params?: { [key: string]: any }) => void;
     };
     fbq?: (
       type: 'track',
@@ -31,19 +31,27 @@ export default function SuccessPage() {
       if (storedAppId === '100151') {
           setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
       }
+      
+      const paymentDataString = localStorage.getItem('paymentData');
+      if (paymentDataString) {
+          const paymentData = JSON.parse(paymentDataString);
+          const purchaseParams = {
+              value: paymentData.numericAmount || 0,
+              currency: 'BRL',
+          };
+          if (window.utm_pixel && typeof window.utm_pixel.track === 'function') {
+            window.utm_pixel.track('Purchase', purchaseParams);
+          }
+          if (window.fbq && typeof window.fbq === 'function') {
+            window.fbq('track', 'Purchase', purchaseParams);
+          }
+      }
+
 
       // Limpa dados de transação e cliente
       localStorage.removeItem('paymentData');
       localStorage.removeItem('customerData');
       localStorage.removeItem('utmParams'); // Limpa também os parâmetros salvos
-
-      // Dispara evento de compra para Utmify e Meta Pixel
-      if (window.utm_pixel && typeof window.utm_pixel.track === 'function') {
-        window.utm_pixel.track('Purchase');
-      }
-      if (window.fbq && typeof window.fbq === 'function') {
-        window.fbq('track', 'Purchase');
-      }
 
       // Exibe um toast de sucesso
       toast({

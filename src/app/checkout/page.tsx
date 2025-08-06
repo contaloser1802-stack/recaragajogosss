@@ -26,6 +26,11 @@ declare global {
       (action: string, eventName: string): void;
       queue?: any[];
     };
+    fbq?: (
+      type: 'track',
+      eventName: string,
+      params?: { [key: string]: any }
+    ) => void;
   }
 }
 
@@ -131,9 +136,8 @@ function CheckoutComponent() {
   }, [router, toast, searchParams]);
 
   useEffect(() => {
-    if (typeof window.utm_pixel === 'function') {
-        window.utm_pixel('track', 'InitiateCheckout');
-        console.log('Utmify: InitiateCheckout event triggered.');
+    if (typeof window.fbq === 'function') {
+      window.fbq('track', 'InitiateCheckout');
     }
   }, []);
 
