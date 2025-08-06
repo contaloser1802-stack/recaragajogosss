@@ -23,7 +23,8 @@ import { formatPhoneNumber } from '@/lib/utils';
 declare global {
   interface Window {
     utm_pixel?: {
-      track: (eventName: string) => void;
+      (action: string, eventName: string): void;
+      queue?: any[];
     };
   }
 }
@@ -82,7 +83,7 @@ function CheckoutComponent() {
     console.log("Parâmetros UTM capturados:", currentParams);
     
     try {
-      if (Object.keys(currentParams).some(key => key.startsWith('utm_'))) {
+      if (Object.keys(currentParams).length > 0) {
           localStorage.setItem('utmParams', JSON.stringify(currentParams));
       }
       
@@ -130,26 +131,10 @@ function CheckoutComponent() {
   }, [router, toast, searchParams]);
 
   useEffect(() => {
-    let attempts = 0;
-    const maxAttempts = 20; // Aumentado para 20 tentativas (10 segundos)
-    const interval = 500; // 500ms
-
-    const trackCheckout = () => {
-      if (typeof window.utm_pixel?.track === 'function') {
-        window.utm_pixel.track('InitiateCheckout');
+    if (typeof window.utm_pixel === 'function') {
+        window.utm_pixel('track', 'InitiateCheckout');
         console.log('Utmify: InitiateCheckout event triggered.');
-      } else {
-        attempts++;
-        if (attempts < maxAttempts) {
-          console.log(`Utmify pixel not ready, retrying in ${interval}ms... (Attempt ${attempts})`);
-          setTimeout(trackCheckout, interval);
-        } else {
-          console.error('Utmify pixel could not be loaded after several attempts.');
-        }
-      }
-    };
-
-    trackCheckout();
+    }
   }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({

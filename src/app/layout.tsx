@@ -37,6 +37,13 @@ export default function RootLayout({
         <meta name="description" content="O site oficial para comprar diamantes no Free Fire. Vários métodos de pagamento estão disponíveis para os jogadores do Brasil." />
         
         {/* Utmify Pixel */}
+        <Script id="utmify-pixel-queue" strategy="afterInteractive">
+          {`
+            window.utm_pixel = window.utm_pixel || function() {
+              (window.utm_pixel.queue = window.utm_pixel.queue || []).push(arguments)
+            };
+          `}
+        </Script>
         <Script id="utmify-pixel" strategy="afterInteractive">
           {`
             window.pixelId = "688ff3431be5c8d42d3a27b5";
