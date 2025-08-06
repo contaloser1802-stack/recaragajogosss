@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -73,6 +72,8 @@ function CheckoutComponent() {
         currentParams[key] = value;
       });
       setUtmParams(currentParams);
+      console.log("Parâmetros UTM capturados:", currentParams);
+
 
       const storedAppId = localStorage.getItem('selectedAppId');
       const storedProduct = localStorage.getItem('selectedProduct');
