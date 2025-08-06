@@ -20,6 +20,14 @@ import { specialOfferItems } from '@/lib/data';
 import { PaymentPayload, ProductData } from '@/interfaces/types';
 import { formatPhoneNumber } from '@/lib/utils';
 
+declare global {
+  interface Window {
+    utm_pixel?: {
+      track: (eventName: string) => void;
+    };
+  }
+}
+
 const formSchema = z.object({
   name: z.string()
     .min(1, { message: "Nome é obrigatório." })
@@ -67,13 +75,16 @@ function CheckoutComponent() {
 
   useEffect(() => {
     try {
+      if (window.utm_pixel && typeof window.utm_pixel.track === 'function') {
+        window.utm_pixel.track('InitiateCheckout');
+      }
+
       const currentParams: { [key: string]: string } = {};
       searchParams.forEach((value, key) => {
         currentParams[key] = value;
       });
       setUtmParams(currentParams);
       
-      // Salva os parâmetros UTM no localStorage para uso em upsells/downsells
       localStorage.setItem('utmParams', JSON.stringify(currentParams));
       
       console.log("Parâmetros UTM capturados e salvos:", currentParams);
