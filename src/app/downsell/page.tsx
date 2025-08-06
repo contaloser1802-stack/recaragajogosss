@@ -63,6 +63,7 @@ const DownsellPage = () => {
 
         const customerDataString = localStorage.getItem('customerData');
         const playerName = localStorage.getItem('playerName') || 'Desconhecido';
+        const utmParamsString = localStorage.getItem('utmParams');
         
         if (!customerDataString) {
             toast({
@@ -76,7 +77,7 @@ const DownsellPage = () => {
         }
         
         const customerData: CustomerData = JSON.parse(customerDataString);
-        const utmQuery = new URLSearchParams(window.location.search).toString();
+        const utmQuery = utmParamsString ? JSON.parse(utmParamsString) : {};
 
         const payloadItems = [{
             id: selectedProduct.id,

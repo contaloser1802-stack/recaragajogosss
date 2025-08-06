@@ -72,7 +72,11 @@ function CheckoutComponent() {
         currentParams[key] = value;
       });
       setUtmParams(currentParams);
-      console.log("Parâmetros UTM capturados:", currentParams);
+      
+      // Salva os parâmetros UTM no localStorage para uso em upsells/downsells
+      localStorage.setItem('utmParams', JSON.stringify(currentParams));
+      
+      console.log("Parâmetros UTM capturados e salvos:", currentParams);
 
 
       const storedAppId = localStorage.getItem('selectedAppId');

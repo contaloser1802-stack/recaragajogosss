@@ -47,6 +47,7 @@ const Upsell4Page = () => {
 
         const customerDataString = localStorage.getItem('customerData');
         const playerName = localStorage.getItem('playerName') || 'Desconhecido';
+        const utmParamsString = localStorage.getItem('utmParams');
         
         if (!customerDataString) {
             toast({
@@ -60,7 +61,7 @@ const Upsell4Page = () => {
         }
 
         const customerData: CustomerData = JSON.parse(customerDataString);
-        const utmQuery = new URLSearchParams(window.location.search).toString();
+        const utmQuery = utmParamsString ? JSON.parse(utmParamsString) : {};
 
         const payloadItems = [{
             id: selectedProduct.id,
