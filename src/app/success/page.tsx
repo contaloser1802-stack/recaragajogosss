@@ -8,6 +8,19 @@ import { Header } from '@/components/freefire/Header';
 import { Footer } from '@/components/freefire/Footer';
 import { useToast } from "@/hooks/use-toast";
 
+declare global {
+  interface Window {
+    utm_pixel?: {
+      track: (eventName: string) => void;
+    };
+    fbq?: (
+      type: 'track',
+      eventName: string,
+      params?: { [key: string]: any }
+    ) => void;
+  }
+}
+
 export default function SuccessPage() {
   const { toast } = useToast();
   const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
@@ -18,21 +31,30 @@ export default function SuccessPage() {
       if (storedAppId === '100151') {
           setAvatarIcon('https://cdn-gop.garenanow.com/gop/app/0000/100/151/icon.png');
       }
+
+      // Limpa dados de transação e cliente
+      localStorage.removeItem('paymentData');
+      localStorage.removeItem('customerData');
+      localStorage.removeItem('utmParams'); // Limpa também os parâmetros salvos
+
+      // Dispara evento de compra para Utmify e Meta Pixel
+      if (window.utm_pixel && typeof window.utm_pixel.track === 'function') {
+        window.utm_pixel.track('Purchase');
+      }
+      if (window.fbq && typeof window.fbq === 'function') {
+        window.fbq('track', 'Purchase');
+      }
+
+      // Exibe um toast de sucesso
+      toast({
+        title: "Sucesso!",
+        description: "Seu pagamento foi aprovado e seus itens serão creditados em breve.",
+        variant: "default",
+      });
+
     } catch (e) {
-      console.error("Could not access localStorage", e);
+      console.error("Could not access localStorage or track events", e);
     }
-
-    // Limpa todos os dados de transação e cliente do localStorage
-    localStorage.removeItem('paymentData');
-    localStorage.removeItem('customerData');
-
-
-    // Exibe um toast de sucesso ao carregar a página
-    toast({
-      title: "Sucesso!",
-      description: "Seu pagamento foi aprovado e seus itens serão creditados em breve.",
-      variant: "default",
-    });
   }, [toast]);
 
   return (
