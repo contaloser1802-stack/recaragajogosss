@@ -34,15 +34,6 @@ export default function RootLayout({
         <title>Centro de Recarga Free Fire</title>
         <meta name="description" content="O site oficial para comprar diamantes no Free Fire. Vários métodos de pagamento estão disponíveis para os jogadores do Brasil." />
         
-        {/* Scripts da Utmify */}
-        <script
-          src="https://cdn.utmify.com.br/scripts/utms/latest.js"
-          data-utmify-manual-events
-          data-utmify-prevent-xcod-sck
-          data-utmify-prevent-subids
-          async
-          defer
-        ></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -55,6 +46,14 @@ export default function RootLayout({
             `,
           }}
         />
+
+        <script
+          src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+          data-utmify-prevent-xcod-sck
+          data-utmify-prevent-subids
+          async
+          defer
+        ></script>
 
         {/* Meta Pixel Code */}
         <script
