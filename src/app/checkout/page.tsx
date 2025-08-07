@@ -80,18 +80,29 @@ function CheckoutComponent() {
   const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
 
   useEffect(() => {
+    // Capture UTM parameters from URL and store them in localStorage
     const currentParams: { [key: string]: string } = {};
+    let hasUtmParams = false;
     searchParams.forEach((value, key) => {
+      if (key.startsWith('utm_')) {
+          hasUtmParams = true;
+      }
       currentParams[key] = value;
     });
-    setUtmParams(currentParams);
-    console.log("Parâmetros UTM capturados:", currentParams);
+
+    if (hasUtmParams) {
+        console.log("Parâmetros UTM capturados da URL:", currentParams);
+        localStorage.setItem('utmParams', JSON.stringify(currentParams));
+        setUtmParams(currentParams);
+    } else {
+        const storedUtms = localStorage.getItem('utmParams');
+        if (storedUtms) {
+            console.log("Carregando parâmetros UTM do localStorage:", storedUtms);
+            setUtmParams(JSON.parse(storedUtms));
+        }
+    }
     
     try {
-      if (Object.keys(currentParams).length > 0) {
-          localStorage.setItem('utmParams', JSON.stringify(currentParams));
-      }
-      
       const storedAppId = localStorage.getItem('selectedAppId');
       const storedProduct = localStorage.getItem('selectedProduct');
       const storedPlayerName = localStorage.getItem('playerName');
