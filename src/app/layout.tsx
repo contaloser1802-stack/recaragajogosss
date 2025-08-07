@@ -36,6 +36,14 @@ export default function RootLayout({
         
         {/* Scripts da Utmify */}
         <script
+          src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+          data-utmify-manual-events
+          data-utmify-prevent-xcod-sck
+          data-utmify-prevent-subids
+          async
+          defer
+        ></script>
+        <script
           dangerouslySetInnerHTML={{
             __html: `
               window.pixelId = "688ff3431be5c8d42d3a27b5";
@@ -47,13 +55,6 @@ export default function RootLayout({
             `,
           }}
         />
-        <script
-          src="https://cdn.utmify.com.br/scripts/utms/latest.js"
-          data-utmify-prevent-xcod-sck
-          data-utmify-prevent-subids
-          async
-          defer
-        ></script>
 
         {/* Meta Pixel Code */}
         <script
