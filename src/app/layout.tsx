@@ -34,18 +34,14 @@ export default function RootLayout({
         <title>Centro de Recarga Free Fire</title>
         <meta name="description" content="O site oficial para comprar diamantes no Free Fire. Vários métodos de pagamento estão disponíveis para os jogadores do Brasil." />
         
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.pixelId = "688ff3431be5c8d42d3a27b5";
-              var a = document.createElement("script");
-              a.setAttribute("async", "");
-              a.setAttribute("defer", "");
-              a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-              document.head.appendChild(a);
-            `,
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.pixelId = "68652c2603b34a13ee47f2dd";
+          var a = document.createElement("script");
+          a.setAttribute("async", "");
+          a.setAttribute("defer", "");
+          a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+          document.head.appendChild(a);
+        `}} />
 
         <script
           src="https://cdn.utmify.com.br/scripts/utms/latest.js"
@@ -55,26 +51,31 @@ export default function RootLayout({
           defer
         ></script>
 
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17208963439"></script>
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'AW-17208963439');
+        `}} />
+
         {/* Meta Pixel Code */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '1283326623320229');
-              fbq('track', 'PageView');
-            `,
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: `
+          !function(f,b,e,v,n,t,s)
+          {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+          n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+          if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+          n.queue=[];t=b.createElement(e);t.async=!0;
+          t.src=v;s=b.getElementsByTagName(e)[0];
+          s.parentNode.insertBefore(t,s)}(window, document,'script',
+          'https://connect.facebook.net/en_US/fbevents.js');
+          fbq('init', '1264486768354584');
+          fbq('track', 'PageView');
+        `}} />
         <noscript>
           <img height="1" width="1" style={{display: 'none'}}
-               src="https://www.facebook.com/tr?id=1283326623320229&ev=PageView&noscript=1"
+               src="https://www.facebook.com/tr?id=1264486768354584&ev=PageView&noscript=1"
           />
         </noscript>
         {/* End Meta Pixel Code */}
