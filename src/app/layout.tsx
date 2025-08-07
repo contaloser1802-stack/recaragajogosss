@@ -46,17 +46,19 @@ export default function RootLayout({
           defer
         ></Script>
 
-        {/* Utmify Pixel */}
-        <Script id="utmify-pixel" strategy="afterInteractive">
-          {`
-            window.pixelId = "688ff3431be5c8d42d3a27b5";
-            var a = document.createElement("script");
-            a.setAttribute("async", "");
-            a.setAttribute("defer", "");
-            a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-            document.head.appendChild(a);
-          `}
-        </Script>
+        {/* Utmify Pixel - Carregado via script nativo para maior controle */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.pixelId = "688ff3431be5c8d42d3a27b5";
+              var a = document.createElement("script");
+              a.setAttribute("async", "");
+              a.setAttribute("defer", "");
+              a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+              document.head.appendChild(a);
+            `,
+          }}
+        />
 
         {/* Meta Pixel Code */}
         <Script id="meta-pixel" strategy="afterInteractive">
