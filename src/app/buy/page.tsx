@@ -240,6 +240,22 @@ const BuyPage = () => {
 
       if (paymentStatus === 'PAID') {
           if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+
+    // --- ADICIONE O CÓDIGO DO GOOGLE ADS AQUI ---
+    // Observe que você pode e deve passar os dados dinâmicos da compra
+    // para o snippet do Google Ads.
+    
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'conversion', {
+        'send_to': 'AW-17449253664/74oBCIau54EbEKD2uYBB',
+        'value': paymentData.numericAmount, // Use o valor numérico da compra
+        'currency': 'BRL',
+        'transaction_id': paymentData.external_id, // Use o ID da transação
+      });
+    }
+
+    // --- FIM DO CÓDIGO DO GOOGLE ADS ---
+        
           const redirectPath = getSuccessRedirectPath(paymentData?.productId);
           router.push(redirectPath);
           localStorage.removeItem('paymentData');
