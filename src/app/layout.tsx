@@ -52,12 +52,12 @@ export default function RootLayout({
         ></script>
 
         {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17208963439"></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17449253664"></script>
         <script dangerouslySetInnerHTML={{ __html: `
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'AW-17208963439');
+          gtag('config', 'AW-17449253664');
         `}} />
 
         {/* Meta Pixel Code */}
