@@ -18,6 +18,9 @@ declare global {
       eventName: string,
       params?: { [key: string]: any }
     ) => void;
+    gtag?: (
+      ...args: any[]
+    ) => void;
   }
 }
 
@@ -39,19 +42,30 @@ export default function SuccessPage() {
               value: paymentData.numericAmount || 0,
               currency: 'BRL',
           };
+
           if (window.utm_pixel && typeof window.utm_pixel.track === 'function') {
             window.utm_pixel.track('Purchase', purchaseParams);
           }
           if (window.fbq && typeof window.fbq === 'function') {
             window.fbq('track', 'Purchase', purchaseParams);
           }
+          
+          // --- SNIPPET DO GOOGLE ADS ADICIONADO AQUI ---
+          if (window.gtag && typeof window.gtag === 'function') {
+            window.gtag('event', 'conversion', {
+              'send_to': 'AW-17448187029/b-gvCKmw5YEbEJXp-P9A',
+              'value': paymentData.numericAmount,
+              'currency': 'BRL',
+              'transaction_id': paymentData.external_id,
+            });
+          }
+          // --- FIM DO SNIPPET DO GOOGLE ADS ---
       }
-
 
       // Limpa dados de transação e cliente
       localStorage.removeItem('paymentData');
       localStorage.removeItem('customerData');
-      localStorage.removeItem('utmParams'); // Limpa também os parâmetros salvos
+      localStorage.removeItem('utmParams');
 
       // Exibe um toast de sucesso
       toast({
