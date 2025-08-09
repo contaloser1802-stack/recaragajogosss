@@ -247,7 +247,7 @@ const BuyPage = () => {
     
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'conversion', {
-        'send_to': 'AW-17449253664/74oBCIau54EbEKD2uYBB',
+        'send_to': 'AW-17448187029/b-gvCKmw5YEbEJXp-P9A',
         'value': paymentData.numericAmount, // Use o valor numérico da compra
         'currency': 'BRL',
         'transaction_id': paymentData.external_id, // Use o ID da transação
