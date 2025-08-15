@@ -1,9 +1,5 @@
-
 import type {NextConfig} from 'next';
-<<<<<<< HEAD
 import WebpackObfuscator from 'webpack-obfuscator';
-=======
->>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 require('dotenv').config();
 
 const nextConfig: NextConfig = {
@@ -96,8 +92,6 @@ const nextConfig: NextConfig = {
     UTMIFY_API_URL: process.env.UTMIFY_API_URL,
     UTMIFY_API_TOKEN: process.env.UTMIFY_API_TOKEN,
   },
-<<<<<<< HEAD
-  
   webpack: (config, { dev, isServer }) => {
     if (!dev && !isServer) {
       config.plugins.push(
@@ -125,8 +119,6 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
-=======
->>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 };
 
 export default nextConfig;
