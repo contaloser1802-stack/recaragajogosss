@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 
-=======
->>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 'use client';
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -84,10 +81,6 @@ function CheckoutComponent() {
   const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
 
   useEffect(() => {
-<<<<<<< HEAD
-=======
-    // Capture UTM parameters from URL and store them in localStorage
->>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     const currentParams: { [key: string]: string } = {};
     let hasUtmParams = false;
     searchParams.forEach((value, key) => {
@@ -98,19 +91,11 @@ function CheckoutComponent() {
     });
 
     if (hasUtmParams) {
-<<<<<<< HEAD
-=======
-        console.log("Parâmetros UTM capturados da URL:", currentParams);
->>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
         localStorage.setItem('utmParams', JSON.stringify(currentParams));
         setUtmParams(currentParams);
     } else {
         const storedUtms = localStorage.getItem('utmParams');
         if (storedUtms) {
-<<<<<<< HEAD
-=======
-            console.log("Carregando parâmetros UTM do localStorage:", storedUtms);
->>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
             setUtmParams(JSON.parse(storedUtms));
         }
     }
@@ -149,10 +134,6 @@ function CheckoutComponent() {
         setPlayerName("Não encontrado");
       }
     } catch (error) {
-<<<<<<< HEAD
-=======
-      console.error("Failed to access localStorage or parse data", error);
->>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
       toast({
         variant: "destructive",
         title: "Erro",
