@@ -1,13 +1,31 @@
+<<<<<<< HEAD
+=======
+// src/lib/utmifyService.ts
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 import { UtmifyOrderPayload } from '@/interfaces/utmify';
 import axios from 'axios';
 import getConfig from 'next/config';
 
 const { serverRuntimeConfig } = getConfig();
 
+<<<<<<< HEAD
+=======
+/**
+ * Envia dados de pedido para a API da UTMify.
+ *
+ * @param payload O payload do pedido no formato UtmifyOrderPayload.
+ * @returns A resposta da API da UTMify.
+ * @throws Um erro se a comunicação com a API da UTMify falhar.
+ */
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<any> {
   const UTMIFY_API_URL = serverRuntimeConfig.UTMIFY_API_URL;
   const UTMIFY_API_TOKEN = serverRuntimeConfig.UTMIFY_API_TOKEN; 
 
+<<<<<<< HEAD
+=======
+  // Adicione um log para verificar o valor do token
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
   console.log('[UtmifyService] Verificando token. Valor do UTMIFY_API_TOKEN:', UTMIFY_API_TOKEN ? 'Token carregado' : 'Token não carregado ou vazio');
 
 
@@ -56,6 +74,16 @@ export async function sendOrderToUtmify(payload: UtmifyOrderPayload): Promise<an
   }
 }
 
+<<<<<<< HEAD
+=======
+/**
+ * Formata um objeto Date para uma string no formato "YYYY-MM-DD HH:MM:SS" (UTC),
+ * esperado pela API da UTMify.
+ *
+ * @param date O objeto Date a ser formatado. Pode ser nulo.
+ * @returns A data formatada como string em UTC, ou null se a entrada for nula.
+ */
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 export function formatToUtmifyDate(date: Date | null): string | null {
     if (!date) return null;
     return date.toISOString().slice(0, 19).replace('T', ' ');

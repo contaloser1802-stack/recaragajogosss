@@ -64,11 +64,17 @@
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.21",
     "genkit-cli": "^1.8.0",
+<<<<<<< HEAD
     "javascript-obfuscator": "^4.1.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",
     "webpack-obfuscator": "^3.5.1"
+=======
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5"
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
   },
   "description": "This is a NextJS starter in Firebase Studio.",
   "main": "index.js",

@@ -1,15 +1,27 @@
+<<<<<<< HEAD
+=======
+// src/interfaces/utmify.ts
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 
 export interface UtmifyCustomer {
     name: string;
     email: string;
     phone: string | null;
     document: string | null;
+<<<<<<< HEAD
     country?: string;
+=======
+    country?: string; // ISO 3166-1 alfa-2
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     ip?: string | null;
 }
 
 export interface UtmifyProduct {
+<<<<<<< HEAD
     id: string;
+=======
+    id: string; // ID do seu produto
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     name: string;
     planId: string | null;
     planName: string | null;

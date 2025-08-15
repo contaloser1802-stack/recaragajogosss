@@ -71,6 +71,10 @@ function HomePageContent() {
         setPlayerId(storedPlayerId);
         setIsLoggedIn(true);
       } else {
+<<<<<<< HEAD
+=======
+        // Clear old login data if the app has changed
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
         handleLogout(false);
       }
     } catch (e) {
@@ -126,6 +130,10 @@ function HomePageContent() {
     }
     setIsLoading(true);
     setError('');
+<<<<<<< HEAD
+=======
+    // Use the id passed to the function, which could be from main input or modal input
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     setPlayerId(id);
 
     if (showDeltaForceContent) {
@@ -137,11 +145,19 @@ function HomePageContent() {
         localStorage.setItem('selectedAppId', selectedApp);
         updateHistory({ id: id, name: fakeNickname });
         setIsHistoryPopoverOpen(false);
+<<<<<<< HEAD
         setIsLoginModalOpen(false); 
+=======
+        setIsLoginModalOpen(false); // Close modal on success
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
         setIsLoading(false);
         return;
     }
 
+<<<<<<< HEAD
+=======
+    // Free Fire login logic
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     try {
       const response = await fetch(`/api/player-lookup?uid=${id}`);
       const data = await response.json();
@@ -155,9 +171,16 @@ function HomePageContent() {
         localStorage.setItem('selectedAppId', selectedApp);
         updateHistory({ id: id, name: nickname });
         setIsHistoryPopoverOpen(false);
+<<<<<<< HEAD
         setIsLoginModalOpen(false); 
       } else {
         setError(data.error || 'ID de jogador não encontrado.');
+=======
+        setIsLoginModalOpen(false); // Close modal on success
+      } else {
+        setError(data.error || 'ID de jogador não encontrado.');
+        // Don't clear global state if error comes from modal
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
         if (!isLoginModalOpen) {
           localStorage.removeItem('playerName');
           localStorage.removeItem('playerId');
@@ -254,7 +277,11 @@ function HomePageContent() {
     try {
         localStorage.setItem('selectedProduct', JSON.stringify(selectedProduct));
         localStorage.setItem('paymentMethodName', selectedPayment.displayName);
+<<<<<<< HEAD
         localStorage.setItem('selectedAppId', selectedApp); 
+=======
+        localStorage.setItem('selectedAppId', selectedApp); // Save the current game
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
         
         const currentParams = new URLSearchParams(window.location.search);
         currentParams.set('app', selectedApp);
@@ -354,6 +381,10 @@ function HomePageContent() {
                   </div>
 
                   <div className="flex flex-col gap-9 px-2 lg:px-0">
+<<<<<<< HEAD
+=======
+                    {/* Login Section */}
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
                     <div id="login-section" className={cn("group md:max-w-[464px]", isLoading && "loading")}>
                       {isLoggedIn ? (
                         <>
@@ -470,6 +501,10 @@ function HomePageContent() {
                       )}
                     </div>
 
+<<<<<<< HEAD
+=======
+                    {/* Denomination Section */}
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
                     <div>
                       <div id="denom-section" className="mb-3 flex scroll-mt-16 items-center gap-2 text-lg/none font-bold text-gray-800 md:text-xl/none">
                         <StepMarker number="2" />
@@ -535,6 +570,10 @@ function HomePageContent() {
                       </div>
                     </div>
 
+<<<<<<< HEAD
+=======
+                    {/* Payment Method Section */}
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
                     <div>
                       <div id="channel-section" className="mb-3 flex scroll-mt-36 items-center gap-2 text-lg/none font-bold text-gray-800 md:text-xl/none">
                         <StepMarker number="3" />
@@ -629,6 +668,10 @@ function HomePageContent() {
       </main>
       {(showFreeFireContent || showDeltaForceContent) && <PurchaseFooter selectedRechargeId={selectedRechargeId} selectedPaymentId={selectedPaymentId} onPurchase={handlePurchase} gameId={selectedApp} />}
       
+<<<<<<< HEAD
+=======
+      {/* Modals */}
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
        <Dialog open={isLoginModalOpen} onOpenChange={setIsLoginModalOpen}>
         <DialogContent className="max-w-sm p-0 overflow-hidden rounded-lg">
             <div className="relative">
@@ -706,7 +749,11 @@ function HomePageContent() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-4 pt-2">
+<<<<<<< HEAD
             <AlertDialogCancel className="w-full mt-0 border-destructive text-destructive hover:bg-destructive/10">Cancelar</AlertDialogCancel>
+=======
+            <AlertDialogCancel className="w-full mt-0 border-[#d81a0d] text-[#d81a0d] hover:text-[#d8716b]/10">Cancelar</AlertDialogCancel>
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
             <AlertDialogAction onClick={() => handleLogout(true)} className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Sair
             </AlertDialogAction>
@@ -752,10 +799,19 @@ function HomePageContent() {
 
 export default function HomePage() {
   return (
+<<<<<<< HEAD
     <Suspense>
+=======
+    <Suspense fallback={<div>Carregando...</div>}>
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
       <HomePageContent />
     </Suspense>
   )
 }
+<<<<<<< HEAD
 
+=======
+ 
+    
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     

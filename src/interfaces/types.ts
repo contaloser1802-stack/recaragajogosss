@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+// Interface para o payload da sua API create-payment (BuckPay)
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 export interface PaymentPayload {
   name: string;
   email: string;

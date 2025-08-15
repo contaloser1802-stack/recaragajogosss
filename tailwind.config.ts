@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -11,7 +14,12 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+<<<<<<< HEAD
         sans: ['Garena', 'sans-serif'],
+=======
+        sans: ['var(--font-sans)'],
+        code: ['monospace'],
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
       },
       colors: {
         background: 'hsl(var(--background))',

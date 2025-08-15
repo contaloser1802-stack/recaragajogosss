@@ -133,4 +133,8 @@ export function ImageCarousel() {
             </div>
         </div>
     );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b

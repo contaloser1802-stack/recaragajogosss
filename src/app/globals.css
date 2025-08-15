@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+<<<<<<< HEAD
 @font-face {
   font-family: 'Garena';
   src: url('/GarenaRegular.otf') format('opentype');
@@ -9,6 +10,8 @@
   font-style: normal;
 }
 
+=======
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -71,6 +74,7 @@
     @apply border-border;
   }
   body {
+<<<<<<< HEAD
     @apply bg-background text-foreground font-sans;
   }
 }
@@ -94,5 +98,8 @@
     100% {
       transform: rotate(360deg);
     }
+=======
+    @apply bg-background text-foreground;
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
   }
 }

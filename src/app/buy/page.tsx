@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -34,6 +38,7 @@ interface PaymentData {
   productId?: string;
   items?: any[];
   utmQuery?: string;
+<<<<<<< HEAD
   id?: string;
 }
 
@@ -45,6 +50,8 @@ declare global {
       params?: { [key: string]: any }
     ) => void;
   }
+=======
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 }
 
 
@@ -116,8 +123,15 @@ const BuyPage = () => {
 
         if (storedPaymentData) {
           const parsed: PaymentData = JSON.parse(storedPaymentData);
+<<<<<<< HEAD
 
           if (!parsed.pix?.qrcode_base64 || !parsed.pix?.code || !parsed.external_id) {
+=======
+          console.log("Dados parseados do localStorage na BuyPage:", parsed);
+
+          if (!parsed.pix?.qrcode_base64 || !parsed.pix?.code || !parsed.external_id) {
+            console.error("Dados de pagamento incompletos no localStorage:", parsed);
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
             toast({
               variant: 'destructive',
               title: 'Erro',
@@ -149,6 +163,7 @@ const BuyPage = () => {
               }
               try {
                 const res = await fetch(`/api/create-payment?externalId=${externalId}`);
+<<<<<<< HEAD
                 if (!res.ok) {
                     setPaymentStatus('UNKNOWN');
                     return; 
@@ -167,6 +182,33 @@ const BuyPage = () => {
                   }
                 }
               } catch (error) {
+=======
+                if (res.status === 404) {
+                    console.log("Transação não encontrada ainda, continuando polling.");
+                    // Não retorna, apenas continua o polling
+                } else if (!res.ok) {
+                    console.error("Erro na API de status do pagamento:", res.status, await res.text());
+                    setPaymentStatus('UNKNOWN');
+                    return; // Para o polling em caso de erro
+                } else {
+                    const statusData = await res.json();
+                    console.log("Resposta do status da API (backend):", statusData);
+                    const newStatus: typeof paymentStatus = statusData.status?.toUpperCase() || 'PENDING';
+                    
+                    if (isMounted.current) {
+                      if (newStatus !== paymentStatus) {
+                          setPaymentStatus(newStatus);
+                      }
+                      
+                      if (newStatus === 'PAID' || newStatus === 'EXPIRED' || newStatus === 'CANCELLED') {
+                        if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
+                        return; 
+                      }
+                    }
+                }
+              } catch (error) {
+                console.error("Erro ao checar status do pagamento:", error);
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
                  if (isMounted.current) setPaymentStatus('UNKNOWN');
                 return;
               }
@@ -214,6 +256,10 @@ const BuyPage = () => {
           setTimeout(() => router.push('/'), 2000);
         }
       } catch (error) {
+<<<<<<< HEAD
+=======
+        console.error("Erro fatal ao carregar ou parsear dados do pagamento do localStorage:", error);
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
         toast({
           variant: 'destructive',
           title: 'Erro',
@@ -241,6 +287,7 @@ const BuyPage = () => {
       if (paymentStatus === 'PAID') {
           if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
 
+<<<<<<< HEAD
           if (window.gtag && paymentData) {
             window.gtag('event', 'conversion', {
                 'send_to': 'AW-17460167580/dKZKCO7Py4MbEJyH1IVB',
@@ -253,6 +300,26 @@ const BuyPage = () => {
           const redirectPath = getSuccessRedirectPath(paymentData?.productId);
           router.push(redirectPath);
           localStorage.removeItem('paymentData'); 
+=======
+    // --- ADICIONE O CÓDIGO DO GOOGLE ADS AQUI ---
+    // Observe que você pode e deve passar os dados dinâmicos da compra
+    // para o snippet do Google Ads.
+    
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'conversion', {
+        'send_to': 'AW-17448187029/b-gvCKmw5YEbEJXp-P9A',
+        'value': paymentData.numericAmount, // Use o valor numérico da compra
+        'currency': 'BRL',
+        'transaction_id': paymentData.external_id, // Use o ID da transação
+      });
+    }
+
+    // --- FIM DO CÓDIGO DO GOOGLE ADS ---
+        
+          const redirectPath = getSuccessRedirectPath(paymentData?.productId);
+          router.push(redirectPath);
+          localStorage.removeItem('paymentData');
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
       } else if (paymentStatus === 'EXPIRED' || paymentStatus === 'CANCELLED') {
           if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
           toast({

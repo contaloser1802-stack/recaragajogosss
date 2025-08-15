@@ -49,6 +49,10 @@ export async function POST(request: NextRequest) {
         
         const transactionId = data.id;
 
+<<<<<<< HEAD
+=======
+        // Ação para pagamento APROVADO
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
         if (event === 'transaction.processed' && (data.status === 'paid' || data.status === 'approved')) {
             await notifyDiscord(`✅ [Webhook BuckPay] Evento APROVADO recebido. ID: ${transactionId}. Processando para Utmify.`);
             
@@ -56,6 +60,11 @@ export async function POST(request: NextRequest) {
             const tracking = buckpayData.tracking || {};
             const utm = tracking.utm || {};
 
+<<<<<<< HEAD
+=======
+            // O webhook da BuckPay pode enviar 'items' (array) ou 'offer' (objeto)
+            // Precisamos garantir que 'products' seja sempre um array para o Utmify.
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
             let productsForUtmify = [];
             if (buckpayData.items && Array.isArray(buckpayData.items) && buckpayData.items.length > 0) {
                 productsForUtmify = buckpayData.items.map((item: any) => ({
@@ -76,6 +85,10 @@ export async function POST(request: NextRequest) {
                     priceInCents: buckpayData.offer.amount || buckpayData.offer.discount_price || 0,
                 }];
             } else {
+<<<<<<< HEAD
+=======
+                // Fallback: se nem 'items' nem 'offer' vierem, cria um produto genérico com o valor total
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
                  productsForUtmify = [{
                     id: `prod_${Date.now()}`,
                     name: 'Produto',
@@ -86,6 +99,10 @@ export async function POST(request: NextRequest) {
                 }];
             }
             
+<<<<<<< HEAD
+=======
+            // Tenta obter o IP do cabeçalho da requisição ou usa um fallback
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
             const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
 

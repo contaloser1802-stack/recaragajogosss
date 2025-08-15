@@ -86,5 +86,10 @@ const HistoryPopoverContent: React.FC<HistoryPopoverContentProps> = ({ history, 
 
 
 export function HistoryPopover(props: HistoryPopoverContentProps) {
+<<<<<<< HEAD
+=======
+    // Since Sheet and Popover control their own visibility via open/onOpenChange props
+    // passed to them in the parent (page.tsx), we just need to render the correct wrapper.
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     return <HistoryPopoverContent {...props} />;
 }

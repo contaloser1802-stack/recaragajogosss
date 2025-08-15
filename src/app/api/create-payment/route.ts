@@ -10,6 +10,7 @@ import { PaymentPayload } from '@/interfaces/types';
 
 const { serverRuntimeConfig } = getConfig();
 
+<<<<<<< HEAD
 const allowedOrigins = [
     'http://localhost:3000',
     'https://recargajogo.com.de',
@@ -23,6 +24,8 @@ function isOriginAllowed(request: NextRequest): boolean {
 }
 
 
+=======
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 async function notifyDiscord(message: string, payload?: any) {
     const discordWebhookUrl = serverRuntimeConfig.DISCORD_WEBHOOK_URL;
     if (!discordWebhookUrl) {
@@ -49,10 +52,13 @@ async function notifyDiscord(message: string, payload?: any) {
 }
 
 export async function POST(request: NextRequest) {
+<<<<<<< HEAD
     if (!isOriginAllowed(request)) {
         return new NextResponse(JSON.stringify({ error: 'Clonou errado kk' }), { status: 403 });
     }
 
+=======
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     let requestBody: PaymentPayload;
     try {
         requestBody = await request.json();
@@ -203,10 +209,13 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
+<<<<<<< HEAD
   if (!isOriginAllowed(request)) {
       return new NextResponse(JSON.stringify({ error: 'Clonou errado kk' }), { status: 403 });
   }
 
+=======
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
   const { searchParams } = new URL(request.url);
   const externalId = searchParams.get('externalId');
 

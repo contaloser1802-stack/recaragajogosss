@@ -13,6 +13,10 @@ import { PaymentPayload } from '@/interfaces/types';
 import BackRedirect from '@/components/freefire/BackRedirect';
 import Image from 'next/image';
 
+<<<<<<< HEAD
+=======
+// Tipos para os dados do cliente
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 interface CustomerData {
     name: string;
     email: string;

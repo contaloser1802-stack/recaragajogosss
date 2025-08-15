@@ -15,7 +15,11 @@ export const banners = [
 ];
 
 export const diamondPacks = [
+<<<<<<< HEAD
     { id: 'pack-100', name: '100 Diamantes', originalAmount: '100', bonusAmount: '100', totalAmount: '200', price: 6.00, formattedPrice: 'R$ 5,49' },
+=======
+    { id: 'pack-100', name: '100 Diamantes', originalAmount: '100', bonusAmount: '100', totalAmount: '200', price: 5.49, formattedPrice: 'R$ 5,49' },
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     { id: 'pack-310', name: '310 Diamantes', originalAmount: '310', bonusAmount: '310', totalAmount: '620', price: 7.50, formattedPrice: 'R$ 7,50' },
     { id: 'pack-520', name: '520 Diamantes', originalAmount: '520', bonusAmount: '520', totalAmount: '1.040', price: 9.90, formattedPrice: 'R$ 9,90' },
     { id: 'pack-1060', name: '1.060 Diamantes', originalAmount: '1.060', bonusAmount: '1.060', totalAmount: '2.120', price: 14.90, formattedPrice: 'R$ 14,90' },

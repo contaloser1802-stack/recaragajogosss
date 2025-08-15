@@ -13,6 +13,10 @@ import { useToast } from '@/hooks/use-toast';
 import { PaymentPayload } from '@/interfaces/types';
 import BackRedirect from '@/components/freefire/BackRedirect';
 
+<<<<<<< HEAD
+=======
+// Tipos para os dados do cliente
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 interface CustomerData {
     name: string;
     email: string;
@@ -136,11 +140,19 @@ const UpsellPage = () => {
                 playerName: playerName,
                 amount: totalAmount,
                 numericAmount: totalNumericAmount,
+<<<<<<< HEAD
                 diamonds: 'Skins Especiais', 
                 originalAmount: '',
                 bonusAmount: '',
                 totalAmount: 'Skins',
                 productId: selectedProducts[0].id, 
+=======
+                diamonds: 'Skins Especiais', // Placeholder
+                originalAmount: '',
+                bonusAmount: '',
+                totalAmount: 'Skins',
+                productId: selectedProducts[0].id, // Usa o ID do primeiro item para a lógica de redirect
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
                 items: payloadItems,
                 utmQuery: utmQuery,
             }));

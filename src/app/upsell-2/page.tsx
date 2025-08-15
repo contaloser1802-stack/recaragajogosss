@@ -13,6 +13,10 @@ import { useToast } from '@/hooks/use-toast';
 import { PaymentPayload } from '@/interfaces/types';
 import BackRedirect from '@/components/freefire/BackRedirect';
 
+<<<<<<< HEAD
+=======
+// Tipos para os dados do cliente
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
 interface CustomerData {
     name: string;
     email: string;
@@ -24,7 +28,11 @@ const Upsell2Page = () => {
     const router = useRouter();
     const { toast } = useToast();
     const [selectedOfferId, setSelectedOfferId] = useState<string | null>(upsellOffers[0]?.id || null);
+<<<<<<< HEAD
     const [timeLeft, setTimeLeft] = useState(300); 
+=======
+    const [timeLeft, setTimeLeft] = useState(300); // 5 minutos em segundos
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showUrgencyMessage, setShowUrgencyMessage] = useState(false);
     const [avatarIcon, setAvatarIcon] = useState('https://cdn-gop.garenanow.com/gop/app/0000/100/067/icon.png');
@@ -43,7 +51,11 @@ const Upsell2Page = () => {
             setTimeLeft(prevTime => {
                 if (prevTime <= 1) {
                     clearInterval(timer);
+<<<<<<< HEAD
                     setShowUrgencyMessage(true); 
+=======
+                    setShowUrgencyMessage(true); // Mostra a mensagem quando o tempo acabar
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
                     return 0;
                 }
                 return prevTime - 1;

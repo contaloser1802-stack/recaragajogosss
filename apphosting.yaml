@@ -1,3 +1,12 @@
+<<<<<<< HEAD
 runConfig:
 
+=======
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  # Increase this value if you'd like to automatically spin up
+  # more instances in response to increased traffic.
+>>>>>>> 1b9e35dbce48b3fe1b2f106a7bef016942c9168b
   maxInstances: 1
